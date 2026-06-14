@@ -682,86 +682,94 @@
         // IIMG.LIVE API CONFIGURATION REGISTRY
         const IIMG_API_KEY = 'pk_public_3db6884c9c2c6f089fdfb904';
         const IIMG_UPLOAD_ENDPOINT = 'https://api.iimg.live/upload';
+        const CORS_PROXY = 'https://corsproxy.io/?url=';
 
         // AUTOMATIC SYSTEM API UPLOAD DISPATCHER TO URL REGISTRY NODE MAPPING
         async function executeLocalMediaAssetPayloadCapture(event, inputFieldIdTarget) {
             const uploadedAssetFile = event.target.files[0];
             if (!uploadedAssetFile) return;
 
-            const targetUrlInputNode = document.getElementById(`schema-ctrl-${inputFieldIdTarget}`);
-            const triggerBtn = event.target.closest ? null : null;
-
-            // Find the associated upload button and show uploading state
-            const uploadBtnNode = document.getElementById(`uploader-btn-${inputFieldIdTarget}`);
+            const targetUrlInputNode = document.getElementById('schema-ctrl-' + inputFieldIdTarget);
+            const uploadBtnNode = document.getElementById('uploader-btn-' + inputFieldIdTarget);
             const originalBtnHtml = uploadBtnNode ? uploadBtnNode.innerHTML : '';
+            const originalPlaceholder = targetUrlInputNode ? targetUrlInputNode.placeholder : '';
+
+            // Show uploading state
             if (uploadBtnNode) {
-                uploadBtnNode.innerHTML = `<svg class="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Uploading...`;
+                uploadBtnNode.innerHTML = '<svg class="animate-spin w-3 h-3 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Uploading...';
                 uploadBtnNode.disabled = true;
             }
             if (targetUrlInputNode) {
-                targetUrlInputNode.placeholder = '⏳ Uploading to cloud... please wait';
+                targetUrlInputNode.placeholder = '\u23F3 Uploading to cloud\u2026';
                 targetUrlInputNode.value = '';
             }
 
-            try {
-                const formDataPayload = new FormData();
-                formDataPayload.append('image', uploadedAssetFile);
-
-                const apiResponse = await fetch(IIMG_UPLOAD_ENDPOINT, {
+            async function attemptUpload(endpoint) {
+                const fd = new FormData();
+                fd.append('image', uploadedAssetFile);
+                const res = await fetch(endpoint, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${IIMG_API_KEY}`
-                    },
-                    body: formDataPayload
+                    headers: { 'Authorization': 'Bearer ' + IIMG_API_KEY },
+                    body: fd
                 });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || 'HTTP ' + res.status);
+                }
+                return res.json();
+            }
 
-                if (!apiResponse.ok) {
-                    const errJson = await apiResponse.json().catch(() => ({}));
-                    throw new Error(errJson.message || `API Error: HTTP ${apiResponse.status}`);
+            try {
+                let responsePayload;
+                try {
+                    responsePayload = await attemptUpload(IIMG_UPLOAD_ENDPOINT);
+                } catch (directErr) {
+                    console.warn('Direct upload blocked, retrying via CORS proxy\u2026', directErr.message);
+                    responsePayload = await attemptUpload(CORS_PROXY + encodeURIComponent(IIMG_UPLOAD_ENDPOINT));
                 }
 
-                const responsePayload = await apiResponse.json();
-
-                // Extract URL from iimg.live response
-                const returnedPublicUrl = responsePayload.url || responsePayload.data?.url || responsePayload.image?.url || responsePayload.link;
+                const returnedPublicUrl =
+                    responsePayload?.url ||
+                    responsePayload?.data?.url ||
+                    responsePayload?.image?.url ||
+                    responsePayload?.link ||
+                    responsePayload?.file_url ||
+                    responsePayload?.cdn_url;
 
                 if (!returnedPublicUrl) {
-                    throw new Error('No URL returned from upload API. Check response structure.');
+                    console.error('Unexpected API response shape:', responsePayload);
+                    throw new Error('No URL in API response \u2014 see console for raw payload.');
                 }
 
-                // Inject returned public URL into the URL field
                 if (targetUrlInputNode) {
                     targetUrlInputNode.value = returnedPublicUrl;
-                    targetUrlInputNode.placeholder = bp ? bp.placeholder : 'URL';
+                    targetUrlInputNode.placeholder = originalPlaceholder;
                     runLiveFormValidationEngine();
-                    // Auto-trigger QR code generation
                     debouncedMasterRenderPipelineTrigger();
                 }
 
                 if (uploadBtnNode) {
-                    uploadBtnNode.innerHTML = `✅ Uploaded`;
-                    uploadBtnNode.className = uploadBtnNode.className.replace('bg-green-600', 'bg-emerald-700');
+                    uploadBtnNode.innerHTML = '\u2705 Uploaded!';
+                    uploadBtnNode.style.background = '#059669';
                     setTimeout(() => {
                         uploadBtnNode.innerHTML = originalBtnHtml;
                         uploadBtnNode.disabled = false;
-                        uploadBtnNode.className = uploadBtnNode.className.replace('bg-emerald-700', 'bg-green-600');
-                    }, 3000);
+                        uploadBtnNode.style.background = '';
+                    }, 3500);
                 }
 
             } catch (uploadError) {
-                console.error('IIMG API Upload Error:', uploadError);
+                console.error('IIMG Upload Error:', uploadError);
                 if (targetUrlInputNode) {
-                    targetUrlInputNode.placeholder = bp ? bp.placeholder : 'URL';
+                    targetUrlInputNode.placeholder = originalPlaceholder;
+                    targetUrlInputNode.value = '';
                 }
                 if (uploadBtnNode) {
-                    uploadBtnNode.innerHTML = `❌ Failed`;
+                    uploadBtnNode.innerHTML = '\u274C Upload Failed';
                     uploadBtnNode.disabled = false;
-                    setTimeout(() => {
-                        uploadBtnNode.innerHTML = originalBtnHtml;
-                        uploadBtnNode.disabled = false;
-                    }, 3000);
+                    setTimeout(() => { uploadBtnNode.innerHTML = originalBtnHtml; uploadBtnNode.disabled = false; }, 3500);
                 }
-                alert(`Upload failed: ${uploadError.message}\n\nCheck your API key and network connection.`);
+                alert('Upload failed: ' + uploadError.message + '\n\nMake sure your file is JPG, PNG, WEBP, or GIF and under the API size limit.');
             }
         }
 
