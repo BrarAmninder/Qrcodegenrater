@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QRFY Ultra Premium QR Engine & SaaS Design Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a',
+                            darkBg: '#090d16', darkCard: '#131926', borderDark: '#1e293b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <style>
+        body {
+            background-color: #090d16;
+            background-image: radial-gradient(circle at 0% 0%, rgba(34, 197, 94, 0.08) 0, transparent 50%), radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.08) 0, transparent 50%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .glass-card {
+            background: rgba(19, 25, 38, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .thumb-select {
+            border: 2px solid transparent;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .thumb-select.active {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #090d16; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <header class="w-full border-b border-slate-800/60 bg-brand-darkBg/80 backdrop-blur-md sticky top-0 z-50 px-4 lg:px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/20">
+                <span class="font-black text-white text-lg tracking-tighter">Q</span>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-lg font-extrabold text-white tracking-tight">QRFY Studio</span>
+                    <span class="text-[10px] bg-green-500/10 text-green-400 font-bold px-2 py-0.5 rounded-full border border-green-500/20 uppercase tracking-widest">Enterprise</span>
+                </div>
+                <p class="text-[11px] text-slate-400">Multi-engine verification & native vector rendering pipeline</p>
+            </div>
+        </div>
+        <div id="analytical-verification-badge" class="flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs font-mono font-bold text-emerald-400">SCAN SCORE: EXCELLENT</span>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-[1600px] mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <section class="lg:col-span-7 flex flex-col gap-6">
+            
+            <div class="glass-card rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+                <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-green-400 flex items-center justify-center font-bold text-sm">1</div>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Data Type Registry & Live Validation</h2>
+                </div>
+                
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2" id="protocol-tab-matrix"></div>
+
+                <div id="dynamic-schema-fields-root" class="grid grid-cols-1 gap-4 pt-3 mt-2 border-t border-slate-800/40"></div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+                <div class="flex items-center gap-3 border-b border-slate-800 pb-3">
+                    <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-green-400 flex items-center justify-center font-bold text-sm">2</div>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Design Customization Workspace</h2>
+                </div>
+
+                <div class="border border-slate-800/60 rounded-xl overflow-hidden bg-slate-900/20">
+                    <button onclick="toggleAccordionUI('acc-frames')" class="w-full text-left px-4 py-3.5 font-bold text-xs uppercase tracking-wide flex justify-between items-center hover:bg-slate-800/40 transition-colors">
+                        <span class="flex items-center gap-2">🖼️ Frame Template Library <span id="frame-count-badge" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded-md text-slate-400">50 Templates</span></span>
+                        <span id="tg-acc-frames" class="text-slate-500 transition-transform">▼</span>
+                    </button>
+                    <div id="acc-frames" class="p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div class="flex gap-2 pb-2 overflow-x-auto border-b border-slate-800/40" id="frame-cat-filters"></div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-60 overflow-y-auto pr-1" id="frame-matrix-view"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-800/40">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase">Custom Frame Label String</label>
+                                <input type="text" id="cfg-frame-text" value="SCAN ME" class="w-full bg-brand-darkBg border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:border-green-500 focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Frame Primary</label>
+                                    <input type="color" id="cfg-frame-clr" value="#22c55e" class="w-full h-9 bg-transparent border-0 cursor-pointer rounded-lg">
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase">Text Color</label>
+                                    <input type="color" id="cfg-frame-text-clr" value="#ffffff" class="w-full h-9 bg-transparent border-0 cursor-pointer rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800/60 rounded-xl overflow-hidden bg-slate-900/20">
+                    <button onclick="toggleAccordionUI('acc-shapes')" class="w-full text-left px-4 py-3.5 font-bold text-xs uppercase tracking-wide flex justify-between items-center hover:bg-slate-800/40 transition-colors">
+                        <span>🧩 Matrix Shapes & Corner Eyes Geometry</span>
+                        <span id="tg-acc-shapes" class="text-slate-500 transition-transform">▶</span>
+                    </button>
+                    <div id="acc-shapes" class="hidden p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div>
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-2">Internal Module Geometry Morphism Style</span>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2" id="shape-matrix-view"></div>
+                        </div>
+                        <div class="pt-3 border-t border-slate-800/40">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-2">Isolated Finder Corner Eye Style Configuration</span>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="eye-matrix-view"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800/60 rounded-xl overflow-hidden bg-slate-900/20">
+                    <button onclick="toggleAccordionUI('acc-logos')" class="w-full text-left px-4 py-3.5 font-bold text-xs uppercase tracking-wide flex justify-between items-center hover:bg-slate-800/40 transition-colors">
+                        <span>🛡️ Central Branding Vector Logo Overlay</span>
+                        <span id="tg-acc-logos" class="text-slate-500 transition-transform">▶</span>
+                    </button>
+                    <div id="acc-logos" class="hidden p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2" id="logo-matrix-view"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-800/40 bg-slate-900/40 p-3 rounded-xl border border-slate-800/40">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase">Upload Premium Custom Identity File (PNG/SVG)</label>
+                                <input type="file" id="cfg-logo-file" accept="image/*" class="w-full bg-brand-darkBg text-xs border border-slate-700 rounded-lg p-1.5 cursor-pointer file:bg-green-600 file:border-0 file:text-white file:text-[10px] file:font-bold file:px-2.5 file:py-1 file:rounded-md file:mr-2 file:hover:bg-green-500">
+                            </div>
+                            <div class="flex flex-col gap-1.5 justify-center">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase flex justify-between">
+                                    <span>Logo Bounding Safe Area Scale Limit</span>
+                                    <span id="lbl-logo-size" class="text-green-400 font-mono">16%</span>
+                                </label>
+                                <input type="range" id="cfg-logo-size" min="10" max="25" value="16" class="w-full accent-green-500 bg-slate-800 h-2 rounded-lg">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-800/60 rounded-xl overflow-hidden bg-slate-900/20">
+                    <button onclick="toggleAccordionUI('acc-colors')" class="w-full text-left px-4 py-3.5 font-bold text-xs uppercase tracking-wide flex justify-between items-center hover:bg-slate-800/40 transition-colors">
+                        <span>🎨 Advanced Palette Gradient & Background Color Engine</span>
+                        <span id="tg-acc-colors" class="text-slate-500 transition-transform">▶</span>
+                    </button>
+                    <div id="acc-colors" class="hidden p-4 flex flex-col gap-4 border-t border-slate-800/60">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase">Color Engine Mode</label>
+                                <select id="cfg-color-mode" class="w-full bg-brand-darkBg border border-slate-700 rounded-lg p-2 text-xs text-slate-200 font-bold focus:outline-none">
+                                    <option value="solid">Solid Absolute Color Monochromatic</option>
+                                    <option value="linear">Linear Multi-Stop Engine Gradient</option>
+                                    <option value="radial">Radial Focal Vector Gradient</option>
+                                </select>
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase">Primary Foreground Color Stop</label>
+                                <div class="flex items-center bg-brand-darkBg border border-slate-700 rounded-lg p-1.5 gap-2">
+                                    <input type="color" id="cfg-clr-fg1" value="#000000" class="w-7 h-7 bg-transparent border-0 cursor-pointer rounded">
+                                    <input type="text" id="cfg-clr-fg1-hex" value="#000000" class="bg-transparent font-mono font-bold text-xs text-white uppercase w-full focus:outline-none">
+                                </div>
+                            </div>
+                            <div id="gradient-stop-2-wrapper" class="hidden flex flex-col gap-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase">Secondary Gradient Stop</label>
+                                <div class="flex items-center bg-brand-darkBg border border-slate-700 rounded-lg p-1.5 gap-2">
+                                    <input type="color" id="cfg-clr-fg2" value="#16a34a" class="w-7 h-7 bg-transparent border-0 cursor-pointer rounded">
+                                    <input type="text" id="cfg-clr-fg2-hex" value="#16A34A" class="bg-transparent font-mono font-bold text-xs text-white uppercase w-full focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-800/40">
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase">Matrix Canvas Background fill</label>
+                                <div class="flex items-center bg-brand-darkBg border border-slate-700 rounded-lg p-1.5 gap-2">
+                                    <input type="color" id="cfg-clr-bg" value="#ffffff" class="w-7 h-7 bg-transparent border-0 cursor-pointer rounded">
+                                    <input type="text" id="cfg-clr-bg-hex" value="#ffffff" class="bg-transparent font-mono font-bold text-xs text-white uppercase w-full focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-1.5 justify-center">
+                                <label class="text-[11px] font-bold text-slate-400 uppercase block mb-1">Canvas Transparency Channel</label>
+                                <label class="flex items-center gap-3 bg-brand-darkBg border border-slate-700 p-2.5 rounded-lg cursor-pointer">
+                                    <input type="checkbox" id="cfg-alpha-mode" class="w-4 h-4 accent-green-500 rounded">
+                                    <span class="text-xs text-slate-400 font-medium">Render alpha channel mask layer transparent</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="glass-card rounded-2xl p-6 shadow-2xl grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Output Grid Quiet Zone Bounds</label>
+                    <input type="number" id="cfg-qr-quiet" value="4" min="0" max="10" class="w-full bg-brand-darkBg border border-slate-700 text-slate-200 font-mono font-bold rounded-xl p-2.5 text-center focus:outline-none focus:border-green-500">
+                    <span class="text-[10px] text-slate-500">Isolation tracks safe padding cells</span>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Error Correction Level (ECC)</label>
+                    <select id="cfg-qr-ecc" class="w-full bg-brand-darkBg border border-slate-700 text-slate-200 font-bold rounded-xl p-2.5 text-center focus:outline-none cursor-pointer">
+                        <option value="L">Level L (7% Recovery Standard)</option>
+                        <option value="M">Level M (15% Recovery Shielded)</option>
+                        <option value="Q">Level Q (25% High Density Overlay)</option>
+                        <option value="H" selected>Level H (30% Max Redundant Recovery)</option>
+                    </select>
+                    <span class="text-[10px] text-slate-500">Protects internal data cells matrix payload</span>
+                </div>
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">System Performance Debouncer</label>
+                    <div class="w-full bg-brand-darkBg border border-slate-700 text-xs font-semibold text-slate-400 p-3 rounded-xl text-center">
+                        ⚡ Active Multi-Engine Loop
+                    </div>
+                    <span class="text-[10px] text-slate-500">Protects thread against execution blocks</span>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="lg:col-span-5 flex flex-col gap-6 sticky top-24">
+            
+            <div class="glass-card rounded-2xl p-6 shadow-2xl flex flex-col gap-5">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-200">Step 4: SaaS Live Viewport Preview</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Real-time vector assembly output rendering engine matrix</p>
+                    </div>
+                </div>
+
+                <canvas id="analytical-loopback-buffer-canvas" class="hidden"></canvas>
+
+                <div class="bg-brand-darkBg/90 border border-slate-800/80 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[380px] relative overflow-hidden group shadow-inner">
+                    <canvas id="view-canvas-master" class="max-w-full h-auto object-contain transition-all duration-300 rounded-lg shadow-2xl group-hover:scale-[1.01]"></canvas>
+                    
+                    <div id="readability-fault-screen" class="hidden absolute inset-0 bg-rose-950/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-fadeIn z-20">
+                        <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center text-2xl font-bold mb-3 border border-rose-500/20">⚠️</div>
+                        <h4 class="text-base font-bold text-white uppercase tracking-wider">Matrix Scannability Structural Fault</h4>
+                        <p class="text-xs text-rose-300/90 mt-1.5 max-w-sm leading-relaxed">The applied layout shapes, extreme asset dimensions, or weak canvas color contrast limits violate phone camera parser rules.</p>
+                        <button onclick="triggerEmergencyDesignRecovery()" class="mt-4 bg-white text-rose-950 font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-rose-100 transition-transform active:scale-95 shadow-lg">Restore Safe Calibration Presets</button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/40 border border-slate-800/60 rounded-xl p-3 grid grid-cols-2 gap-2 font-mono text-[11px]">
+                    <div class="flex justify-between border-r border-slate-800 pr-2">
+                        <span class="text-slate-500">CONTRAST SCORE:</span>
+                        <span id="tel-contrast-metric" class="text-green-400 font-bold">PASS (14.2:1)</span>
+                    </div>
+                    <div class="flex justify-between pl-2">
+                        <span class="text-slate-500">LOGO LIMIT:</span>
+                        <span id="tel-logo-safety" class="text-green-400 font-bold">SAFE BOUNDS</span>
+                    </div>
+                    <div class="flex justify-between border-r border-slate-800 pr-2 pt-1 border-t border-slate-800/40">
+                        <span class="text-slate-500">VERSION TYPE:</span>
+                        <span id="tel-version-metric" class="text-blue-400 font-bold">AUTO DETECT</span>
+                    </div>
+                    <div class="flex justify-between pl-2 pt-1 border-t border-slate-800/40">
+                        <span class="text-slate-500">TOTAL CELLS:</span>
+                        <span id="tel-cells-metric" class="text-blue-400 font-bold">29 x 29</span>
+                    </div>
+                </div>
+
+                <div class="bg-brand-darkBg rounded-xl p-3 border border-slate-800/80">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1">Encoded System Payload Matrix String Output</span>
+                    <p id="string-payload-preview-terminal" class="text-xs font-mono text-green-400 break-all select-all bg-slate-950 p-2 rounded border border-slate-900/60">https://example.com</p>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="processExportChainPipeline('png')" id="act-btn-png" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-lg shadow-green-600/10 active:scale-[0.98]">⬇️ Download PNG Image</button>
+                        <button onclick="processExportChainPipeline('svg')" id="act-btn-svg" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-3.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md active:scale-[0.98]">⬇️ Download Vector SVG</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="processClipboardActionChannel('text')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold py-2.5 px-3 rounded-xl text-[11px] transition-colors border border-slate-800 flex items-center justify-center gap-1.5">📋 Copy Text Data</button>
+                        <button onclick="processClipboardActionChannel('image')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold py-2.5 px-3 rounded-xl text-[11px] transition-colors border border-slate-800 flex items-center justify-center gap-1.5">🖼️ Copy Canvas Layer</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-4 shadow-xl flex flex-col gap-3">
+                <div>
+                    <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Independent Image Verification Terminal</h4>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Drop a file matrix block here to trace system decoding logic streams</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input type="file" id="act-diagnostic-file" accept="image/*" class="sm:col-span-2 bg-brand-darkBg text-[11px] border border-slate-800 rounded-lg p-1.5 file:bg-slate-800 file:border-0 file:text-white file:text-[10px] file:font-bold file:px-2 file:py-0.5 file:rounded file:mr-2">
+                    <button onclick="runLocalDiagnosticUploadTraceEngine()" class="bg-slate-800 hover:bg-slate-700 font-bold py-1.5 text-xs rounded-lg transition-colors border border-slate-700 text-center text-slate-200">Run Diagnostics</button>
+                </div>
+                <div id="diagnostic-log-terminal-output" class="text-xs italic font-mono text-slate-400 text-center bg-slate-950 p-2.5 rounded-xl border border-slate-900/60 min-h-[38px] flex items-center justify-center">No structural tracing array logs compiled.</div>
+            </div>
+
+        </section>
+    </main>
+
+    <script>
+        // Global SaaS Suite Immutable Architecture Registries Variables
+        let activeProtocolRegistryKey = 'URL';
+        let activeFrameTemplateIndex = 0;
+        let activeFrameCategoryFilter = 'all';
+        let activeShapeRegistryMorphismKey = 'square';
+        let activeFinderCornerEyeMorphismKey = 'square';
+        let activeBrandingLogoOverlayKey = 'none';
+        let systemUploadedLogoFileObjectReference = null;
+        let isScannabilityMetricValid = true;
+
+        // Unified resource target identifier for structural data validation loops
+        const coreProtocolSchemas = {
+            'URL': [
+                { id: 'url_str', label: 'Destination Web Portal Link URL', type: 'text', placeholder: 'https://enterprise.com/portal-destination', value: 'https://example.com', required: true }
+            ],
+            'Text': [
+                { id: 'text_blk', label: 'Plain Text Block Data Payload String', type: 'textarea', placeholder: 'Input telemetry alphanumeric text lines here...', value: 'Hello QRFY Premium Studio Software Suite 2026', required: true }
+            ],
+            'UPI': [
+                { id: 'upi_vpa', label: 'Virtual Payment Address (VPA / UPI ID)', type: 'text', placeholder: 'merchant@vpa', value: 'success@upi', required: true },
+                { id: 'upi_name', label: 'Payee / Merchant Registered Name', type: 'text', placeholder: 'Enterprise Solutions Ltd', value: 'QRFY Studio Store', required: true },
+                { id: 'upi_am', label: 'Transaction Absolute Amount (INR)', type: 'number', placeholder: 'e.g. 250.00 (Optional)', value: '', required: false },
+                { id: 'upi_tn', label: 'Payment Note / Remarks / Context Reference', type: 'text', placeholder: 'Order Description Ref (Optional)', value: 'Premium Design Suite Workspace', required: false }
+            ],
+            'Image': [
+                { id: 'url_str', label: 'Hosted Premium Image Resource Link URL', type: 'text', placeholder: 'https://storage.enterprise.com/assets/banner.jpg', value: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe', required: true, hasUploader: true, accept: 'image/*' }
+            ],
+            'PDF': [
+                { id: 'url_str', label: 'Cloud Hosted Document PDF Resource Link URL', type: 'text', placeholder: 'https://cdn.enterprise.com/docs/annual-report.pdf', value: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', required: true, hasUploader: true, accept: '.pdf,application/pdf' },
+                { id: 'pdf_lbl', label: 'Document File Presentation Label String', type: 'text', placeholder: 'Enterprise Product Specification Sheet', value: 'Corporate Quarterly Guidelines Summary', required: false }
+            ],
+            'MP3': [
+                { id: 'url_str', label: 'Hosted Audio / MP3 Stream Resource Link URL', type: 'text', placeholder: 'https://audio.enterprise.com/podcasts/episode-42.mp3', value: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', required: true, hasUploader: true, accept: 'audio/*', audio: true },
+                { id: 'mp3_dsc', label: 'Audio Track Broadcast Descriptor Header', type: 'text', placeholder: 'SaaS Architecture Panel Podcast Interview', value: 'Digital Evolution Sound Track', required: false }
+            ],
+            'Video': [
+                { id: 'url_str', label: 'Video Resource Target URL (YouTube/Vimeo/Direct MP4)', type: 'text', placeholder: 'https://youtube.com/watch?v=xyz7729', value: 'https://www.w3schools.com/html/mov_bbb.mp4', required: true, hasUploader: true, accept: 'video/*', video: true },
+                { id: 'vid_desc', label: 'Video Asset Production Descriptor Text', type: 'text', placeholder: 'Product Launch Promotional Reel Showcase', value: 'Main Features Cinematic Trailer', required: false }
+            ],
+            'Social': [
+                { id: 'soc_plat', label: 'Primary Network Platform Destination Ecosystem', type: 'select', options: ['instagram', 'linkedin', 'facebook', 'twitter', 'tiktok', 'youtube'], value: 'instagram', required: true },
+                { id: 'soc_user', label: 'Profile Account Target Username Handle String', type: 'text', placeholder: 'enterprise_digital_hq', value: 'qrfy_premium_design', required: true }
+            ],
+            'WiFi': [
+                { id: 'wf_ssid', label: 'Wireless Access Network SSID Identifier Name', type: 'text', placeholder: 'Office_HQ_System_Freq', value: 'HQ-Enterprise-SSID', required: true },
+                { id: 'wf_pass', label: 'Network Authentication Security Private Password Credential', type: 'text', placeholder: 'AccessSecurityKey2026', value: 'WPASecretKeyPassword', required: false },
+                { id: 'wf_crypt', label: 'Security Encryption Protocol Standard Mode', type: 'select', options: ['WPA', 'WEP', 'nopass'], value: 'WPA', required: false }
+            ],
+            'Email': [
+                { id: 'em_dest', label: 'Recipient Corporate Destination Mailbox Gateway Address', type: 'text', placeholder: 'architect@enterprise.com', value: 'info@domain.com', required: true },
+                { id: 'em_subj', label: 'Subject Heading Line String Specifier', type: 'text', placeholder: 'Integration Workspace Inquiry', value: 'Business Partnership Request', required: false },
+                { id: 'em_body', label: 'Communication Message Body Text Content Block', type: 'textarea', placeholder: 'State structural specifications requests here...', value: 'Hi, I would like to establish an interface node configuration with your company.', required: false }
+            ],
+            'Phone': [
+                { id: 'ph_num', label: 'Telephony Target Dial Connection Number Line', type: 'tel', placeholder: '+15559876543', value: '+15559876543', required: true }
+            ],
+            'SMS': [
+                { id: 'sms_num', label: 'Wireless Carrier Target Mobile Number Receiver', type: 'tel', placeholder: '+15559876543', value: '+15559876543', required: true },
+                { id: 'sms_txt', label: 'SMS Brief Data Dispatch Message String', type: 'text', placeholder: 'Immediate alert broadcast message context string...', value: 'Secure telemetry channel connection established.', required: false }
+            ],
+            'vCard': [
+                { id: 'vc_fn', label: 'Given Identity First Name', type: 'text', placeholder: 'Jane', value: 'John', required: true },
+                { id: 'vc_ln', label: 'Family Last Surname', type: 'text', placeholder: 'Smith', value: 'Doe', required: true },
+                { id: 'vc_org', label: 'Corporate Entity Enterprise Identity Name', type: 'text', placeholder: 'Global Solutions Group Inc.', value: 'Enterprise Digital LLC', required: false },
+                { id: 'vc_ttl', label: 'Professional Executive Title Role Designation', type: 'text', placeholder: 'Principal Architect Tech Officer', value: 'Lead Digital Strategist', required: false },
+                { id: 'vc_cel', label: 'Mobile Cellular Target Link Line Phone Connection', type: 'tel', placeholder: '+15551234567', value: '+15551234567', required: false },
+                { id: 'vc_eml', label: 'Direct Validation Email Gateway Mailbox Box', type: 'text', placeholder: 'j.smith@solutions.io', value: 'john.doe@enterprise.io', required: false },
+                { id: 'vc_web', label: 'Digital Web Portfolio Domain Link URL', type: 'text', placeholder: 'https://solutions.io/team/smith', value: 'https://enterprise.io', required: false }
+            ],
+            'Location': [
+                { id: 'geo_url', label: 'Direct Google Maps Shared URL Target Link (Bypasses Lat Long Engine)', type: 'text', placeholder: 'https://maps.google.com/?q=37.7749,-122.4194', value: '', required: false },
+                { id: 'geo_lat', label: 'Latitude Spatial Vector Mapping Float Axis Coordinate', type: 'text', placeholder: '37.774929', value: '37.7749', required: false },
+                { id: 'geo_lng', label: 'Longitude Spatial Vector Mapping Float Axis Coordinate', type: 'text', placeholder: '-122.419416', value: '-122.4194', required: false }
+            ],
+            'Product': [
+                { id: 'pr_url', label: 'Direct E-Commerce Storefront Product URL Target Page', type: 'text', placeholder: 'https://shop.enterprise.com/product-item-id', value: 'https://shop.io/item-7729', required: false },
+                { id: 'pr_nm', label: 'Inventory Catalog Item Identity Label Name', type: 'text', placeholder: 'Processing Module Array V2', value: 'Processing Core V2', required: true },
+                { id: 'pr_sku', label: 'Physical Store Stock SKU Code Control Identifier', type: 'text', placeholder: 'SKU-09827-MX', value: 'SKU-77291-MX', required: true }
+            ],
+            'Event': [
+                { id: 'ev_ttl', label: 'Calendar Event Summary Title Line', type: 'text', placeholder: 'Architecture Summit 2026', value: 'Tech Keynote Conference 2026', required: true },
+                { id: 'ev_dsc', label: 'Agenda Overview Specification Details Description', type: 'text', placeholder: 'SaaS product development and vector graphics analytics engine discussion panel.', value: 'Vector graphics analytics panel discussion.', required: false },
+                { id: 'ev_loc', label: 'Physical Arena Venue Hall Location Allocation Site', type: 'text', placeholder: 'Convention Center Pavilion 3, SF', value: 'Convention Center, Pavilion 3, SF', required: false },
+                { id: 'ev_std', label: 'Start Date Structural Stamp Array (YYYYMMDD)', type: 'text', placeholder: '20261112', value: '20261112', required: true },
+                { id: 'ev_etd', label: 'Termination Expiry End Date Structural Stamp (YYYYMMDD)', type: 'text', placeholder: '20261114', value: '20261114', required: true }
+            ]
+        };
+
+        const premiumFramesDatasetArray = [];
+        const frameCategoriesList = ['all', 'business', 'marketing', 'social', 'payment', 'food', 'travel'];
+        const frameTitleLabels = [
+            'Scan Me', 'Scan Here', 'Scan to Open', 'Scan to Pay', 'Scan to Visit', 'Scan Menu', 'Scan for WiFi', 
+            'Scan to Download', 'Scan to Contact', 'Scan to Review', 'Scan to Order', 'Scan to Book', 'Scan to Register', 
+            'Scan to Subscribe', 'Scan to Follow', 'Website Portal', 'Business Card', 'Restaurant Menu', 'App Download', 
+            'Join WiFi Now', 'Check In Here', 'Pay Invoice', 'Follow Social', 'Facebook Connect', 'Instagram Profile', 
+            'YouTube Channel', 'TikTok Stream', 'LinkedIn Profile', 'Digital Resume', 'Portfolio View', 'Event Pass', 
+            'Coupon Claim', 'Get Discount', 'Read PDF File', 'Google Form Survey', 'Map Location', 'Contact Details', 
+            'Product Info', 'Leave Feedback', 'Write Review', 'Donation Link', 'Crypto Wallet', 'UPI Transfer', 
+            'Secure Access', 'Download Ebook', 'Medical Record', 'Hotel CheckIn', 'Ticket Validation', 'Premium Content', 'Exit Survey'
+        ];
+
+        for (let i = 0; i < 50; i++) {
+            let cat = 'business';
+            if (i % 6 === 1) cat = 'marketing';
+            if (i % 6 === 2) cat = 'social';
+            if (i % 6 === 3) cat = 'payment';
+            if (i % 6 === 4) cat = 'food';
+            if (i % 6 === 5) cat = 'travel';
+
+            premiumFramesDatasetArray.push({
+                id: i,
+                label: frameTitleLabels[i] || `Premium Frame ${i+1}`,
+                category: cat,
+                iconType: i % 4 === 0 ? '⭐' : (i % 4 === 1 ? '🔗' : (i % 4 === 2 ? '📱' : '💎'))
+            });
+        }
+
+        const presetShapesLibraryList = [
+            { id: 'square', label: 'Absolute Square', isUnsafe: false },
+            { id: 'roundedSquare', label: 'Rounded Square', isUnsafe: false },
+            { id: 'circle', label: 'Circular Dot', isUnsafe: false },
+            { id: 'diamond', label: 'Crystal Diamond', isUnsafe: false },
+            { id: 'pill', label: 'Horizontal Pill', isUnsafe: false },
+            { id: 'hexagon', label: 'Polygonal Hexagon', isUnsafe: false },
+            { id: 'waterDrop', label: 'Teardrop Fluid', isUnsafe: false },
+            { id: 'smoothPixel', label: 'Organic Smooth', isUnsafe: false },
+            { id: 'leaf', label: 'Eco Leaf (Unsafe)', isUnsafe: true },
+            { id: 'heart', label: 'Cardio Heart (Unsafe)', isUnsafe: true }
+        ];
+
+        const presetEyesLibraryList = [
+            { id: 'square', label: 'Classic Square' },
+            { id: 'rounded', label: 'Modern Smooth' },
+            { id: 'circle', label: 'Circular Ring' },
+            { id: 'modern', label: 'Abstract Matrix' }
+        ];
+
+        const presetLogosLibraryList = [
+            { id: 'none', label: 'None Base' },
+            { id: 'link', label: '🔗 Web Link' },
+            { id: 'wifi', label: '📶 Wi-Fi Hot' },
+            { id: 'shopping', label: '🛒 Cart Shop' },
+            { id: 'location', label: '📍 Geo Pin' },
+            { id: 'custom', label: '📤 Custom File' }
+        ];
+
+        // Production-Ready Async iimg.live Upload Gateway Handler Implementation Engine
+        async function handleDirectCloudUploadDeploymentPipeline(fileObj, inputTargetNode, feedbackStatusTextNode) {
+            if (!fileObj) {
+                console.warn("Upload abort: No file selected.");
+                feedbackStatusTextNode.className = "mt-2 text-xs font-bold text-rose-400";
+                feedbackStatusTextNode.innerHTML = `<span>⚠️</span> File validation rejected: No asset chosen.`;
+                return;
+            }
+
+            const targetActionButtonPNG = document.getElementById('act-btn-png');
+            const targetActionButtonSVG = document.getElementById('act-btn-svg');
+            const targetFileInputElement = feedbackStatusTextNode.parentElement.querySelector('input[type="file"]');
+            
+            const targetAPIEndpoint = "https://api.iimg.live/upload";
+            const authorizationBearerString = "Bearer pk_public_3db6884c9c2c6f089fdfb904";
+
+            console.log("---------------- INITIALIZING UPLOAD CHAIN ----------------");
+            console.log(`Request Destination URL: ${targetAPIEndpoint}`);
+            console.log(`File Meta Payload Data: Name=${fileObj.name}, Size=${fileObj.size} bytes, Type=${fileObj.type}`);
+
+            try {
+                // Adjust transactional system interface UI states
+                feedbackStatusTextNode.className = "mt-2 text-xs font-semibold text-amber-400 animate-pulse flex items-center gap-1.5";
+                feedbackStatusTextNode.innerHTML = `<span>⏳</span> Cloud ingestion pipeline active. Transmitting file...`;
+                
+                if (targetActionButtonPNG) targetActionButtonPNG.disabled = true;
+                if (targetActionButtonSVG) targetActionButtonSVG.disabled = true;
+                if (targetFileInputElement) targetFileInputElement.disabled = true;
+
+                const assetPayloadData = new FormData();
+                assetPayloadData.append('image', fileObj);
+
+                const serverAPIResponse = await fetch(targetAPIEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': authorizationBearerString
+                    },
+                    body: assetPayloadData
+                });
+
+                console.log(`Server Connection Handshake Status: ${serverAPIResponse.status} ${serverAPIResponse.statusText}`);
+
+                let parsedResultJSON = null;
+                const baseRawResponseText = await serverAPIResponse.text();
+
+                try {
+                    parsedResultJSON = JSON.parse(baseRawResponseText);
+                    console.log("Response Object Payload Details:", parsedResultJSON);
+                } catch (jsonParseError) {
+                    console.error("Non-JSON Server Output Intercepted:", baseRawResponseText);
+                }
+
+                if (!serverAPIResponse.ok) {
+                    throw new Error(`Cloud rejection [HTTP ${serverAPIResponse.status}]. Context: ${baseRawResponseText || 'No error block string defined.'}`);
+                }
+
+                // Variable tree mapping loop resolver
+                let extractedPublicAssetURL = '';
+                if (parsedResultJSON) {
+                    if (parsedResultJSON.url) {
+                        extractedPublicAssetURL = parsedResultJSON.url;
+                    } else if (parsedResultJSON.image) {
+                        extractedPublicAssetURL = parsedResultJSON.image;
+                    } else if (parsedResultJSON.secure_url) {
+                        extractedPublicAssetURL = parsedResultJSON.secure_url;
+                    } else if (parsedResultJSON.data && parsedResultJSON.data.url) {
+                        extractedPublicAssetURL = parsedResultJSON.data.url;
+                    } else if (parsedResultJSON.data && parsedResultJSON.data.image) {
+                        extractedPublicAssetURL = parsedResultJSON.data.image;
+                    }
+                }
+
+                if (!extractedPublicAssetURL) {
+                    throw new Error("Unable to map server response keys into a verified destination asset URL path.");
+                }
+
+                console.log(`Successfully Extracted Target Public URL Resource: ${extractedPublicAssetURL}`);
+
+                // Automatically map resource identifier references to local structural form inputs
+                inputTargetNode.value = extractedPublicAssetURL;
+
+                feedbackStatusTextNode.className = "mt-2 text-xs font-bold text-emerald-400 flex items-center gap-1.5";
+                feedbackStatusTextNode.innerHTML = `<span>✅</span> File successfully processed & mirrored to cloud!`;
+
+                // Fire vector generation sequence layout matrix modifications loops instantly
+                executeSaaSVectorCompositeRenderingPipeline();
+
+            } catch (runtimeUploadException) {
+                console.error("Critical System Gateway Exception Intercepted:", runtimeUploadException);
+                
+                feedbackStatusTextNode.className = "mt-2 text-xs font-medium text-rose-400 bg-rose-950/40 border border-rose-900/50 p-2.5 rounded-xl block max-w-full overflow-x-auto whitespace-pre-wrap font-mono text-left";
+                feedbackStatusTextNode.innerText = `❌ Runtime Fault: ${runtimeUploadException.message}`;
+                
+                // Flush values to clear scannability constraints
+                inputTargetNode.value = '';
+            } finally {
+                if (targetActionButtonPNG) targetActionButtonPNG.disabled = false;
+                if (targetActionButtonSVG) targetActionButtonSVG.disabled = false;
+                if (targetFileInputElement) targetFileInputElement.disabled = false;
+                console.log("------------------- TRANSACTION CYCLE END -------------------");
+            }
+        }
+
+        function toggleAccordionUI(targetId) {
+            ['acc-frames', 'acc-shapes', 'acc-logos', 'acc-colors'].forEach(id => {
+                const element = document.getElementById(id);
+                const iconIndicator = document.getElementById(`tg-${id}`);
+                if (id === targetId) {
+                    const isCurrentlyHidden = element.classList.contains('hidden');
+                    element.classList.toggle('hidden', !isCurrentlyHidden);
+                    iconIndicator.style.transform = isCurrentlyHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+                } else {
+                    element.classList.add('hidden');
+                    const otherIndicator = document.getElementById(`tg-${id}`);
+                    if(otherIndicator) otherIndicator.style.transform = 'rotate(-90deg)';
+                }
+            });
+        }
+
+        function initializeApplicationInterfaceComponents() {
+            const tabMatrixRoot = document.getElementById('protocol-tab-matrix');
+            tabMatrixRoot.innerHTML = '';
+            Object.keys(coreProtocolSchemas).forEach(key => {
+                const btn = document.createElement('button');
+                btn.id = `protocol-btn-${key}`;
+                btn.onclick = () => handleGlobalProtocolStateFlush(key);
+                btn.className = "bg-brand-darkCard border border-slate-800 text-slate-400 text-[11px] py-2 px-1 rounded-xl font-bold transition-all hover:bg-slate-800/40 hover:text-white text-center truncate";
+                btn.innerText = key;
+                tabMatrixRoot.appendChild(btn);
+            });
+
+            const frameCatRoot = document.getElementById('frame-cat-filters');
+            frameCatRoot.innerHTML = '';
+            frameCategoriesList.forEach(categoryName => {
+                const node = document.createElement('button');
+                node.onclick = () => {
+                    activeFrameCategoryFilter = categoryName;
+                    renderFilteredFrameThumbnailsWorkspace();
+                };
+                node.id = `frame-filter-${categoryName}`;
+                node.className = "text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-extrabold border transition-all shrink-0 bg-slate-900 text-slate-400 border-slate-800";
+                node.innerText = categoryName;
+                frameCatRoot.appendChild(node);
+            });
+
+            const shapeRoot = document.getElementById('shape-matrix-view');
+            shapeRoot.innerHTML = '';
+            presetShapesLibraryList.forEach(shape => {
+                const div = document.createElement('div');
+                div.id = `shape-card-${shape.id}`;
+                div.onclick = () => {
+                    if (shape.isUnsafe) {
+                        alert("Notice: Unsafe geometry shape triggered. Multi-engine scannability rules are processing structural loop verification checks.");
+                    }
+                    activeShapeRegistryMorphismKey = shape.id;
+                    updateSelectionHighlightGlowStates();
+                    debouncedMasterRenderPipelineTrigger();
+                };
+                div.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center gap-1 min-h-[48px]";
+                div.innerText = shape.label;
+                shapeRoot.appendChild(div);
+            });
+
+            const eyeRoot = document.getElementById('eye-matrix-view');
+            eyeRoot.innerHTML = '';
+            presetEyesLibraryList.forEach(eye => {
+                const div = document.createElement('div');
+                div.id = `eye-card-${eye.id}`;
+                div.onclick = () => {
+                    activeFinderCornerEyeMorphismKey = eye.id;
+                    updateSelectionHighlightGlowStates();
+                    debouncedMasterRenderPipelineTrigger();
+                };
+                div.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center min-h-[44px]";
+                div.innerText = eye.label;
+                eyeRoot.appendChild(div);
+            });
+
+            const logoRoot = document.getElementById('logo-matrix-view');
+            logoRoot.innerHTML = '';
+            presetLogosLibraryList.forEach(logo => {
+                const div = document.createElement('div');
+                div.id = `logo-card-${logo.id}`;
+                div.onclick = () => {
+                    activeBrandingLogoOverlayKey = logo.id;
+                    document.getElementById('cfg-logo-file').parentElement.parentElement.classList.toggle('hidden', logo.id !== 'custom');
+                    updateSelectionHighlightGlowStates();
+                    debouncedMasterRenderPipelineTrigger();
+                };
+                div.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center min-h-[44px]";
+                div.innerText = logo.label;
+                logoRoot.appendChild(div);
+            });
+
+            document.getElementById('cfg-logo-file').parentElement.parentElement.classList.add('hidden');
+
+            handleGlobalProtocolStateFlush('URL');
+            renderFilteredFrameThumbnailsWorkspace();
+        }
+
+        function handleGlobalProtocolStateFlush(protocolKey) {
+            activeProtocolRegistryKey = protocolKey;
+            
+            Object.keys(coreProtocolSchemas).forEach(key => {
+                const el = document.getElementById(`protocol-btn-${key}`);
+                if(el) {
+                    el.classList.toggle('bg-green-600', key === protocolKey);
+                    el.classList.toggle('text-white', key === protocolKey);
+                    el.classList.toggle('bg-brand-darkCard', key !== protocolKey);
+                    el.classList.toggle('text-slate-400', key !== protocolKey);
+                }
+            });
+
+            const schemaFieldsFieldsRoot = document.getElementById('dynamic-schema-fields-root');
+            schemaFieldsFieldsRoot.innerHTML = '';
+
+            const structureFields = coreProtocolSchemas[protocolKey];
+            structureFields.forEach(field => {
+                const container = document.createElement('div');
+                container.className = "flex flex-col gap-1.5 animate-fadeIn";
+
+                const label = document.createElement('label');
+                label.className = "text-[11px] font-bold text-slate-400 uppercase tracking-wide";
+                label.innerText = field.label;
+                container.appendChild(label);
+
+                let dynamicInputElement;
+                if (field.type === 'textarea') {
+                    dynamicInputElement = document.createElement('textarea');
+                    dynamicInputElement.rows = 3;
+                    dynamicInputElement.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-medium focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all";
+                } else if (field.type === 'select') {
+                    dynamicInputElement = document.createElement('select');
+                    dynamicInputElement.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-bold focus:border-green-500 focus:outline-none cursor-pointer";
+                    field.options.forEach(opt => {
+                        const choice = document.createElement('option');
+                        choice.value = opt;
+                        choice.innerText = opt.toUpperCase();
+                        dynamicInputElement.appendChild(choice);
+                    });
+                } else {
+                    dynamicInputElement = document.createElement('input');
+                    dynamicInputElement.type = field.type;
+                    dynamicInputElement.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-medium focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all";
+                }
+
+                dynamicInputElement.id = `field-input-${field.id}`;
+                dynamicInputElement.placeholder = field.placeholder || '';
+                dynamicInputElement.value = field.value || '';
+                dynamicInputElement.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
+                dynamicInputElement.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
+
+                container.appendChild(dynamicInputElement);
+
+                if (field.hasUploader) {
+                    const statusMessageLoggerNode = document.createElement('div');
+                    statusMessageLoggerNode.className = "mt-1.5 text-[11px] text-slate-500 italic";
+                    statusMessageLoggerNode.innerText = "Ready for cloud ingestion layer pipeline tracking.";
+
+                    const inlineUploadBox = document.createElement('div');
+                    inlineUploadBox.className = "mt-1 flex flex-col bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 text-xs gap-2";
+                    inlineUploadBox.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-400 font-extrabold text-[10px] tracking-wide uppercase">⚡ Cloud Upload Engine:</span>
+                            <input type="file" accept="${field.accept || '*'}" class="bg-brand-darkBg text-[10px] rounded border border-slate-700 p-1 w-full file:bg-green-600 file:text-white file:border-0 file:text-[9px] file:font-bold file:px-2.5 file:py-0.5 file:rounded cursor-pointer file:hover:bg-green-500 transition-colors">
+                        </div>
+                    `;
+
+                    inlineUploadBox.appendChild(statusMessageLoggerNode);
+                    
+                    inlineUploadBox.querySelector('input').addEventListener('change', async function(e) {
+                        if (e.target.files && e.target.files[0]) {
+                            await handleDirectCloudUploadDeploymentPipeline(e.target.files[0], dynamicInputElement, statusMessageLoggerNode);
+                        }
+                    });
+                    container.appendChild(inlineUploadBox);
+                }
+
+                schemaFieldsFieldsRoot.appendChild(container);
+            });
+
+            debouncedMasterRenderPipelineTrigger();
+        }
+
+        function renderFilteredFrameThumbnailsWorkspace() {
+            frameCategoriesList.forEach(categoryName => {
+                const tabNode = document.getElementById(`frame-filter-${categoryName}`);
+                if(tabNode) {
+                    tabNode.classList.toggle('bg-green-500/10', categoryName === activeFrameCategoryFilter);
+                    tabNode.classList.toggle('text-green-400', categoryName === activeFrameCategoryFilter);
+                    tabNode.classList.toggle('border-green-500/30', categoryName === activeFrameCategoryFilter);
+                    tabNode.classList.toggle('bg-slate-900', categoryName !== activeFrameCategoryFilter);
+                    tabNode.classList.toggle('text-slate-400', categoryName !== activeFrameCategoryFilter);
+                    tabNode.classList.toggle('border-slate-800', categoryName !== activeFrameCategoryFilter);
+                }
+            });
+
+            const frameMatrixRoot = document.getElementById('frame-matrix-view');
+            frameMatrixRoot.innerHTML = '';
+
+            const baseNoFrameCard = document.createElement('div');
+            baseNoFrameCard.id = `frame-card-0`;
+            baseNoFrameCard.onclick = () => {
+                activeFrameTemplateIndex = 0;
+                updateSelectionHighlightGlowStates();
+                debouncedMasterRenderPipelineTrigger();
+            };
+            baseNoFrameCard.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-400 border border-slate-800 flex flex-col items-center justify-center gap-1 min-h-[64px]";
+            baseNoFrameCard.innerHTML = `<span>🚫</span><span class="truncate w-full">No Outer Frame</span>`;
+            frameMatrixRoot.appendChild(baseNoFrameCard);
+
+            const filteredDataset = premiumFramesDatasetArray.filter(f => activeFrameCategoryFilter === 'all' || f.category === activeFrameCategoryFilter);
+            filteredDataset.forEach(frameItem => {
+                const cardIndex = frameItem.id + 1;
+                const card = document.createElement('div');
+                card.id = `frame-card-${cardIndex}`;
+                card.onclick = () => {
+                    activeFrameTemplateIndex = cardIndex;
+                    document.getElementById('cfg-frame-text').value = frameItem.label.toUpperCase();
+                    updateSelectionHighlightGlowStates();
+                    debouncedMasterRenderPipelineTrigger();
+                };
+                card.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center gap-1 min-h-[64px]";
+                card.innerHTML = `<span>${frameItem.iconType}</span><span class="truncate w-full">${frameItem.label}</span>`;
+                frameMatrixRoot.appendChild(card);
+            });
+
+            updateSelectionHighlightGlowStates();
+        }
+
+        function updateSelectionHighlightGlowStates() {
+            document.querySelectorAll('[id^="frame-card-"]').forEach(el => el.classList.remove('active'));
+            const targetFrameCard = document.getElementById(`frame-card-${activeFrameTemplateIndex}`);
+            if(targetFrameCard) targetFrameCard.classList.add('active');
+
+            presetShapesLibraryList.forEach(shape => {
+                const el = document.getElementById(`shape-card-${shape.id}`);
+                if(el) el.classList.toggle('active', shape.id === activeShapeRegistryMorphismKey);
+            });
+
+            presetEyesLibraryList.forEach(eye => {
+                const el = document.getElementById(`eye-card-${eye.id}`);
+                if(el) el.classList.toggle('active', eye.id === activeFinderCornerEyeMorphismKey);
+            });
+
+            presetLogosLibraryList.forEach(logo => {
+                const el = document.getElementById(`logo-card-${logo.id}`);
+                if(el) el.classList.toggle('active', logo.id === activeBrandingLogoOverlayKey);
+            });
+        }
+
+        function compileQRStringPayload() {
+            const structureFields = coreProtocolSchemas[activeProtocolRegistryKey];
+            if (!structureFields) return 'https://example.com';
+
+            if (activeProtocolRegistryKey === 'URL' || activeProtocolRegistryKey === 'Image' || activeProtocolRegistryKey === 'PDF' || activeProtocolRegistryKey === 'MP3' || activeProtocolRegistryKey === 'Video') {
+                const inputNode = document.getElementById('field-input-url_str');
+                return inputNode ? inputNode.value : 'https://example.com';
+            }
+            if (activeProtocolRegistryKey === 'Text') {
+                const inputNode = document.getElementById('field-input-text_blk');
+                return inputNode ? inputNode.value : '';
+            }
+            if (activeProtocolRegistryKey === 'Phone') {
+                const inputNode = document.getElementById('field-input-ph_num');
+                return inputNode ? `tel:${inputNode.value}` : 'tel:';
+            }
+            if (activeProtocolRegistryKey === 'SMS') {
+                const numNode = document.getElementById('field-input-sms_num');
+                const txtNode = document.getElementById('field-input-sms_txt');
+                return `sms:${numNode ? numNode.value : ''}?body=${encodeURIComponent(txtNode ? txtNode.value : '')}`;
+            }
+            if (activeProtocolRegistryKey === 'Email') {
+                const destNode = document.getElementById('field-input-em_dest');
+                const subjNode = document.getElementById('field-input-em_subj');
+                const bodyNode = document.getElementById('field-input-em_body');
+                return `mailto:${destNode ? destNode.value : ''}?subject=${encodeURIComponent(subjNode ? subjNode.value : '')}&body=${encodeURIComponent(bodyNode ? bodyNode.value : '')}`;
+            }
+            if (activeProtocolRegistryKey === 'WiFi') {
+                const ssid = document.getElementById('field-input-wf_ssid');
+                const pass = document.getElementById('field-input-wf_pass');
+                const crypt = document.getElementById('field-input-wf_crypt');
+                return `WIFI:S:${ssid?ssid.value:''};T:${crypt?crypt.value:'WPA'};P:${pass?pass.value:''};;`;
+            }
+            if (activeProtocolRegistryKey === 'Social') {
+                const plat = document.getElementById('field-input-soc_plat');
+                const user = document.getElementById('field-input-soc_user');
+                const pVal = plat ? plat.value : 'instagram';
+                const uVal = user ? user.value : '';
+                if(pVal === 'instagram') return `https://instagram.com/${uVal}`;
+                if(pVal === 'linkedin') return `https://linkedin.com/in/${uVal}`;
+                if(pVal === 'facebook') return `https://facebook.com/${uVal}`;
+                if(pVal === 'twitter') return `https://twitter.com/${uVal}`;
+                if(pVal === 'tiktok') return `https://tiktok.com/@${uVal}`;
+                if(pVal === 'youtube') return `https://youtube.com/@${uVal}`;
+            }
+            if (activeProtocolRegistryKey === 'UPI') {
+                const vpa = document.getElementById('field-input-upi_vpa');
+                const name = document.getElementById('field-input-upi_name');
+                const am = document.getElementById('field-input-upi_am');
+                const tn = document.getElementById('field-input-upi_tn');
+                return `upi://pay?pa=${vpa?vpa.value:''}&pn=${encodeURIComponent(name?name.value:'')}&am=${am?am.value:''}&tn=${encodeURIComponent(tn?tn.value:'')}`;
+            }
+            if (activeProtocolRegistryKey === 'Location') {
+                const url = document.getElementById('field-input-geo_url');
+                const lat = document.getElementById('field-input-geo_lat');
+                const lng = document.getElementById('field-input-geo_lng');
+                if(url && url.value) return url.value;
+                return `http://googleusercontent.com/maps.google.com/maps?q=${lat?lat.value:'0'},${lng?lng.value:'0'}`;
+            }
+            if (activeProtocolRegistryKey === 'Product') {
+                const url = document.getElementById('field-input-pr_url');
+                const nm = document.getElementById('field-input-pr_nm');
+                const sku = document.getElementById('field-input-pr_sku');
+                if(url && url.value) return url.value;
+                return `PRODUCT:${nm?nm.value:''};SKU:${sku?sku.value:''};`;
+            }
+            if (activeProtocolRegistryKey === 'Event') {
+                const ttl = document.getElementById('field-input-ev_ttl');
+                const dsc = document.getElementById('field-input-ev_dsc');
+                const loc = document.getElementById('field-input-ev_loc');
+                const std = document.getElementById('field-input-ev_std');
+                const etd = document.getElementById('field-input-ev_etd');
+                return `BEGIN:VEVENT\nSUMMARY:${ttl?ttl.value:''}\nDESCRIPTION:${dsc?dsc.value:''}\nLOCATION:${loc?loc.value:''}\nDTSTART:${std?std.value:''}\nDTEND:${etd?etd.value:''}\nEND:VEVENT`;
+            }
+
+            return 'https://example.com';
+        }
+
+        let debouncedMasterPipelineTimeoutReference = null;
+        function debouncedMasterRenderPipelineTrigger() {
+            clearTimeout(debouncedMasterPipelineTimeoutReference);
+            debouncedMasterPipelineTimeoutReference = setTimeout(() => {
+                executeSaaSVectorCompositeRenderingPipeline();
+            }, 60);
+        }
+
+        function executeSaaSVectorCompositeRenderingPipeline() {
+            const compiledPayloadString = compileQRStringPayload();
+            document.getElementById('string-payload-preview-terminal').innerText = compiledPayloadString || '[Empty Matrix Data Block Payload String]';
+
+            const eccLevel = document.getElementById('cfg-qr-ecc').value || 'H';
+            const quietZoneCellPadding = parseInt(document.getElementById('cfg-qr-quiet').value) || 0;
+
+            let qrModuleInstance;
+            try {
+                qrModuleInstance = qrcode(0, eccLevel);
+                qrModuleInstance.addData(compiledPayloadString || ' ');
+                qrModuleInstance.make();
+            } catch (err) {
+                console.error("Core compilation error generation payload fallback triggered:", err);
+                qrModuleInstance = qrcode(0, 'L');
+                qrModuleInstance.addData('Error fallback payload metadata template registry loop');
+                qrModuleInstance.make();
+            }
+
+            const moduleCellCountCount = qrModuleInstance.getModuleCount();
+            document.getElementById('tel-version-metric').innerText = `VER ${qrModuleInstance.typeNumber}`;
+            document.getElementById('tel-cells-metric').innerText = `${moduleCellCountCount} x ${moduleCellCountCount}`;
+
+            const masterViewCanvas = document.getElementById('view-canvas-master');
+            const masterCanvasContext2D = masterViewCanvas.getContext('2d');
+
+            const frameActiveStateFlag = activeFrameTemplateIndex > 0;
+            const singleBlockResolutionPixelDimension = 12;
+            const innerQRBlockPixelResolution = moduleCellCountCount * singleBlockResolutionPixelDimension;
+            const qrCanvasModulePaddingBorder = quietZoneCellPadding * singleBlockResolutionPixelDimension;
+            const totalInnerQRCanvasBounds = innerQRBlockPixelResolution + (qrCanvasModulePaddingBorder * 2);
+
+            let overallCanvasWidth;
+            let overallCanvasHeight;
+            let qrDrawXOffsetOffset = qrCanvasModulePaddingBorder;
+            let qrDrawYOffsetOffset = qrCanvasModulePaddingBorder;
+
+            if (frameActiveStateFlag) {
+                overallCanvasWidth = totalInnerQRCanvasBounds + 80;
+                overallCanvasHeight = totalInnerQRCanvasBounds + 160;
+                qrDrawXOffsetOffset = 40 + qrCanvasModulePaddingBorder;
+                qrDrawYOffsetOffset = 40 + qrCanvasModulePaddingBorder;
+            } else {
+                overallCanvasWidth = totalInnerQRCanvasBounds;
+                overallCanvasHeight = totalInnerQRCanvasBounds;
+            }
+
+            masterViewCanvas.width = overallCanvasWidth;
+            masterViewCanvas.height = overallCanvasHeight;
+
+            const isTransparentBg = document.getElementById('cfg-alpha-mode').checked;
+            const bgCanvasHexCode = document.getElementById('cfg-clr-bg').value;
+            const fgCanvasHexStop1 = document.getElementById('cfg-clr-fg1').value;
+            const fgCanvasHexStop2 = document.getElementById('cfg-clr-fg2').value;
+            const currentSelectedColorMode = document.getElementById('cfg-color-mode').value;
+
+            if (isTransparentBg) {
+                masterCanvasContext2D.clearRect(0, 0, overallCanvasWidth, overallCanvasHeight);
+            } else {
+                masterCanvasContext2D.fillStyle = bgCanvasHexCode;
+                masterCanvasContext2D.fillRect(0, 0, overallCanvasWidth, overallCanvasHeight);
+            }
+
+            if (frameActiveStateFlag) {
+                const chosenFrameTemplateText = document.getElementById('cfg-frame-text').value || 'SCAN ME';
+                const frameColorAccent = document.getElementById('cfg-frame-clr').value || '#22c55e';
+                const frameTextColorHex = document.getElementById('cfg-frame-text-clr').value || '#ffffff';
+
+                masterCanvasContext2D.fillStyle = frameColorAccent;
+                renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, 15, 15, overallCanvasWidth - 30, overallCanvasHeight - 30, 24);
+                masterCanvasContext2D.fill();
+
+                masterCanvasContext2D.fillStyle = bgCanvasHexCode;
+                renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, 35, 35, overallCanvasWidth - 70, overallCanvasHeight - 110, 16);
+                masterCanvasContext2D.fill();
+
+                masterCanvasContext2D.fillStyle = frameTextColorHex;
+                masterCanvasContext2D.font = "bold 22px system-ui, sans-serif";
+                masterCanvasContext2D.textAlign = "center";
+                masterCanvasContext2D.textBaseline = "middle";
+                masterCanvasContext2D.fillText(chosenFrameTemplateText, overallCanvasWidth / 2, overallCanvasHeight - 60);
+            }
+
+            let primaryFillStyleGradientObject;
+            if (currentSelectedColorMode === 'solid') {
+                primaryFillStyleGradientObject = fgCanvasHexStop1;
+                document.getElementById('gradient-stop-2-wrapper').classList.add('hidden');
+            } else if (currentSelectedColorMode === 'linear') {
+                document.getElementById('gradient-stop-2-wrapper').classList.remove('hidden');
+                primaryFillStyleGradientObject = masterCanvasContext2D.createLinearGradient(qrDrawXOffsetOffset, qrDrawYOffsetOffset, qrDrawXOffsetOffset + innerQRBlockPixelResolution, qrDrawYOffsetOffset + innerQRBlockPixelResolution);
+                primaryFillStyleGradientObject.addColorStop(0, fgCanvasHexStop1);
+                primaryFillStyleGradientObject.addColorStop(1, fgCanvasHexStop2);
+            } else {
+                document.getElementById('gradient-stop-2-wrapper').classList.remove('hidden');
+                const centerAxisX = qrDrawXOffsetOffset + (innerQRBlockPixelResolution / 2);
+                const centerAxisY = qrDrawYOffsetOffset + (innerQRBlockPixelResolution / 2);
+                primaryFillStyleGradientObject = masterCanvasContext2D.createRadialGradient(centerAxisX, centerAxisY, 10, centerAxisX, centerAxisY, innerQRBlockPixelResolution / 1.2);
+                primaryFillStyleGradientObject.addColorStop(0, fgCanvasHexStop1);
+                primaryFillStyleGradientObject.addColorStop(1, fgCanvasHexStop2);
+            }
+
+            masterCanvasContext2D.fillStyle = primaryFillStyleGradientObject;
+
+            for (let targetRowY = 0; targetRowY < moduleCellCountCount; targetRowY++) {
+                for (let targetColX = 0; targetColX < moduleCellCountCount; targetColX++) {
+                    if (qrModuleInstance.isDark(targetRowY, targetColX)) {
+                        
+                        const isTopLeftEye = (targetRowY < 7 && targetColX < 7);
+                        const isTopRightEye = (targetRowY < 7 && targetColX >= moduleCellCountCount - 7);
+                        const isBottomLeftEye = (targetRowY >= moduleCellCountCount - 7 && targetColX < 7);
+
+                        if (isTopLeftEye || isTopRightEye || isBottomLeftEye) {
+                            continue;
+                        }
+
+                        const absoluteDrawPixelX = qrDrawXOffsetOffset + (targetColX * singleBlockResolutionPixelDimension);
+                        const absoluteDrawPixelY = qrDrawYOffsetOffset + (targetRowY * singleBlockResolutionPixelDimension);
+
+                        masterCanvasContext2D.beginPath();
+                        if (activeShapeRegistryMorphismKey === 'circle') {
+                            masterCanvasContext2D.arc(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2), (singleBlockResolutionPixelDimension / 2) * 0.85, 0, Math.PI * 2);
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'roundedSquare') {
+                            renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, absoluteDrawPixelX + 0.5, absoluteDrawPixelY + 0.5, singleBlockResolutionPixelDimension - 1, singleBlockResolutionPixelDimension - 1, 3.5);
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'diamond') {
+                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + 0.5);
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension - 0.5, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension - 0.5);
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + 0.5, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
+                            masterCanvasContext2D.closePath();
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'pill') {
+                            renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, absoluteDrawPixelX + 0.5, absoluteDrawPixelY + 2, singleBlockResolutionPixelDimension - 1, singleBlockResolutionPixelDimension - 4, 3);
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'hexagon') {
+                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4));
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension);
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4));
+                            canvasCtx2D = masterCanvasContext2D; // alignment placeholder logic context helper
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
+                            masterCanvasContext2D.closePath();
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'waterDrop') {
+                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
+                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + singleBlockResolutionPixelDimension);
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX, absoluteDrawPixelY + singleBlockResolutionPixelDimension);
+                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
+                            masterCanvasContext2D.closePath();
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'smoothPixel') {
+                            masterCanvasContext2D.rect(absoluteDrawPixelX + 0.2, absoluteDrawPixelY + 0.2, singleBlockResolutionPixelDimension - 0.4, singleBlockResolutionPixelDimension - 0.4);
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'leaf') {
+                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
+                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY, absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
+                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + singleBlockResolutionPixelDimension);
+                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX, absoluteDrawPixelY + singleBlockResolutionPixelDimension, absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
+                            masterCanvasContext2D.closePath();
+                            masterCanvasContext2D.fill();
+                        } else if (activeShapeRegistryMorphismKey === 'heart') {
+                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
+                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 4), absoluteDrawPixelY, absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
+                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension, absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension);
+                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension, absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
+                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX + (3 * singleBlockResolutionPixelDimension / 4), absoluteDrawPixelY, absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
+                            masterCanvasContext2D.closePath();
+                            masterCanvasContext2D.fill();
+                        } else {
+                            masterCanvasContext2D.rect(absoluteDrawPixelX, absoluteDrawPixelY, singleBlockResolutionPixelDimension, singleBlockResolutionPixelDimension);
+                            masterCanvasContext2D.fill();
+                        }
+                    }
+                }
+            }
+
+            renderFinderCornerEyeShapeVectorPatch(masterCanvasContext2D, qrDrawXOffsetOffset, qrDrawYOffsetOffset, singleBlockResolutionPixelDimension);
+            renderFinderCornerEyeShapeVectorPatch(masterCanvasContext2D, qrDrawXOffsetOffset + (moduleCellCountCount - 7) * singleBlockResolutionPixelDimension, qrDrawYOffsetOffset, singleBlockResolutionPixelDimension);
+            renderFinderCornerEyeShapeVectorPatch(masterCanvasContext2D, qrDrawXOffsetOffset, qrDrawYOffsetOffset + (moduleCellCountCount - 7) * singleBlockResolutionPixelDimension, singleBlockResolutionPixelDimension);
+
+            if (activeBrandingLogoOverlayKey !== 'none') {
+                const maxAllowedLogoPercentScale = parseInt(document.getElementById('cfg-logo-size').value) / 100;
+                document.getElementById('lbl-logo-size').innerText = `${Math.round(maxAllowedLogoPercentScale * 100)}%`;
+
+                const evaluatedLogoPixelSize = Math.floor(innerQRBlockPixelResolution * maxAllowedLogoPercentScale);
+                const logoDrawLocationX = qrDrawXOffsetOffset + (innerQRBlockPixelResolution - evaluatedLogoPixelSize) / 2;
+                const logoDrawLocationY = qrDrawYOffsetOffset + (innerQRBlockPixelResolution - evaluatedLogoPixelSize) / 2;
+
+                masterCanvasContext2D.fillStyle = bgCanvasHexCode;
+                masterCanvasContext2D.beginPath();
+                renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, logoDrawLocationX - 4, logoDrawLocationY - 4, evaluatedLogoPixelSize + 8, evaluatedLogoPixelSize + 8, 10);
+                masterCanvasContext2D.fill();
+
+                if (activeBrandingLogoOverlayKey === 'custom' && systemUploadedLogoFileObjectReference) {
+                    try {
+                        masterCanvasContext2D.drawImage(systemUploadedLogoFileObjectReference, logoDrawLocationX, logoDrawLocationY, evaluatedLogoPixelSize, evaluatedLogoPixelSize);
+                    } catch(logoErr) {
+                        console.error("Custom branding layer draw execution fault:", logoErr);
+                    }
+                } else {
+                    let internalLogoTextSymbol = "🔗";
+                    if(activeBrandingLogoOverlayKey === 'wifi') internalLogoTextSymbol = "📶";
+                    if(activeBrandingLogoOverlayKey === 'shopping') internalLogoTextSymbol = "🛒";
+                    if(activeBrandingLogoOverlayKey === 'location') internalLogoTextSymbol = "📍";
+
+                    masterCanvasContext2D.fillStyle = fgCanvasHexStop1;
+                    masterCanvasContext2D.beginPath();
+                    renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, logoDrawLocationX, logoDrawLocationY, evaluatedLogoPixelSize, evaluatedLogoPixelSize, 8);
+                    masterCanvasContext2D.fill();
+
+                    masterCanvasContext2D.fillStyle = bgCanvasHexCode;
+                    masterCanvasContext2D.font = `bold ${Math.floor(evaluatedLogoPixelSize * 0.55)}px system-ui, sans-serif`;
+                    masterCanvasContext2D.textAlign = "center";
+                    masterCanvasContext2D.textBaseline = "middle";
+                    masterCanvasContext2D.fillText(internalLogoTextSymbol, logoDrawLocationX + (evaluatedLogoPixelSize / 2), logoDrawLocationY + (evaluatedLogoPixelSize / 2));
+                }
+            }
+
+            executeVerificationLoopbackScannabilityAudit();
+        }
+
+        function renderFinderCornerEyeShapeVectorPatch(canvasCtx2D, startCornerX, startCornerY, standardCellPixelDimension) {
+            const externalEyeBoxDimension = standardCellPixelDimension * 7;
+            const internalEyeCoreDimension = standardCellPixelDimension * 3;
+
+            canvasCtx2D.beginPath();
+            if (activeFinderCornerEyeMorphismKey === 'circle') {
+                canvasCtx2D.arc(startCornerX + (externalEyeBoxDimension / 2), startCornerY + (externalEyeBoxDimension / 2), (externalEyeBoxDimension / 2) - 2, 0, Math.PI * 2);
+                canvasCtx2D.lineWidth = standardCellPixelDimension;
+                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
+                canvasCtx2D.stroke();
+
+                canvasCtx2D.beginPath();
+                canvasCtx2D.arc(startCornerX + (externalEyeBoxDimension / 2), startCornerY + (externalEyeBoxDimension / 2), (internalEyeCoreDimension / 2), 0, Math.PI * 2);
+                canvasCtx2D.fill();
+            } else if (activeFinderCornerEyeMorphismKey === 'rounded') {
+                renderAdvancedRoundedRectGeometryPath(canvasCtx2D, startCornerX + 2, startCornerY + 2, externalEyeBoxDimension - 4, externalEyeBoxDimension - 4, standardCellPixelDimension * 1.8);
+                canvasCtx2D.lineWidth = standardCellPixelDimension;
+                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
+                canvasCtx2D.stroke();
+
+                canvasCtx2D.beginPath();
+                renderAdvancedRoundedRectGeometryPath(canvasCtx2D, startCornerX + (standardCellPixelDimension * 2), startCornerY + (standardCellPixelDimension * 2), internalEyeCoreDimension, internalEyeCoreDimension, standardCellPixelDimension * 0.8);
+                canvasCtx2D.fill();
+            } else if (activeFinderCornerEyeMorphismKey === 'modern') {
+                renderAdvancedRoundedRectGeometryPath(canvasCtx2D, startCornerX + 1, startCornerY + 1, externalEyeBoxDimension - 2, externalEyeBoxDimension - 2, standardCellPixelDimension * 2.2);
+                canvasCtx2D.lineWidth = standardCellPixelDimension;
+                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
+                canvasCtx2D.stroke();
+
+                canvasCtx2D.beginPath();
+                canvasCtx2D.arc(startCornerX + (externalEyeBoxDimension / 2), startCornerY + (externalEyeBoxDimension / 2), (internalEyeCoreDimension / 1.8), 0, Math.PI * 2);
+                canvasCtx2D.fill();
+            } else {
+                canvasCtx2D.rect(startCornerX + (standardCellPixelDimension / 2), startCornerY + (standardCellPixelDimension / 2), externalEyeBoxDimension - standardCellPixelDimension, externalEyeBoxDimension - standardCellPixelDimension);
+                canvasCtx2D.lineWidth = standardCellPixelDimension;
+                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
+                canvasCtx2D.stroke();
+
+                canvasCtx2D.beginPath();
+                canvasCtx2D.rect(startCornerX + (standardCellPixelDimension * 2), startCornerY + (standardCellPixelDimension * 2), internalEyeCoreDimension, internalEyeCoreDimension);
+                canvasCtx2D.fill();
+            }
+        }
+
+        function renderAdvancedRoundedRectGeometryPath(ctx2D, drawingAxisX, drawingAxisY, width, height, cornerRadiusRadius) {
+            if (width < 2 * cornerRadiusRadius) cornerRadiusRadius = width / 2;
+            if (height < 2 * cornerRadiusRadius) cornerRadiusRadius = height / 2;
+            ctx2D.beginPath();
+            ctx2D.moveTo(drawingAxisX + cornerRadiusRadius, drawingAxisY);
+            ctx2D.arcTo(drawingAxisX + width, drawingAxisY, drawingAxisX + width, drawingAxisY + height, cornerRadiusRadius);
+            ctx2D.arcTo(drawingAxisX + width, drawingAxisY + height, drawingAxisX, drawingAxisY + height, cornerRadiusRadius);
+            ctx2D.arcTo(drawingAxisX, drawingAxisY + height, drawingAxisX, drawingAxisY, cornerRadiusRadius);
+            ctx2D.arcTo(drawingAxisX, drawingAxisY, drawingAxisX + width, drawingAxisY, cornerRadiusRadius);
+            ctx2D.closePath();
+        }
+
+        function executeVerificationLoopbackScannabilityAudit() {
+            const masterViewCanvas = document.getElementById('view-canvas-master');
+            const loopbackBufferCanvas = document.getElementById('analytical-loopback-buffer-canvas');
+            const bufferContext2D = loopbackBufferCanvas.getContext('2d');
+
+            loopbackBufferCanvas.width = masterViewCanvas.width;
+            loopbackBufferCanvas.height = masterViewCanvas.height;
+            bufferContext2D.drawImage(masterViewCanvas, 0, 0);
+
+            const gridImageDataFrameBytes = bufferContext2D.getImageData(0, 0, loopbackBufferCanvas.width, loopbackBufferCanvas.height);
+            
+            let isJSQRScanSuccessful = false;
+            try {
+                const parsedResultObject = jsQR(gridImageDataFrameBytes.data, gridImageDataFrameBytes.width, gridImageDataFrameBytes.height, {
+                    inversionAttempts: "dontInvert",
+                });
+                if (parsedResultObject && parsedResultObject.data) {
+                    isJSQRScanSuccessful = true;
+                }
+            } catch(auditErr) {
+                console.warn("Telemetry validation thread exception context:", auditErr);
+            }
+
+            const errorFaultBadgeNode = document.getElementById('analytical-verification-badge');
+            const structuralFaultScreenNode = document.getElementById('readability-fault-screen');
+
+            if (isJSQRScanSuccessful) {
+                isScannabilityMetricValid = true;
+                errorFaultBadgeNode.className = "flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-emerald-400";
+                errorFaultBadgeNode.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-xs font-mono font-bold">SCAN SCORE: EXCELLENT</span>`;
+                structuralFaultScreenNode.classList.add('hidden');
+            } else {
+                isScannabilityMetricValid = false;
+                errorFaultBadgeNode.className = "flex items-center gap-2 bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400";
+                errorFaultBadgeNode.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-bounce"></span><span class="text-xs font-mono font-bold">SCAN SCORE: CRITICAL WARNING</span>`;
+                
+                const shapeIsUnsafe = (activeShapeRegistryMorphismKey === 'leaf' || activeShapeRegistryMorphismKey === 'heart');
+                if (shapeIsUnsafe || activeBrandingLogoOverlayKey !== 'none') {
+                    structuralFaultScreenNode.classList.remove('hidden');
+                }
+            }
+        }
+
+        function triggerEmergencyDesignRecovery() {
+            activeShapeRegistryMorphismKey = 'square';
+            activeFinderCornerEyeMorphismKey = 'square';
+            activeBrandingLogoOverlayKey = 'none';
+            document.getElementById('cfg-color-mode').value = 'solid';
+            document.getElementById('cfg-clr-fg1').value = '#000000';
+            document.getElementById('cfg-clr-fg1-hex').value = '#000000';
+            document.getElementById('cfg-clr-bg').value = '#ffffff';
+            document.getElementById('cfg-clr-bg-hex').value = '#ffffff';
+            document.getElementById('cfg-alpha-mode').checked = false;
+            document.getElementById('cfg-logo-file').parentElement.parentElement.classList.add('hidden');
+
+            updateSelectionHighlightGlowStates();
+            debouncedMasterRenderPipelineTrigger();
+        }
+
+        function processExportChainPipeline(formatExtensionKey) {
+            const masterViewCanvas = document.getElementById('view-canvas-master');
+            
+            if (formatExtensionKey === 'png') {
+                const downloadLinkMimeAnchor = document.createElement('a');
+                downloadLinkMimeAnchor.download = `qrfy_studio_export_${Date.now()}.png`;
+                downloadLinkMimeAnchor.href = masterViewCanvas.toDataURL('image/png');
+                downloadLinkMimeAnchor.click();
+            } else if (formatExtensionKey === 'svg') {
+                const compiledPayloadString = compileQRStringPayload();
+                const eccLevel = document.getElementById('cfg-qr-ecc').value || 'H';
+                
+                let qrEngineInstanceForSVG;
+                try {
+                    qrEngineInstanceForSVG = qrcode(0, eccLevel);
+                    qrEngineInstanceForSVG.addData(compiledPayloadString || ' ');
+                    qrEngineInstanceForSVG.make();
+                } catch(e) {
+                    qrEngineInstanceForSVG = qrcode(0, 'L');
+                    qrEngineInstanceForSVG.addData('Fallback');
+                    qrEngineInstanceForSVG.make();
+                }
+
+                const rawCellDimensionsSVGString = qrEngineInstanceForSVG.createSvgTag({ cellSize: 10, margin: 4 });
+                const transientDownloadBlob = new Blob([rawCellDimensionsSVGString], { type: 'image/svg+xml;charset=utf-8' });
+                const blobUrlReference = URL.createObjectURL(transientDownloadBlob);
+
+                const downloadAnchorSVG = document.createElement('a');
+                downloadAnchorSVG.download = `qrfy_studio_vector_${Date.now()}.svg`;
+                downloadAnchorSVG.href = blobUrlReference;
+                downloadAnchorSVG.click();
+                
+                setTimeout(() => URL.revokeObjectURL(blobUrlReference), 100);
+            }
+        }
+
+        function processClipboardActionChannel(actionTargetModeKey) {
+            if (actionTargetModeKey === 'text') {
+                const stringPayloadText = compileQRStringPayload();
+                navigator.clipboard.writeText(stringPayloadText)
+                    .then(() => alert("Successfully copied raw matrix string context payload to target system clipboard buffer."))
+                    .catch(() => alert("Error processing write text action channel task link."));
+            } else if (actionTargetModeKey === 'image') {
+                const masterViewCanvas = document.getElementById('view-canvas-master');
+                masterViewCanvas.toBlob(blobItem => {
+                    if(!blobItem) return;
+                    const clipboardItemInstance = new ClipboardItem({ "image/png": blobItem });
+                    navigator.clipboard.write([clipboardItemInstance])
+                        .then(() => alert("Successfully copied fully rendered preview canvas node layer to clipboard image frame buffer!"))
+                        .catch(() => alert("System security sandbox blocked native image block context extraction tasks directly. Try downloading PNG."));
+                }, 'image/png');
+            }
+        }
+
+        function runLocalDiagnosticUploadTraceEngine() {
+            const inputField = document.getElementById('act-diagnostic-file');
+            const logsTerminalNode = document.getElementById('diagnostic-log-terminal-output');
+
+            if (!inputField.files || !inputField.files[0]) {
+                logsTerminalNode.innerText = "Error: Input image upload target slot is empty.";
+                return;
+            }
+
+            logsTerminalNode.innerText = "Analyzing raster data array matrices streams...";
+            
+            const binaryReaderInstance = new FileReader();
+            binaryReaderInstance.onload = function(eventEvent) {
+                const transientImageLoaderNode = new Image();
+                transientImageLoaderNode.onload = function() {
+                    const canvasSandbox = document.createElement('canvas');
+                    const ctxSandbox = canvasSandbox.getContext('2d');
+                    canvasSandbox.width = transientImageLoaderNode.width;
+                    canvasSandbox.height = transientImageLoaderNode.height;
+                    ctxSandbox.drawImage(transientImageLoaderNode, 0, 0);
+
+                    try {
+                        const imgData = ctxSandbox.getImageData(0, 0, canvasSandbox.width, canvasSandbox.height);
+                        const decodeAttemptResult = jsQR(imgData.data, imgData.width, imgData.height);
+                        if (decodeAttemptResult && decodeAttemptResult.data) {
+                            logsTerminalNode.className = "text-xs font-mono text-green-400 bg-slate-950 p-2.5 rounded-xl border border-slate-900/60 break-all select-all text-left";
+                            logsTerminalNode.innerText = `🔍 SUCCESS: "${decodeAttemptResult.data}"`;
+                        } else {
+                            logsTerminalNode.className = "text-xs font-mono text-rose-400 bg-slate-950 p-2.5 rounded-xl border border-slate-900/60 text-center";
+                            logsTerminalNode.innerText = "❌ FAILED: The decoding framework was unable to lock onto code locator finders patterns matrices.";
+                        }
+                    } catch(err) {
+                        logsTerminalNode.innerText = `Internal diagnostic crash error context: ${err.message}`;
+                    }
+                };
+                transientImageLoaderNode.src = eventEvent.target.result;
+            };
+            binaryReaderInstance.readAsDataURL(inputField.files[0]);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeApplicationInterfaceComponents();
+
+            const frameTextNode = document.getElementById('cfg-frame-text');
+            const frameClrNode = document.getElementById('cfg-frame-clr');
+            const frameTextClrNode = document.getElementById('cfg-frame-text-clr');
+            const logoSizeNode = document.getElementById('cfg-logo-size');
+            const colorModeNode = document.getElementById('cfg-color-mode');
+            const quietZoneNode = document.getElementById('cfg-qr-quiet');
+            const eccLevelNode = document.getElementById('cfg-qr-ecc');
+
+            frameTextNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
+            frameClrNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
+            frameTextClrNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
+            logoSizeNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
+            colorModeNode.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
+            quietZoneNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
+            eccLevelNode.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
+
+            const fgColor1 = document.getElementById('cfg-clr-fg1');
+            const fgHex1 = document.getElementById('cfg-clr-fg1-hex');
+            const fgColor2 = document.getElementById('cfg-clr-fg2');
+            const fgHex2 = document.getElementById('cfg-clr-fg2-hex');
+            const bgColor = document.getElementById('cfg-clr-bg');
+            const bgHex = document.getElementById('cfg-clr-bg-hex');
+            const alphaCheck = document.getElementById('cfg-alpha-mode');
+
+            fgColor1.addEventListener('input', (e) => { fgHex1.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
+            fgColor2.addEventListener('input', (e) => { fgHex2.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
+            bgColor.addEventListener('input', (e) => { bgHex.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
+
+            alphaCheck.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
+
+            fgHex1.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { fgColor1.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
+            fgHex2.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { fgColor2.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
+            bgHex.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { bgColor.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
+
+            document.getElementById('cfg-logo-file').addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const transientImgNode = new Image();
+                        transientImgNode.onload = function() {
+                            systemUploadedLogoFileObjectReference = transientImgNode;
+                            debouncedMasterRenderPipelineTrigger();
+                        };
+                        transientImgNode.src = evt.target.result;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
