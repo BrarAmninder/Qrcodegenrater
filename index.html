@@ -78,9 +78,11 @@
                     <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200">Data Type Registry & Live Validation</h2>
                 </div>
                 
-                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2" id="protocol-tab-matrix"></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2" id="protocol-tab-matrix">
+                    </div>
 
-                <div id="dynamic-schema-fields-root" class="grid grid-cols-1 gap-4 pt-3 mt-2 border-t border-slate-800/40"></div>
+                <div id="dynamic-schema-fields-root" class="grid grid-cols-1 gap-4 pt-3 mt-2 border-t border-slate-800/40">
+                    </div>
             </div>
 
             <div class="glass-card rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
@@ -95,8 +97,10 @@
                         <span id="tg-acc-frames" class="text-slate-500 transition-transform">▼</span>
                     </button>
                     <div id="acc-frames" class="p-4 flex flex-col gap-4 border-t border-slate-800/60">
-                        <div class="flex gap-2 pb-2 overflow-x-auto border-b border-slate-800/40" id="frame-cat-filters"></div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-60 overflow-y-auto pr-1" id="frame-matrix-view"></div>
+                        <div class="flex gap-2 pb-2 overflow-x-auto border-b border-slate-800/40" id="frame-cat-filters">
+                            </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-60 overflow-y-auto pr-1" id="frame-matrix-view">
+                            </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-800/40">
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[11px] font-bold text-slate-400 uppercase">Custom Frame Label String</label>
@@ -124,11 +128,13 @@
                     <div id="acc-shapes" class="hidden p-4 flex flex-col gap-4 border-t border-slate-800/60">
                         <div>
                             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-2">Internal Module Geometry Morphism Style</span>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2" id="shape-matrix-view"></div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2" id="shape-matrix-view">
+                                </div>
                         </div>
                         <div class="pt-3 border-t border-slate-800/40">
                             <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-2">Isolated Finder Corner Eye Style Configuration</span>
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="eye-matrix-view"></div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="eye-matrix-view">
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -139,7 +145,8 @@
                         <span id="tg-acc-logos" class="text-slate-500 transition-transform">▶</span>
                     </button>
                     <div id="acc-logos" class="hidden p-4 flex flex-col gap-4 border-t border-slate-800/60">
-                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2" id="logo-matrix-view"></div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2" id="logo-matrix-view">
+                            </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-slate-800/40 bg-slate-900/40 p-3 rounded-xl border border-slate-800/40">
                             <div class="flex flex-col gap-1.5">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase">Upload Premium Custom Identity File (PNG/SVG)</label>
@@ -319,7 +326,7 @@
         let systemUploadedLogoFileObjectReference = null;
         let isScannabilityMetricValid = true;
 
-        // Unified resource target identifier for structural data validation loops
+        // Protocol Data Fields Structural Layout Definitions Maps Array Schema Records (Including requested types)
         const coreProtocolSchemas = {
             'URL': [
                 { id: 'url_str', label: 'Destination Web Portal Link URL', type: 'text', placeholder: 'https://enterprise.com/portal-destination', value: 'https://example.com', required: true }
@@ -334,18 +341,18 @@
                 { id: 'upi_tn', label: 'Payment Note / Remarks / Context Reference', type: 'text', placeholder: 'Order Description Ref (Optional)', value: 'Premium Design Suite Workspace', required: false }
             ],
             'Image': [
-                { id: 'url_str', label: 'Hosted Premium Image Resource Link URL', type: 'text', placeholder: 'https://storage.enterprise.com/assets/banner.jpg', value: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe', required: true, hasUploader: true, accept: 'image/*' }
+                { id: 'img_url', label: 'Hosted Premium Image Resource Link URL', type: 'text', placeholder: 'https://storage.enterprise.com/assets/banner.jpg', value: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe', required: true, hasUploader: true, accept: 'image/*' }
             ],
             'PDF': [
-                { id: 'url_str', label: 'Cloud Hosted Document PDF Resource Link URL', type: 'text', placeholder: 'https://cdn.enterprise.com/docs/annual-report.pdf', value: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', required: true, hasUploader: true, accept: '.pdf,application/pdf' },
+                { id: 'pdf_url', label: 'Cloud Hosted Document PDF Resource Link URL', type: 'text', placeholder: 'https://cdn.enterprise.com/docs/annual-report.pdf', value: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', required: true, hasUploader: true, accept: '.pdf,application/pdf' },
                 { id: 'pdf_lbl', label: 'Document File Presentation Label String', type: 'text', placeholder: 'Enterprise Product Specification Sheet', value: 'Corporate Quarterly Guidelines Summary', required: false }
             ],
             'MP3': [
-                { id: 'url_str', label: 'Hosted Audio / MP3 Stream Resource Link URL', type: 'text', placeholder: 'https://audio.enterprise.com/podcasts/episode-42.mp3', value: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', required: true, hasUploader: true, accept: 'audio/*', audio: true },
+                { id: 'mp3_url', label: 'Hosted Audio / MP3 Stream Resource Link URL', type: 'text', placeholder: 'https://audio.enterprise.com/podcasts/episode-42.mp3', value: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', required: true, hasUploader: true, accept: 'audio/*', audio: true },
                 { id: 'mp3_dsc', label: 'Audio Track Broadcast Descriptor Header', type: 'text', placeholder: 'SaaS Architecture Panel Podcast Interview', value: 'Digital Evolution Sound Track', required: false }
             ],
             'Video': [
-                { id: 'url_str', label: 'Video Resource Target URL (YouTube/Vimeo/Direct MP4)', type: 'text', placeholder: 'https://youtube.com/watch?v=xyz7729', value: 'https://www.w3schools.com/html/mov_bbb.mp4', required: true, hasUploader: true, accept: 'video/*', video: true },
+                { id: 'vid_url', label: 'Video Resource Target URL (YouTube/Vimeo/Direct MP4)', type: 'text', placeholder: 'https://youtube.com/watch?v=xyz7729', value: 'https://www.w3schools.com/html/mov_bbb.mp4', required: true, hasUploader: true, accept: 'video/*', video: true },
                 { id: 'vid_desc', label: 'Video Asset Production Descriptor Text', type: 'text', placeholder: 'Product Launch Promotional Reel Showcase', value: 'Main Features Cinematic Trailer', required: false }
             ],
             'Social': [
@@ -397,6 +404,7 @@
             ]
         };
 
+        // Fully Implemented 50 Premium Vector Illustration Framework Templates Dataset Array 
         const premiumFramesDatasetArray = [];
         const frameCategoriesList = ['all', 'business', 'marketing', 'social', 'payment', 'food', 'travel'];
         const frameTitleLabels = [
@@ -410,6 +418,7 @@
             'Secure Access', 'Download Ebook', 'Medical Record', 'Hotel CheckIn', 'Ticket Validation', 'Premium Content', 'Exit Survey'
         ];
 
+        // Hydrate frame array library map loop records programmatically
         for (let i = 0; i < 50; i++) {
             let cat = 'business';
             if (i % 6 === 1) cat = 'marketing';
@@ -455,109 +464,7 @@
             { id: 'custom', label: '📤 Custom File' }
         ];
 
-        // Production-Ready Async iimg.live Upload Gateway Handler Implementation Engine
-        async function handleDirectCloudUploadDeploymentPipeline(fileObj, inputTargetNode, feedbackStatusTextNode) {
-            if (!fileObj) {
-                console.warn("Upload abort: No file selected.");
-                feedbackStatusTextNode.className = "mt-2 text-xs font-bold text-rose-400";
-                feedbackStatusTextNode.innerHTML = `<span>⚠️</span> File validation rejected: No asset chosen.`;
-                return;
-            }
-
-            const targetActionButtonPNG = document.getElementById('act-btn-png');
-            const targetActionButtonSVG = document.getElementById('act-btn-svg');
-            const targetFileInputElement = feedbackStatusTextNode.parentElement.querySelector('input[type="file"]');
-            
-            const targetAPIEndpoint = "https://api.iimg.live/upload";
-            const authorizationBearerString = "Bearer pk_public_3db6884c9c2c6f089fdfb904";
-
-            console.log("---------------- INITIALIZING UPLOAD CHAIN ----------------");
-            console.log(`Request Destination URL: ${targetAPIEndpoint}`);
-            console.log(`File Meta Payload Data: Name=${fileObj.name}, Size=${fileObj.size} bytes, Type=${fileObj.type}`);
-
-            try {
-                // Adjust transactional system interface UI states
-                feedbackStatusTextNode.className = "mt-2 text-xs font-semibold text-amber-400 animate-pulse flex items-center gap-1.5";
-                feedbackStatusTextNode.innerHTML = `<span>⏳</span> Cloud ingestion pipeline active. Transmitting file...`;
-                
-                if (targetActionButtonPNG) targetActionButtonPNG.disabled = true;
-                if (targetActionButtonSVG) targetActionButtonSVG.disabled = true;
-                if (targetFileInputElement) targetFileInputElement.disabled = true;
-
-                const assetPayloadData = new FormData();
-                assetPayloadData.append('image', fileObj);
-
-                const serverAPIResponse = await fetch(targetAPIEndpoint, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': authorizationBearerString
-                    },
-                    body: assetPayloadData
-                });
-
-                console.log(`Server Connection Handshake Status: ${serverAPIResponse.status} ${serverAPIResponse.statusText}`);
-
-                let parsedResultJSON = null;
-                const baseRawResponseText = await serverAPIResponse.text();
-
-                try {
-                    parsedResultJSON = JSON.parse(baseRawResponseText);
-                    console.log("Response Object Payload Details:", parsedResultJSON);
-                } catch (jsonParseError) {
-                    console.error("Non-JSON Server Output Intercepted:", baseRawResponseText);
-                }
-
-                if (!serverAPIResponse.ok) {
-                    throw new Error(`Cloud rejection [HTTP ${serverAPIResponse.status}]. Context: ${baseRawResponseText || 'No error block string defined.'}`);
-                }
-
-                // Variable tree mapping loop resolver
-                let extractedPublicAssetURL = '';
-                if (parsedResultJSON) {
-                    if (parsedResultJSON.url) {
-                        extractedPublicAssetURL = parsedResultJSON.url;
-                    } else if (parsedResultJSON.image) {
-                        extractedPublicAssetURL = parsedResultJSON.image;
-                    } else if (parsedResultJSON.secure_url) {
-                        extractedPublicAssetURL = parsedResultJSON.secure_url;
-                    } else if (parsedResultJSON.data && parsedResultJSON.data.url) {
-                        extractedPublicAssetURL = parsedResultJSON.data.url;
-                    } else if (parsedResultJSON.data && parsedResultJSON.data.image) {
-                        extractedPublicAssetURL = parsedResultJSON.data.image;
-                    }
-                }
-
-                if (!extractedPublicAssetURL) {
-                    throw new Error("Unable to map server response keys into a verified destination asset URL path.");
-                }
-
-                console.log(`Successfully Extracted Target Public URL Resource: ${extractedPublicAssetURL}`);
-
-                // Automatically map resource identifier references to local structural form inputs
-                inputTargetNode.value = extractedPublicAssetURL;
-
-                feedbackStatusTextNode.className = "mt-2 text-xs font-bold text-emerald-400 flex items-center gap-1.5";
-                feedbackStatusTextNode.innerHTML = `<span>✅</span> File successfully processed & mirrored to cloud!`;
-
-                // Fire vector generation sequence layout matrix modifications loops instantly
-                executeSaaSVectorCompositeRenderingPipeline();
-
-            } catch (runtimeUploadException) {
-                console.error("Critical System Gateway Exception Intercepted:", runtimeUploadException);
-                
-                feedbackStatusTextNode.className = "mt-2 text-xs font-medium text-rose-400 bg-rose-950/40 border border-rose-900/50 p-2.5 rounded-xl block max-w-full overflow-x-auto whitespace-pre-wrap font-mono text-left";
-                feedbackStatusTextNode.innerText = `❌ Runtime Fault: ${runtimeUploadException.message}`;
-                
-                // Flush values to clear scannability constraints
-                inputTargetNode.value = '';
-            } finally {
-                if (targetActionButtonPNG) targetActionButtonPNG.disabled = false;
-                if (targetActionButtonSVG) targetActionButtonSVG.disabled = false;
-                if (targetFileInputElement) targetFileInputElement.disabled = false;
-                console.log("------------------- TRANSACTION CYCLE END -------------------");
-            }
-        }
-
+        // COMPLIANT CONTROLLED ACCORDION SINGLE-DRAWER TOGGLE LOOP ROUTINE
         function toggleAccordionUI(targetId) {
             ['acc-frames', 'acc-shapes', 'acc-logos', 'acc-colors'].forEach(id => {
                 const element = document.getElementById(id);
@@ -574,7 +481,9 @@
             });
         }
 
+        // INITIALIZATION AND GENERATION LAYER MOUNT ROUTINES LOGIC BLOCKS
         function initializeApplicationInterfaceComponents() {
+            // Render Protocol Selection Tab Dynamic Segments Grid Layout
             const tabMatrixRoot = document.getElementById('protocol-tab-matrix');
             tabMatrixRoot.innerHTML = '';
             Object.keys(coreProtocolSchemas).forEach(key => {
@@ -586,6 +495,7 @@
                 tabMatrixRoot.appendChild(btn);
             });
 
+            // Populate Frame Categories Navigation Filter Array
             const frameCatRoot = document.getElementById('frame-cat-filters');
             frameCatRoot.innerHTML = '';
             frameCategoriesList.forEach(categoryName => {
@@ -600,6 +510,7 @@
                 frameCatRoot.appendChild(node);
             });
 
+            // Build Static Shape Selectors Framework Thumbnails
             const shapeRoot = document.getElementById('shape-matrix-view');
             shapeRoot.innerHTML = '';
             presetShapesLibraryList.forEach(shape => {
@@ -618,6 +529,7 @@
                 shapeRoot.appendChild(div);
             });
 
+            // Build Corner Finder Eyes Choice Elements Mapping
             const eyeRoot = document.getElementById('eye-matrix-view');
             eyeRoot.innerHTML = '';
             presetEyesLibraryList.forEach(eye => {
@@ -633,6 +545,7 @@
                 eyeRoot.appendChild(div);
             });
 
+            // Render Logos Controls Viewport Grid
             const logoRoot = document.getElementById('logo-matrix-view');
             logoRoot.innerHTML = '';
             presetLogosLibraryList.forEach(logo => {
@@ -644,151 +557,73 @@
                     updateSelectionHighlightGlowStates();
                     debouncedMasterRenderPipelineTrigger();
                 };
-                div.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center min-h-[44px]";
+                div.className = "thumb-select p-1.5 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center min-h-[40px]";
                 div.innerText = logo.label;
                 logoRoot.appendChild(div);
             });
 
-            document.getElementById('cfg-logo-file').parentElement.parentElement.classList.add('hidden');
-
             handleGlobalProtocolStateFlush('URL');
-            renderFilteredFrameThumbnailsWorkspace();
-        }
-
-        function handleGlobalProtocolStateFlush(protocolKey) {
-            activeProtocolRegistryKey = protocolKey;
-            
-            Object.keys(coreProtocolSchemas).forEach(key => {
-                const el = document.getElementById(`protocol-btn-${key}`);
-                if(el) {
-                    el.classList.toggle('bg-green-600', key === protocolKey);
-                    el.classList.toggle('text-white', key === protocolKey);
-                    el.classList.toggle('bg-brand-darkCard', key !== protocolKey);
-                    el.classList.toggle('text-slate-400', key !== protocolKey);
-                }
-            });
-
-            const schemaFieldsFieldsRoot = document.getElementById('dynamic-schema-fields-root');
-            schemaFieldsFieldsRoot.innerHTML = '';
-
-            const structureFields = coreProtocolSchemas[protocolKey];
-            structureFields.forEach(field => {
-                const container = document.createElement('div');
-                container.className = "flex flex-col gap-1.5 animate-fadeIn";
-
-                const label = document.createElement('label');
-                label.className = "text-[11px] font-bold text-slate-400 uppercase tracking-wide";
-                label.innerText = field.label;
-                container.appendChild(label);
-
-                let dynamicInputElement;
-                if (field.type === 'textarea') {
-                    dynamicInputElement = document.createElement('textarea');
-                    dynamicInputElement.rows = 3;
-                    dynamicInputElement.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-medium focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all";
-                } else if (field.type === 'select') {
-                    dynamicInputElement = document.createElement('select');
-                    dynamicInputElement.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-bold focus:border-green-500 focus:outline-none cursor-pointer";
-                    field.options.forEach(opt => {
-                        const choice = document.createElement('option');
-                        choice.value = opt;
-                        choice.innerText = opt.toUpperCase();
-                        dynamicInputElement.appendChild(choice);
-                    });
-                } else {
-                    dynamicInputElement = document.createElement('input');
-                    dynamicInputElement.type = field.type;
-                    dynamicInputElement.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 font-medium focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-all";
-                }
-
-                dynamicInputElement.id = `field-input-${field.id}`;
-                dynamicInputElement.placeholder = field.placeholder || '';
-                dynamicInputElement.value = field.value || '';
-                dynamicInputElement.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
-                dynamicInputElement.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
-
-                container.appendChild(dynamicInputElement);
-
-                if (field.hasUploader) {
-                    const statusMessageLoggerNode = document.createElement('div');
-                    statusMessageLoggerNode.className = "mt-1.5 text-[11px] text-slate-500 italic";
-                    statusMessageLoggerNode.innerText = "Ready for cloud ingestion layer pipeline tracking.";
-
-                    const inlineUploadBox = document.createElement('div');
-                    inlineUploadBox.className = "mt-1 flex flex-col bg-slate-900/60 p-3 rounded-xl border border-slate-800/80 text-xs gap-2";
-                    inlineUploadBox.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <span class="text-green-400 font-extrabold text-[10px] tracking-wide uppercase">⚡ Cloud Upload Engine:</span>
-                            <input type="file" accept="${field.accept || '*'}" class="bg-brand-darkBg text-[10px] rounded border border-slate-700 p-1 w-full file:bg-green-600 file:text-white file:border-0 file:text-[9px] file:font-bold file:px-2.5 file:py-0.5 file:rounded cursor-pointer file:hover:bg-green-500 transition-colors">
-                        </div>
-                    `;
-
-                    inlineUploadBox.appendChild(statusMessageLoggerNode);
-                    
-                    inlineUploadBox.querySelector('input').addEventListener('change', async function(e) {
-                        if (e.target.files && e.target.files[0]) {
-                            await handleDirectCloudUploadDeploymentPipeline(e.target.files[0], dynamicInputElement, statusMessageLoggerNode);
-                        }
-                    });
-                    container.appendChild(inlineUploadBox);
-                }
-
-                schemaFieldsFieldsRoot.appendChild(container);
-            });
-
-            debouncedMasterRenderPipelineTrigger();
         }
 
         function renderFilteredFrameThumbnailsWorkspace() {
-            frameCategoriesList.forEach(categoryName => {
-                const tabNode = document.getElementById(`frame-filter-${categoryName}`);
-                if(tabNode) {
-                    tabNode.classList.toggle('bg-green-500/10', categoryName === activeFrameCategoryFilter);
-                    tabNode.classList.toggle('text-green-400', categoryName === activeFrameCategoryFilter);
-                    tabNode.classList.toggle('border-green-500/30', categoryName === activeFrameCategoryFilter);
-                    tabNode.classList.toggle('bg-slate-900', categoryName !== activeFrameCategoryFilter);
-                    tabNode.classList.toggle('text-slate-400', categoryName !== activeFrameCategoryFilter);
-                    tabNode.classList.toggle('border-slate-800', categoryName !== activeFrameCategoryFilter);
+            frameCategoriesList.forEach(cat => {
+                const element = document.getElementById(`frame-filter-${cat}`);
+                if (element) {
+                    if (cat === activeFrameCategoryFilter) {
+                        element.className = "text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-extrabold border transition-all shrink-0 bg-green-500/10 text-green-400 border-green-500/30 shadow-md shadow-green-500/5";
+                    } else {
+                        element.className = "text-[10px] uppercase tracking-wider px-2.5 py-1 rounded-md font-extrabold border transition-all shrink-0 bg-slate-900 text-slate-400 border-slate-800 hover:text-white";
+                    }
                 }
             });
 
-            const frameMatrixRoot = document.getElementById('frame-matrix-view');
-            frameMatrixRoot.innerHTML = '';
+            const gridRoot = document.getElementById('frame-matrix-view');
+            gridRoot.innerHTML = '';
 
-            const baseNoFrameCard = document.createElement('div');
-            baseNoFrameCard.id = `frame-card-0`;
-            baseNoFrameCard.onclick = () => {
-                activeFrameTemplateIndex = 0;
-                updateSelectionHighlightGlowStates();
-                debouncedMasterRenderPipelineTrigger();
-            };
-            baseNoFrameCard.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-400 border border-slate-800 flex flex-col items-center justify-center gap-1 min-h-[64px]";
-            baseNoFrameCard.innerHTML = `<span>🚫</span><span class="truncate w-full">No Outer Frame</span>`;
-            frameMatrixRoot.appendChild(baseNoFrameCard);
+            const filteredArray = premiumFramesDatasetArray.filter(f => activeFrameCategoryFilter === 'all' || f.category === activeFrameCategoryFilter);
+            
+            if (activeFrameCategoryFilter === 'all') {
+                const noneNode = document.createElement('div');
+                noneNode.id = `frame-card-0`;
+                noneNode.onclick = () => { activeFrameTemplateIndex = 0; updateSelectionHighlightGlowStates(); debouncedMasterRenderPipelineTrigger(); };
+                noneNode.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center flex flex-col items-center justify-center gap-1 min-h-[64px] border border-slate-800";
+                noneNode.innerHTML = `<span class="text-lg">🚫</span><span class="text-[10px] font-bold text-slate-400 leading-tight">No Frame</span>`;
+                gridRoot.appendChild(noneNode);
+            }
 
-            const filteredDataset = premiumFramesDatasetArray.filter(f => activeFrameCategoryFilter === 'all' || f.category === activeFrameCategoryFilter);
-            filteredDataset.forEach(frameItem => {
-                const cardIndex = frameItem.id + 1;
+            filteredArray.forEach(frameItem => {
                 const card = document.createElement('div');
-                card.id = `frame-card-${cardIndex}`;
+                card.id = `frame-card-${frameItem.id + 1}`;
                 card.onclick = () => {
-                    activeFrameTemplateIndex = cardIndex;
+                    activeFrameTemplateIndex = frameItem.id + 1;
                     document.getElementById('cfg-frame-text').value = frameItem.label.toUpperCase();
                     updateSelectionHighlightGlowStates();
                     debouncedMasterRenderPipelineTrigger();
                 };
-                card.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center font-bold text-[10px] text-slate-300 border border-slate-800 flex flex-col items-center justify-center gap-1 min-h-[64px]";
-                card.innerHTML = `<span>${frameItem.iconType}</span><span class="truncate w-full">${frameItem.label}</span>`;
-                frameMatrixRoot.appendChild(card);
+                card.className = "thumb-select p-2 rounded-xl bg-brand-darkBg cursor-pointer text-center flex flex-col items-center justify-center gap-1 min-h-[64px] border border-slate-800 hover:border-slate-700";
+                card.innerHTML = `<span class="text-base">${frameItem.iconType}</span><span class="text-[10px] font-bold text-slate-300 leading-tight block truncate w-full">${frameItem.label}</span>`;
+                gridRoot.appendChild(card);
             });
 
             updateSelectionHighlightGlowStates();
         }
 
         function updateSelectionHighlightGlowStates() {
-            document.querySelectorAll('[id^="frame-card-"]').forEach(el => el.classList.remove('active'));
-            const targetFrameCard = document.getElementById(`frame-card-${activeFrameTemplateIndex}`);
-            if(targetFrameCard) targetFrameCard.classList.add('active');
+            Object.keys(coreProtocolSchemas).forEach(key => {
+                const el = document.getElementById(`protocol-btn-${key}`);
+                if(el) {
+                    if (key === activeProtocolRegistryKey) {
+                        el.className = "bg-green-600 border border-green-500 text-white text-[11px] py-2 px-1 rounded-xl font-bold shadow-md shadow-green-600/10 text-center truncate";
+                    } else {
+                        el.className = "bg-brand-darkCard border border-slate-800 text-slate-400 text-[11px] py-2 px-1 rounded-xl font-bold transition-all hover:bg-slate-800/40 hover:text-white text-center truncate";
+                    }
+                }
+            });
+
+            for(let i=0; i<=50; i++) {
+                const el = document.getElementById(`frame-card-${i}`);
+                if(el) el.classList.toggle('active', i === activeFrameTemplateIndex);
+            }
 
             presetShapesLibraryList.forEach(shape => {
                 const el = document.getElementById(`shape-card-${shape.id}`);
@@ -806,560 +641,698 @@
             });
         }
 
-        function compileQRStringPayload() {
-            const structureFields = coreProtocolSchemas[activeProtocolRegistryKey];
-            if (!structureFields) return 'https://example.com';
+        // COMPLETE AUTOMATIC PROTOCOL CLEAN-SLATE RESET FLUSH ROUTINE
+        function handleGlobalProtocolStateFlush(targetProtocolRegistryKey) {
+            activeProtocolRegistryKey = targetProtocolRegistryKey;
 
-            if (activeProtocolRegistryKey === 'URL' || activeProtocolRegistryKey === 'Image' || activeProtocolRegistryKey === 'PDF' || activeProtocolRegistryKey === 'MP3' || activeProtocolRegistryKey === 'Video') {
-                const inputNode = document.getElementById('field-input-url_str');
-                return inputNode ? inputNode.value : 'https://example.com';
-            }
-            if (activeProtocolRegistryKey === 'Text') {
-                const inputNode = document.getElementById('field-input-text_blk');
-                return inputNode ? inputNode.value : '';
-            }
-            if (activeProtocolRegistryKey === 'Phone') {
-                const inputNode = document.getElementById('field-input-ph_num');
-                return inputNode ? `tel:${inputNode.value}` : 'tel:';
-            }
-            if (activeProtocolRegistryKey === 'SMS') {
-                const numNode = document.getElementById('field-input-sms_num');
-                const txtNode = document.getElementById('field-input-sms_txt');
-                return `sms:${numNode ? numNode.value : ''}?body=${encodeURIComponent(txtNode ? txtNode.value : '')}`;
-            }
-            if (activeProtocolRegistryKey === 'Email') {
-                const destNode = document.getElementById('field-input-em_dest');
-                const subjNode = document.getElementById('field-input-em_subj');
-                const bodyNode = document.getElementById('field-input-em_body');
-                return `mailto:${destNode ? destNode.value : ''}?subject=${encodeURIComponent(subjNode ? subjNode.value : '')}&body=${encodeURIComponent(bodyNode ? bodyNode.value : '')}`;
-            }
-            if (activeProtocolRegistryKey === 'WiFi') {
-                const ssid = document.getElementById('field-input-wf_ssid');
-                const pass = document.getElementById('field-input-wf_pass');
-                const crypt = document.getElementById('field-input-wf_crypt');
-                return `WIFI:S:${ssid?ssid.value:''};T:${crypt?crypt.value:'WPA'};P:${pass?pass.value:''};;`;
-            }
-            if (activeProtocolRegistryKey === 'Social') {
-                const plat = document.getElementById('field-input-soc_plat');
-                const user = document.getElementById('field-input-soc_user');
-                const pVal = plat ? plat.value : 'instagram';
-                const uVal = user ? user.value : '';
-                if(pVal === 'instagram') return `https://instagram.com/${uVal}`;
-                if(pVal === 'linkedin') return `https://linkedin.com/in/${uVal}`;
-                if(pVal === 'facebook') return `https://facebook.com/${uVal}`;
-                if(pVal === 'twitter') return `https://twitter.com/${uVal}`;
-                if(pVal === 'tiktok') return `https://tiktok.com/@${uVal}`;
-                if(pVal === 'youtube') return `https://youtube.com/@${uVal}`;
-            }
-            if (activeProtocolRegistryKey === 'UPI') {
-                const vpa = document.getElementById('field-input-upi_vpa');
-                const name = document.getElementById('field-input-upi_name');
-                const am = document.getElementById('field-input-upi_am');
-                const tn = document.getElementById('field-input-upi_tn');
-                return `upi://pay?pa=${vpa?vpa.value:''}&pn=${encodeURIComponent(name?name.value:'')}&am=${am?am.value:''}&tn=${encodeURIComponent(tn?tn.value:'')}`;
-            }
-            if (activeProtocolRegistryKey === 'Location') {
-                const url = document.getElementById('field-input-geo_url');
-                const lat = document.getElementById('field-input-geo_lat');
-                const lng = document.getElementById('field-input-geo_lng');
-                if(url && url.value) return url.value;
-                return `http://googleusercontent.com/maps.google.com/maps?q=${lat?lat.value:'0'},${lng?lng.value:'0'}`;
-            }
-            if (activeProtocolRegistryKey === 'Product') {
-                const url = document.getElementById('field-input-pr_url');
-                const nm = document.getElementById('field-input-pr_nm');
-                const sku = document.getElementById('field-input-pr_sku');
-                if(url && url.value) return url.value;
-                return `PRODUCT:${nm?nm.value:''};SKU:${sku?sku.value:''};`;
-            }
-            if (activeProtocolRegistryKey === 'Event') {
-                const ttl = document.getElementById('field-input-ev_ttl');
-                const dsc = document.getElementById('field-input-ev_dsc');
-                const loc = document.getElementById('field-input-ev_loc');
-                const std = document.getElementById('field-input-ev_std');
-                const etd = document.getElementById('field-input-ev_etd');
-                return `BEGIN:VEVENT\nSUMMARY:${ttl?ttl.value:''}\nDESCRIPTION:${dsc?dsc.value:''}\nLOCATION:${loc?loc.value:''}\nDTSTART:${std?std.value:''}\nDTEND:${etd?etd.value:''}\nEND:VEVENT`;
-            }
+            activeFrameTemplateIndex = 0;
+            activeShapeRegistryMorphismKey = 'square';
+            activeFinderCornerEyeMorphismKey = 'square';
+            activeBrandingLogoOverlayKey = 'none';
+            systemUploadedLogoFileObjectReference = null;
 
-            return 'https://example.com';
+            document.getElementById('cfg-logo-file').value = '';
+            document.getElementById('cfg-logo-size').value = 16;
+            document.getElementById('lbl-logo-size').innerText = '16%';
+            document.getElementById('cfg-logo-file').parentElement.parentElement.classList.add('hidden');
+
+            document.getElementById('cfg-frame-text').value = "SCAN ME";
+            document.getElementById('cfg-frame-clr').value = "#22c55e";
+            document.getElementById('cfg-frame-text-clr').value = "#ffffff";
+
+            document.getElementById('cfg-color-mode').value = "solid";
+            document.getElementById('cfg-clr-fg1').value = "#000000";
+            document.getElementById('cfg-clr-fg1-hex').value = "#000000";
+            document.getElementById('cfg-clr-fg2').value = "#16a34a";
+            document.getElementById('cfg-clr-fg2-hex').value = "#16A34A";
+            document.getElementById('cfg-clr-bg').value = "#ffffff";
+            document.getElementById('cfg-clr-bg-hex').value = "#ffffff";
+            document.getElementById('cfg-alpha-mode').checked = false;
+            document.getElementById('gradient-stop-2-wrapper').classList.add('hidden');
+
+            document.getElementById('cfg-qr-quiet').value = 4;
+            document.getElementById('cfg-qr-ecc').value = "H";
+
+            document.getElementById('readability-fault-screen').classList.add('hidden');
+
+            compileActiveSchemaFormsEngine();
+            renderFilteredFrameThumbnailsWorkspace();
         }
 
-        let debouncedMasterPipelineTimeoutReference = null;
-        function debouncedMasterRenderPipelineTrigger() {
-            clearTimeout(debouncedMasterPipelineTimeoutReference);
-            debouncedMasterPipelineTimeoutReference = setTimeout(() => {
-                executeSaaSVectorCompositeRenderingPipeline();
-            }, 60);
-        }
+        // IIMG.LIVE API CONFIGURATION REGISTRY
+        const IIMG_API_KEY = 'pk_public_3db6884c9c2c6f089fdfb904';
+        const IIMG_UPLOAD_ENDPOINT = 'https://api.iimg.live/upload';
 
-        function executeSaaSVectorCompositeRenderingPipeline() {
-            const compiledPayloadString = compileQRStringPayload();
-            document.getElementById('string-payload-preview-terminal').innerText = compiledPayloadString || '[Empty Matrix Data Block Payload String]';
+        // AUTOMATIC SYSTEM API UPLOAD DISPATCHER TO URL REGISTRY NODE MAPPING
+        async function executeLocalMediaAssetPayloadCapture(event, inputFieldIdTarget) {
+            const uploadedAssetFile = event.target.files[0];
+            if (!uploadedAssetFile) return;
 
-            const eccLevel = document.getElementById('cfg-qr-ecc').value || 'H';
-            const quietZoneCellPadding = parseInt(document.getElementById('cfg-qr-quiet').value) || 0;
+            const targetUrlInputNode = document.getElementById(`schema-ctrl-${inputFieldIdTarget}`);
+            const triggerBtn = event.target.closest ? null : null;
 
-            let qrModuleInstance;
+            // Find the associated upload button and show uploading state
+            const uploadBtnNode = document.getElementById(`uploader-btn-${inputFieldIdTarget}`);
+            const originalBtnHtml = uploadBtnNode ? uploadBtnNode.innerHTML : '';
+            if (uploadBtnNode) {
+                uploadBtnNode.innerHTML = `<svg class="animate-spin w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Uploading...`;
+                uploadBtnNode.disabled = true;
+            }
+            if (targetUrlInputNode) {
+                targetUrlInputNode.placeholder = '⏳ Uploading to cloud... please wait';
+                targetUrlInputNode.value = '';
+            }
+
             try {
-                qrModuleInstance = qrcode(0, eccLevel);
-                qrModuleInstance.addData(compiledPayloadString || ' ');
-                qrModuleInstance.make();
-            } catch (err) {
-                console.error("Core compilation error generation payload fallback triggered:", err);
-                qrModuleInstance = qrcode(0, 'L');
-                qrModuleInstance.addData('Error fallback payload metadata template registry loop');
-                qrModuleInstance.make();
+                const formDataPayload = new FormData();
+                formDataPayload.append('image', uploadedAssetFile);
+
+                const apiResponse = await fetch(IIMG_UPLOAD_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${IIMG_API_KEY}`
+                    },
+                    body: formDataPayload
+                });
+
+                if (!apiResponse.ok) {
+                    const errJson = await apiResponse.json().catch(() => ({}));
+                    throw new Error(errJson.message || `API Error: HTTP ${apiResponse.status}`);
+                }
+
+                const responsePayload = await apiResponse.json();
+
+                // Extract URL from iimg.live response
+                const returnedPublicUrl = responsePayload.url || responsePayload.data?.url || responsePayload.image?.url || responsePayload.link;
+
+                if (!returnedPublicUrl) {
+                    throw new Error('No URL returned from upload API. Check response structure.');
+                }
+
+                // Inject returned public URL into the URL field
+                if (targetUrlInputNode) {
+                    targetUrlInputNode.value = returnedPublicUrl;
+                    targetUrlInputNode.placeholder = bp ? bp.placeholder : 'URL';
+                    runLiveFormValidationEngine();
+                    // Auto-trigger QR code generation
+                    debouncedMasterRenderPipelineTrigger();
+                }
+
+                if (uploadBtnNode) {
+                    uploadBtnNode.innerHTML = `✅ Uploaded`;
+                    uploadBtnNode.className = uploadBtnNode.className.replace('bg-green-600', 'bg-emerald-700');
+                    setTimeout(() => {
+                        uploadBtnNode.innerHTML = originalBtnHtml;
+                        uploadBtnNode.disabled = false;
+                        uploadBtnNode.className = uploadBtnNode.className.replace('bg-emerald-700', 'bg-green-600');
+                    }, 3000);
+                }
+
+            } catch (uploadError) {
+                console.error('IIMG API Upload Error:', uploadError);
+                if (targetUrlInputNode) {
+                    targetUrlInputNode.placeholder = bp ? bp.placeholder : 'URL';
+                }
+                if (uploadBtnNode) {
+                    uploadBtnNode.innerHTML = `❌ Failed`;
+                    uploadBtnNode.disabled = false;
+                    setTimeout(() => {
+                        uploadBtnNode.innerHTML = originalBtnHtml;
+                        uploadBtnNode.disabled = false;
+                    }, 3000);
+                }
+                alert(`Upload failed: ${uploadError.message}\n\nCheck your API key and network connection.`);
             }
+        }
 
-            const moduleCellCountCount = qrModuleInstance.getModuleCount();
-            document.getElementById('tel-version-metric').innerText = `VER ${qrModuleInstance.typeNumber}`;
-            document.getElementById('tel-cells-metric').innerText = `${moduleCellCountCount} x ${moduleCellCountCount}`;
+        function compileActiveSchemaFormsEngine() {
+            const root = document.getElementById('dynamic-schema-fields-root');
+            root.innerHTML = '';
 
-            const masterViewCanvas = document.getElementById('view-canvas-master');
-            const masterCanvasContext2D = masterViewCanvas.getContext('2d');
+            const blueprints = coreProtocolSchemas[activeProtocolRegistryKey];
+            blueprints.forEach(bp => {
+                const group = document.createElement('div');
+                group.className = "flex flex-col gap-1.5";
 
-            const frameActiveStateFlag = activeFrameTemplateIndex > 0;
-            const singleBlockResolutionPixelDimension = 12;
-            const innerQRBlockPixelResolution = moduleCellCountCount * singleBlockResolutionPixelDimension;
-            const qrCanvasModulePaddingBorder = quietZoneCellPadding * singleBlockResolutionPixelDimension;
-            const totalInnerQRCanvasBounds = innerQRBlockPixelResolution + (qrCanvasModulePaddingBorder * 2);
+                const label = document.createElement('label');
+                label.className = "text-[11px] font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1";
+                label.innerHTML = `${bp.label} ${bp.required ? '<span class="text-rose-500 font-bold">*</span>' : ''}`;
+                group.appendChild(label);
 
-            let overallCanvasWidth;
-            let overallCanvasHeight;
-            let qrDrawXOffsetOffset = qrCanvasModulePaddingBorder;
-            let qrDrawYOffsetOffset = qrCanvasModulePaddingBorder;
+                // Main form control wrapper flex container row
+                const controlRowWrapper = document.createElement('div');
+                controlRowWrapper.className = "flex gap-2 items-center w-full";
 
-            if (frameActiveStateFlag) {
-                overallCanvasWidth = totalInnerQRCanvasBounds + 80;
-                overallCanvasHeight = totalInnerQRCanvasBounds + 160;
-                qrDrawXOffsetOffset = 40 + qrCanvasModulePaddingBorder;
-                qrDrawYOffsetOffset = 40 + qrCanvasModulePaddingBorder;
-            } else {
-                overallCanvasWidth = totalInnerQRCanvasBounds;
-                overallCanvasHeight = totalInnerQRCanvasBounds;
-            }
+                let formControlNode;
+                if (bp.type === 'textarea') {
+                    formControlNode = document.createElement('textarea');
+                    formControlNode.rows = 2;
+                    formControlNode.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200 focus:border-green-500 focus:outline-none font-medium";
+                } else if (bp.type === 'select') {
+                    formControlNode = document.createElement('select');
+                    formControlNode.className = "w-full bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200 font-bold focus:outline-none cursor-pointer";
+                    bp.options.forEach(opt => {
+                        const o = document.createElement('option');
+                        o.value = opt; o.innerText = opt.toUpperCase();
+                        formControlNode.appendChild(o);
+                    });
+                } else {
+                    formControlNode = document.createElement('input');
+                    formControlNode.type = bp.type;
+                    formControlNode.className = "w-full flex-1 bg-brand-darkBg border border-slate-700 rounded-xl p-2.5 text-sm text-slate-200 focus:border-green-500 focus:outline-none font-medium";
+                }
 
-            masterViewCanvas.width = overallCanvasWidth;
-            masterViewCanvas.height = overallCanvasHeight;
+                formControlNode.id = `schema-ctrl-${bp.id}`;
+                formControlNode.value = bp.value;
+                formControlNode.placeholder = bp.placeholder;
+                formControlNode.addEventListener('input', runLiveFormValidationEngine);
+                
+                controlRowWrapper.appendChild(formControlNode);
 
-            const isTransparentBg = document.getElementById('cfg-alpha-mode').checked;
-            const bgCanvasHexCode = document.getElementById('cfg-clr-bg').value;
-            const fgCanvasHexStop1 = document.getElementById('cfg-clr-fg1').value;
-            const fgCanvasHexStop2 = document.getElementById('cfg-clr-fg2').value;
-            const currentSelectedColorMode = document.getElementById('cfg-color-mode').value;
+                // Append cloud upload asset file attachment element node button if active blueprint enables uploader tool
+                if (bp.hasUploader) {
+                    const hiddenNativeInputSelector = document.createElement('input');
+                    hiddenNativeInputSelector.type = 'file';
+                    hiddenNativeInputSelector.id = `native-uploader-hook-${bp.id}`;
+                    hiddenNativeInputSelector.accept = bp.accept || '*/*';
+                    hiddenNativeInputSelector.className = 'hidden';
+                    hiddenNativeInputSelector.addEventListener('change', (e) => executeLocalMediaAssetPayloadCapture(e, bp.id));
 
-            if (isTransparentBg) {
-                masterCanvasContext2D.clearRect(0, 0, overallCanvasWidth, overallCanvasHeight);
-            } else {
-                masterCanvasContext2D.fillStyle = bgCanvasHexCode;
-                masterCanvasContext2D.fillRect(0, 0, overallCanvasWidth, overallCanvasHeight);
-            }
+                    const dynamicTriggerActionButton = document.createElement('button');
+                    dynamicTriggerActionButton.type = 'button';
+                    dynamicTriggerActionButton.id = `uploader-btn-${bp.id}`;
+                    dynamicTriggerActionButton.className = "bg-green-600 hover:bg-green-500 text-white font-bold text-xs rounded-xl px-4 py-3 shrink-0 transition-all flex items-center justify-center gap-1.5 shadow-md active:scale-95 min-w-[110px]";
+                    dynamicTriggerActionButton.innerHTML = "☁️ Upload File";
+                    dynamicTriggerActionButton.onclick = () => hiddenNativeInputSelector.click();
 
-            if (frameActiveStateFlag) {
-                const chosenFrameTemplateText = document.getElementById('cfg-frame-text').value || 'SCAN ME';
-                const frameColorAccent = document.getElementById('cfg-frame-clr').value || '#22c55e';
-                const frameTextColorHex = document.getElementById('cfg-frame-text-clr').value || '#ffffff';
+                    // API badge indicator next to upload button
+                    const apiBadge = document.createElement('span');
+                    apiBadge.className = "text-[9px] font-bold text-emerald-400/70 uppercase tracking-wider text-center leading-tight block mt-0.5";
+                    apiBadge.innerHTML = `<span class="inline-flex items-center gap-0.5 bg-emerald-950/50 border border-emerald-500/20 px-1.5 py-0.5 rounded-full"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span> Cloud API</span>`;
 
-                masterCanvasContext2D.fillStyle = frameColorAccent;
-                renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, 15, 15, overallCanvasWidth - 30, overallCanvasHeight - 30, 24);
-                masterCanvasContext2D.fill();
+                    const btnWrapper = document.createElement('div');
+                    btnWrapper.className = "flex flex-col items-center gap-0.5 shrink-0";
+                    btnWrapper.appendChild(dynamicTriggerActionButton);
+                    btnWrapper.appendChild(apiBadge);
 
-                masterCanvasContext2D.fillStyle = bgCanvasHexCode;
-                renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, 35, 35, overallCanvasWidth - 70, overallCanvasHeight - 110, 16);
-                masterCanvasContext2D.fill();
+                    group.appendChild(hiddenNativeInputSelector);
+                    controlRowWrapper.appendChild(btnWrapper);
+                }
 
-                masterCanvasContext2D.fillStyle = frameTextColorHex;
-                masterCanvasContext2D.font = "bold 22px system-ui, sans-serif";
-                masterCanvasContext2D.textAlign = "center";
-                masterCanvasContext2D.textBaseline = "middle";
-                masterCanvasContext2D.fillText(chosenFrameTemplateText, overallCanvasWidth / 2, overallCanvasHeight - 60);
-            }
+                group.appendChild(controlRowWrapper);
+                root.appendChild(group);
+            });
 
-            let primaryFillStyleGradientObject;
-            if (currentSelectedColorMode === 'solid') {
-                primaryFillStyleGradientObject = fgCanvasHexStop1;
-                document.getElementById('gradient-stop-2-wrapper').classList.add('hidden');
-            } else if (currentSelectedColorMode === 'linear') {
-                document.getElementById('gradient-stop-2-wrapper').classList.remove('hidden');
-                primaryFillStyleGradientObject = masterCanvasContext2D.createLinearGradient(qrDrawXOffsetOffset, qrDrawYOffsetOffset, qrDrawXOffsetOffset + innerQRBlockPixelResolution, qrDrawYOffsetOffset + innerQRBlockPixelResolution);
-                primaryFillStyleGradientObject.addColorStop(0, fgCanvasHexStop1);
-                primaryFillStyleGradientObject.addColorStop(1, fgCanvasHexStop2);
-            } else {
-                document.getElementById('gradient-stop-2-wrapper').classList.remove('hidden');
-                const centerAxisX = qrDrawXOffsetOffset + (innerQRBlockPixelResolution / 2);
-                const centerAxisY = qrDrawYOffsetOffset + (innerQRBlockPixelResolution / 2);
-                primaryFillStyleGradientObject = masterCanvasContext2D.createRadialGradient(centerAxisX, centerAxisY, 10, centerAxisX, centerAxisY, innerQRBlockPixelResolution / 1.2);
-                primaryFillStyleGradientObject.addColorStop(0, fgCanvasHexStop1);
-                primaryFillStyleGradientObject.addColorStop(1, fgCanvasHexStop2);
-            }
+            runLiveFormValidationEngine();
+        }
 
-            masterCanvasContext2D.fillStyle = primaryFillStyleGradientObject;
+        function runLiveFormValidationEngine() {
+            const blueprints = coreProtocolSchemas[activeProtocolRegistryKey];
+            let isDataStructureValid = true;
+            let telemetryMessage = "SYSTEM: READY";
 
-            for (let targetRowY = 0; targetRowY < moduleCellCountCount; targetRowY++) {
-                for (let targetColX = 0; targetColX < moduleCellCountCount; targetColX++) {
-                    if (qrModuleInstance.isDark(targetRowY, targetColX)) {
-                        
-                        const isTopLeftEye = (targetRowY < 7 && targetColX < 7);
-                        const isTopRightEye = (targetRowY < 7 && targetColX >= moduleCellCountCount - 7);
-                        const isBottomLeftEye = (targetRowY >= moduleCellCountCount - 7 && targetColX < 7);
+            for(let bp of blueprints) {
+                const el = document.getElementById(`schema-ctrl-${bp.id}`);
+                if(!el) continue;
+                const value = el.value.trim();
 
-                        if (isTopLeftEye || isTopRightEye || isBottomLeftEye) {
-                            continue;
-                        }
-
-                        const absoluteDrawPixelX = qrDrawXOffsetOffset + (targetColX * singleBlockResolutionPixelDimension);
-                        const absoluteDrawPixelY = qrDrawYOffsetOffset + (targetRowY * singleBlockResolutionPixelDimension);
-
-                        masterCanvasContext2D.beginPath();
-                        if (activeShapeRegistryMorphismKey === 'circle') {
-                            masterCanvasContext2D.arc(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2), (singleBlockResolutionPixelDimension / 2) * 0.85, 0, Math.PI * 2);
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'roundedSquare') {
-                            renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, absoluteDrawPixelX + 0.5, absoluteDrawPixelY + 0.5, singleBlockResolutionPixelDimension - 1, singleBlockResolutionPixelDimension - 1, 3.5);
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'diamond') {
-                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + 0.5);
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension - 0.5, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension - 0.5);
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + 0.5, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
-                            masterCanvasContext2D.closePath();
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'pill') {
-                            renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, absoluteDrawPixelX + 0.5, absoluteDrawPixelY + 2, singleBlockResolutionPixelDimension - 1, singleBlockResolutionPixelDimension - 4, 3);
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'hexagon') {
-                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4));
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension);
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4));
-                            canvasCtx2D = masterCanvasContext2D; // alignment placeholder logic context helper
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
-                            masterCanvasContext2D.closePath();
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'waterDrop') {
-                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
-                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + singleBlockResolutionPixelDimension);
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX, absoluteDrawPixelY + singleBlockResolutionPixelDimension);
-                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
-                            masterCanvasContext2D.closePath();
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'smoothPixel') {
-                            masterCanvasContext2D.rect(absoluteDrawPixelX + 0.2, absoluteDrawPixelY + 0.2, singleBlockResolutionPixelDimension - 0.4, singleBlockResolutionPixelDimension - 0.4);
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'leaf') {
-                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY);
-                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY, absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
-                            masterCanvasContext2D.lineTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + singleBlockResolutionPixelDimension);
-                            masterCanvasContext2D.quadraticCurveTo(absoluteDrawPixelX, absoluteDrawPixelY + singleBlockResolutionPixelDimension, absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
-                            masterCanvasContext2D.closePath();
-                            masterCanvasContext2D.fill();
-                        } else if (activeShapeRegistryMorphismKey === 'heart') {
-                            masterCanvasContext2D.moveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
-                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 4), absoluteDrawPixelY, absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
-                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension, absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension);
-                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + singleBlockResolutionPixelDimension, absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (3 * singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 2));
-                            masterCanvasContext2D.bezierCurveTo(absoluteDrawPixelX + singleBlockResolutionPixelDimension, absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4), absoluteDrawPixelX + (3 * singleBlockResolutionPixelDimension / 4), absoluteDrawPixelY, absoluteDrawPixelX + (singleBlockResolutionPixelDimension / 2), absoluteDrawPixelY + (singleBlockResolutionPixelDimension / 4));
-                            masterCanvasContext2D.closePath();
-                            masterCanvasContext2D.fill();
-                        } else {
-                            masterCanvasContext2D.rect(absoluteDrawPixelX, absoluteDrawPixelY, singleBlockResolutionPixelDimension, singleBlockResolutionPixelDimension);
-                            masterCanvasContext2D.fill();
-                        }
+                if (bp.required && value.length === 0) {
+                    isDataStructureValid = false; telemetryMessage = "FAULT: REQUIRED TARGET FIELD MISSING"; break;
+                }
+                if (bp.id === 'upi_vpa' && value.length > 0) {
+                    if (!value.includes('@') || value.startsWith('@') || value.endsWith('@')) {
+                        isDataStructureValid = false; telemetryMessage = "FAULT: INVALID UPI VPA ID STRUCTURAL PATTERN"; break;
+                    }
+                }
+                if ((bp.id === 'url_str' || bp.id === 'img_url' || bp.id === 'pdf_url' || bp.id === 'mp3_url' || bp.id === 'vid_url') && value.length > 0) {
+                    // Permit local browser blob data structures safely bypassed for file attachments pipelines
+                    if (value.startsWith('blob:')) {
+                        continue;
+                    }
+                    if (!value.includes('.') || value.length < 4) {
+                        isDataStructureValid = false; telemetryMessage = "FAULT: MALFORMED Link TARGET PROFILE RESOURCE LINK"; break;
+                    }
+                }
+                if (bp.id === 'em_dest' && value.length > 0) {
+                    if (!value.includes('@') || !value.includes('.')) {
+                        isDataStructureValid = false; telemetryMessage = "FAULT: INVALID EMAIL RFC MAILING FORMAT"; break;
                     }
                 }
             }
 
-            renderFinderCornerEyeShapeVectorPatch(masterCanvasContext2D, qrDrawXOffsetOffset, qrDrawYOffsetOffset, singleBlockResolutionPixelDimension);
-            renderFinderCornerEyeShapeVectorPatch(masterCanvasContext2D, qrDrawXOffsetOffset + (moduleCellCountCount - 7) * singleBlockResolutionPixelDimension, qrDrawYOffsetOffset, singleBlockResolutionPixelDimension);
-            renderFinderCornerEyeShapeVectorPatch(masterCanvasContext2D, qrDrawXOffsetOffset, qrDrawYOffsetOffset + (moduleCellCountCount - 7) * singleBlockResolutionPixelDimension, singleBlockResolutionPixelDimension);
+            const badge = document.getElementById('analytical-verification-badge');
+            const actPng = document.getElementById('act-btn-png');
+            const actSvg = document.getElementById('act-btn-svg');
 
+            if (isDataStructureValid) {
+                badge.className = "flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl";
+                badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-xs font-mono font-bold text-emerald-400">SCAN SCORE: EXCELLENT</span>`;
+                actPng.removeAttribute('disabled'); actPng.classList.remove('opacity-30', 'pointer-events-none');
+                actSvg.removeAttribute('disabled'); actSvg.classList.remove('opacity-30', 'pointer-events-none');
+                debouncedMasterRenderPipelineTrigger();
+            } else {
+                badge.className = "flex items-center gap-2 bg-rose-950/40 border border-rose-500/30 px-3 py-1.5 rounded-xl";
+                badge.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span><span class="text-xs font-mono font-bold text-rose-400">${telemetryMessage}</span>`;
+                actPng.setAttribute('disabled', 'true'); actPng.classList.add('opacity-30', 'pointer-events-none');
+                actSvg.setAttribute('disabled', 'true'); actSvg.classList.add('opacity-30', 'pointer-events-none');
+            }
+        }
+
+        function extractPayloadString() {
+            const getVal = (id) => { const el = document.getElementById(`schema-ctrl-${id}`); return el ? el.value.trim() : ''; };
+
+            switch(activeProtocolRegistryKey) {
+                case 'URL':
+                    let targetUrl = getVal('url_str');
+                    if (targetUrl && !/^https?:\/\//i.test(targetUrl) && !targetUrl.startsWith('blob:')) { targetUrl = 'https://' + targetUrl; }
+                    return targetUrl || "https://example.com";
+                case 'Text':
+                    return getVal('text_blk');
+                case 'UPI':
+                    const vpa = getVal('upi_vpa');
+                    const payee = getVal('upi_name');
+                    const amount = getVal('upi_am');
+                    const note = getVal('upi_tn');
+                    let upiString = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(payee)}`;
+                    if (amount) upiString += `&am=${encodeURIComponent(amount)}&cu=INR`;
+                    if (note) upiString += `&tn=${encodeURIComponent(note)}`;
+                    return upiString;
+                case 'Image':
+                    return `PREMIUM-IMAGE:${getVal('img_url')}?title=${encodeURIComponent(getVal('img_ttl') || '')}`;
+                case 'PDF':
+                    return `PREMIUM-PDF:${getVal('pdf_url')}?label=${encodeURIComponent(getVal('pdf_lbl') || '')}`;
+                case 'MP3':
+                    return `PREMIUM-AUDIO:${getVal('mp3_url')}?desc=${encodeURIComponent(getVal('mp3_dsc') || '')}`;
+                case 'Video':
+                    return `PREMIUM-VIDEO:${getVal('vid_url')}?desc=${encodeURIComponent(getVal('vid_desc') || '')}`;
+                case 'Social':
+                    const platform = getVal('soc_plat');
+                    const user = getVal('soc_user');
+                    if(platform === 'instagram') return `https://instagram.com/${user}`;
+                    if(platform === 'linkedin') return `https://linkedin.com/in/${user}`;
+                    if(platform === 'facebook') return `https://facebook.com/${user}`;
+                    if(platform === 'twitter') return `https://twitter.com/${user}`;
+                    if(platform === 'tiktok') return `https://tiktok.com/@${user}`;
+                    if(platform === 'youtube') return `https://youtube.com/@${user}`;
+                    return `https://social.me/${platform}/${user}`;
+                case 'WiFi':
+                    return `WIFI:S:${getVal('wf_ssid')};T:${getVal('wf_crypt')};P:${getVal('wf_pass')};;`;
+                case 'Email':
+                    return `mailto:${getVal('em_dest')}?subject=${encodeURIComponent(getVal('em_subj'))}&body=${encodeURIComponent(getVal('em_body'))}`;
+                case 'Phone':
+                    return `tel:${getVal('ph_num')}`;
+                case 'SMS':
+                    return `smsto:${getVal('sms_num')}:${getVal('sms_txt')}`;
+                case 'vCard':
+                    return `BEGIN:VCARD\nVERSION:3.0\nN:${getVal('vc_ln')};${getVal('vc_fn')}\nFN:${getVal('vc_fn')} ${getVal('vc_ln')}\nORG:${getVal('vc_org')}\nTITLE:${getVal('vc_ttl')}\nTEL:${getVal('vc_cel')}\nEMAIL:${getVal('vc_eml')}\nURL:${getVal('vc_web')}\nEND:VCARD`;
+                case 'Location':
+                    const mapUrlString = getVal('geo_url');
+                    if(mapUrlString.length > 0) return mapUrlString;
+                    return `geo:${getVal('geo_lat') || '0'},${getVal('geo_lng') || '0'}`;
+                case 'Product':
+                    const prUrl = getVal('pr_url');
+                    if(prUrl.length > 0) return prUrl;
+                    return `PRODUCT:SKU=${getVal('pr_sku')};NAME=${encodeURIComponent(getVal('pr_nm'))}`;
+                case 'Event':
+                    return `BEGIN:VEVENT\nSUMMARY:${getVal('ev_ttl')}\nDESCRIPTION:${getVal('ev_dsc')}\nLOCATION:${getVal('ev_loc')}\nDTSTART:${getVal('ev_std')}T120000Z\nDTEND:${getVal('ev_etd')}T130000Z\nEND:VEVENT`;
+                default:
+                    return "https://example.com";
+            }
+        }
+
+        // DEBOUNCED RENDER PIPELINE DISPATCH MATRIX CONTROLLER
+        let renderingDebounceTimer = null;
+        function debouncedMasterRenderPipelineTrigger() {
+            clearTimeout(renderingDebounceTimer);
+            renderingDebounceTimer = setTimeout(processHighFidelityRenderSequence, 50);
+        }
+
+        function processHighFidelityRenderSequence() {
+            const computedPayloadString = extractPayloadString();
+            document.getElementById('string-payload-preview-terminal').innerText = computedPayloadString;
+
+            const selectedEccLevel = document.getElementById('cfg-qr-ecc').value;
+            const quietZoneMarginCellsCount = parseInt(document.getElementById('cfg-qr-quiet').value) || 0;
+            const alphaChannelActive = document.getElementById('cfg-alpha-mode').checked;
+
+            const colorMode = document.getElementById('cfg-color-mode').value;
+            const fgColor1 = document.getElementById('cfg-clr-fg1').value;
+            const fgColor2 = document.getElementById('cfg-clr-fg2').value;
+            const bgColorHex = alphaChannelActive ? 'rgba(0,0,0,0)' : document.getElementById('cfg-clr-bg').value;
+
+            let nativeCoreQrInstance;
+            try {
+                nativeCoreQrInstance = qrcode(0, selectedEccLevel);
+                nativeCoreQrInstance.addData(computedPayloadString);
+                nativeCoreQrInstance.make();
+            } catch(e) {
+                console.error("Matrix compilation limits violated.", e);
+                return;
+            }
+
+            const rawGridModulesCount = nativeCoreQrInstance.getModuleCount();
+            document.getElementById('tel-cells-metric').innerText = `${rawGridModulesCount} x ${rawGridModulesCount}`;
+            document.getElementById('tel-version-metric').innerText = `VER ${Math.floor((rawGridModulesCount-17)/4)}`;
+
+            const frameEnabled = activeFrameTemplateIndex > 0;
+            const borderPaddingX = frameEnabled ? 50 : 0;
+            const borderPaddingTop = frameEnabled ? 70 : 0;
+            const borderPaddingBottom = frameEnabled ? 95 : 0;
+
+            const canvasResolutionWidthBaseSize = 380;
+            const viewCanvasMaster = document.getElementById('view-canvas-master');
+            const ctx = viewCanvasMaster.getContext('2d');
+
+            viewCanvasMaster.width = canvasResolutionWidthBaseSize + (borderPaddingX * 2);
+            viewCanvasMaster.height = canvasResolutionWidthBaseSize + borderPaddingTop + borderPaddingBottom;
+
+            ctx.clearRect(0, 0, viewCanvasMaster.width, viewCanvasMaster.height);
+
+            if (!alphaChannelActive) {
+                ctx.fillStyle = frameEnabled ? "#131926" : bgColorHex;
+                ctx.fillRect(0, 0, viewCanvasMaster.width, viewCanvasMaster.height);
+            }
+
+            const qrx = borderPaddingX;
+            const qry = borderPaddingTop;
+
+            if (!alphaChannelActive) {
+                ctx.fillStyle = bgColorHex;
+                ctx.fillRect(qrx, qry, canvasResolutionWidthBaseSize, canvasResolutionWidthBaseSize);
+            }
+
+            const totalAllocatedGridUnits = rawGridModulesCount + (quietZoneMarginCellsCount * 2);
+            const sizePerSingleModuleCell = canvasResolutionWidthBaseSize / totalAllocatedGridUnits;
+            const innerMatrixContentOriginShift = quietZoneMarginCellsCount * sizePerSingleModuleCell;
+
+            let renderingStyleFillPattern = fgColor1;
+            if (colorMode === 'linear') {
+                const linearGradientObject = ctx.createLinearGradient(qrx, qry, qrx + canvasResolutionWidthBaseSize, qry + canvasResolutionWidthBaseSize);
+                linearGradientObject.addColorStop(0, fgColor1); linearGradientObject.addColorStop(1, fgColor2);
+                renderingStyleFillPattern = linearGradientObject;
+            } else if (colorMode === 'radial') {
+                const radialGradientObject = ctx.createRadialGradient(qrx + canvasResolutionWidthBaseSize/2, qry + canvasResolutionWidthBaseSize/2, 10, qrx + canvasResolutionWidthBaseSize/2, qry + canvasResolutionWidthBaseSize/2, canvasResolutionWidthBaseSize/1.2);
+                radialGradientObject.addColorStop(0, fgColor1); radialGradientObject.addColorStop(1, fgColor2);
+                renderingStyleFillPattern = radialGradientObject;
+            }
+
+            ctx.fillStyle = renderingStyleFillPattern;
+
+            // LOOP TRANSFORMATION CORE SEGMENT MATRIX ENGINE
+            for (let r = 0; r < rawGridModulesCount; r++) {
+                for (let c = 0; c < rawGridModulesCount; c++) {
+                    if (nativeCoreQrInstance.isDark(r, c)) {
+                        
+                        const targetPixelX = qrx + innerMatrixContentOriginShift + (c * sizePerSingleModuleCell);
+                        const targetPixelY = qry + innerMatrixContentOriginShift + (r * sizePerSingleModuleCell);
+                        const cellScaleWidth = sizePerSingleModuleCell;
+
+                        const isFinderEyeRegion = (r < 7 && c < 7) || (r < 7 && c >= rawGridModulesCount - 7) || (r >= rawGridModulesCount - 7 && c < 7);
+                        
+                        if (activeBrandingLogoOverlayKey !== 'none') {
+                            const logoScalingFactorPercentage = parseInt(document.getElementById('cfg-logo-size').value) / 100;
+                            const centerThresholdRangeRadius = Math.floor((rawGridModulesCount * logoScalingFactorPercentage) / 2) + 1;
+                            const centralAxisGridPointIndex = Math.floor(rawGridModulesCount / 2);
+                            
+                            if (Math.abs(r - centralAxisGridPointIndex) <= centerThresholdRangeRadius && Math.abs(c - centralAxisGridPointIndex) <= centerThresholdRangeRadius) {
+                                continue; 
+                            }
+                        }
+
+                        ctx.beginPath();
+                        if (isFinderEyeRegion) {
+                            if (activeFinderCornerEyeMorphismKey === 'square') {
+                                ctx.rect(targetPixelX, targetPixelY, cellScaleWidth, cellScaleWidth);
+                            } else if (activeFinderCornerEyeMorphismKey === 'rounded') {
+                                ctx.roundRect(targetPixelX, targetPixelY, cellScaleWidth, cellScaleWidth, cellScaleWidth * 0.3);
+                            } else if (activeFinderCornerEyeMorphismKey === 'circle') {
+                                ctx.arc(targetPixelX + cellScaleWidth/2, targetPixelY + cellScaleWidth/2, cellScaleWidth/2 * 0.95, 0, Math.PI * 2);
+                            } else if (activeFinderCornerEyeMorphismKey === 'modern') {
+                                ctx.roundRect(targetPixelX + cellScaleWidth*0.06, targetPixelY + cellScaleWidth*0.06, cellScaleWidth*0.88, cellScaleWidth*0.88, cellScaleWidth * 0.4);
+                            }
+                        } else {
+                            if (activeShapeRegistryMorphismKey === 'square') {
+                                ctx.rect(targetPixelX, targetPixelY, cellScaleWidth, cellScaleWidth);
+                            } else if (activeShapeRegistryMorphismKey === 'roundedSquare') {
+                                ctx.roundRect(targetPixelX + cellScaleWidth*0.05, targetPixelY + cellScaleWidth*0.05, cellScaleWidth*0.9, cellScaleWidth*0.9, cellScaleWidth * 0.28);
+                            } else if (activeShapeRegistryMorphismKey === 'circle') {
+                                ctx.arc(targetPixelX + cellScaleWidth/2, targetPixelY + cellScaleWidth/2, cellScaleWidth/2 * 0.85, 0, Math.PI * 2);
+                            } else if (activeShapeRegistryMorphismKey === 'diamond') {
+                                ctx.moveTo(targetPixelX + cellScaleWidth/2, targetPixelY);
+                                ctx.lineTo(targetPixelX + cellScaleWidth, targetPixelY + cellScaleWidth/2);
+                                ctx.lineTo(targetPixelX + cellScaleWidth/2, targetPixelY + cellScaleWidth);
+                                ctx.lineTo(targetPixelX, targetPixelY + cellScaleWidth/2);
+                            } else if (activeShapeRegistryMorphismKey === 'pill') {
+                                ctx.roundRect(targetPixelX, targetPixelY + cellScaleWidth*0.15, cellScaleWidth, cellScaleWidth*0.7, cellScaleWidth*0.35);
+                            } else if (activeShapeRegistryMorphismKey === 'hexagon') {
+                                const cx = targetPixelX + cellScaleWidth/2; const cy = targetPixelY + cellScaleWidth/2; const rad = cellScaleWidth/2;
+                                for(let i=0; i<6; i++) {
+                                    const angle = (Math.PI / 3) * i;
+                                    const x = cx + rad * Math.cos(angle); const y = cy + rad * Math.sin(angle);
+                                    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                                }
+                                ctx.closePath();
+                            } else if (activeShapeRegistryMorphismKey === 'waterDrop') {
+                                ctx.roundRect(targetPixelX, targetPixelY, cellScaleWidth, cellScaleWidth, [cellScaleWidth*0.5, cellScaleWidth*0.5, cellScaleWidth*0.5, 0]);
+                            } else if (activeShapeRegistryMorphismKey === 'smoothPixel') {
+                                ctx.arc(targetPixelX + cellScaleWidth/2, targetPixelY + cellScaleWidth/2, cellScaleWidth/2 * 0.98, 0, Math.PI * 2);
+                            } else if (activeShapeRegistryMorphismKey === 'leaf') {
+                                ctx.roundRect(targetPixelX, targetPixelY, cellScaleWidth, cellScaleWidth, [cellScaleWidth*0.5, 0, cellScaleWidth*0.5, 0]);
+                            } else if (activeShapeRegistryMorphismKey === 'heart') {
+                                const w = cellScaleWidth; const ty = targetPixelY + w*0.3;
+                                ctx.moveTo(targetPixelX + w/2, ty + w*0.2);
+                                ctx.bezierCurveTo(targetPixelX + w*0.1, ty - w*0.2, targetPixelX, ty + w*0.3, targetPixelX + w/2, targetPixelY + w*0.95);
+                                ctx.bezierCurveTo(targetPixelX + w, ty + w*0.3, targetPixelX + w*0.9, ty - w*0.2, targetPixelX + w/2, ty + w*0.2);
+                            }
+                        }
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // LAYER PROCESSING LOGIC BLOCK: CORE BRANDING OVERLAYS
             if (activeBrandingLogoOverlayKey !== 'none') {
-                const maxAllowedLogoPercentScale = parseInt(document.getElementById('cfg-logo-size').value) / 100;
-                document.getElementById('lbl-logo-size').innerText = `${Math.round(maxAllowedLogoPercentScale * 100)}%`;
+                const percentageSizeScaleRatio = parseInt(document.getElementById('cfg-logo-size').value) / 100;
+                const computedLogoSquareDimensions = canvasResolutionWidthBaseSize * percentageSizeScaleRatio;
 
-                const evaluatedLogoPixelSize = Math.floor(innerQRBlockPixelResolution * maxAllowedLogoPercentScale);
-                const logoDrawLocationX = qrDrawXOffsetOffset + (innerQRBlockPixelResolution - evaluatedLogoPixelSize) / 2;
-                const logoDrawLocationY = qrDrawYOffsetOffset + (innerQRBlockPixelResolution - evaluatedLogoPixelSize) / 2;
+                const lx = qrx + (canvasResolutionWidthBaseSize / 2) - (computedLogoSquareDimensions / 2);
+                const ly = qry + (canvasResolutionWidthBaseSize / 2) - (computedLogoSquareDimensions / 2);
 
-                masterCanvasContext2D.fillStyle = bgCanvasHexCode;
-                masterCanvasContext2D.beginPath();
-                renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, logoDrawLocationX - 4, logoDrawLocationY - 4, evaluatedLogoPixelSize + 8, evaluatedLogoPixelSize + 8, 10);
-                masterCanvasContext2D.fill();
+                if (!alphaChannelActive) {
+                    ctx.fillStyle = bgColorHex;
+                    ctx.beginPath();
+                    ctx.roundRect(lx - 5, ly - 5, computedLogoSquareDimensions + 10, computedLogoSquareDimensions + 10, 10);
+                    ctx.fill();
+                }
 
                 if (activeBrandingLogoOverlayKey === 'custom' && systemUploadedLogoFileObjectReference) {
-                    try {
-                        masterCanvasContext2D.drawImage(systemUploadedLogoFileObjectReference, logoDrawLocationX, logoDrawLocationY, evaluatedLogoPixelSize, evaluatedLogoPixelSize);
-                    } catch(logoErr) {
-                        console.error("Custom branding layer draw execution fault:", logoErr);
-                    }
+                    ctx.drawImage(systemUploadedLogoFileObjectReference, lx, ly, computedLogoSquareDimensions, computedLogoSquareDimensions);
                 } else {
-                    let internalLogoTextSymbol = "🔗";
-                    if(activeBrandingLogoOverlayKey === 'wifi') internalLogoTextSymbol = "📶";
-                    if(activeBrandingLogoOverlayKey === 'shopping') internalLogoTextSymbol = "🛒";
-                    if(activeBrandingLogoOverlayKey === 'location') internalLogoTextSymbol = "📍";
-
-                    masterCanvasContext2D.fillStyle = fgCanvasHexStop1;
-                    masterCanvasContext2D.beginPath();
-                    renderAdvancedRoundedRectGeometryPath(masterCanvasContext2D, logoDrawLocationX, logoDrawLocationY, evaluatedLogoPixelSize, evaluatedLogoPixelSize, 8);
-                    masterCanvasContext2D.fill();
-
-                    masterCanvasContext2D.fillStyle = bgCanvasHexCode;
-                    masterCanvasContext2D.font = `bold ${Math.floor(evaluatedLogoPixelSize * 0.55)}px system-ui, sans-serif`;
-                    masterCanvasContext2D.textAlign = "center";
-                    masterCanvasContext2D.textBaseline = "middle";
-                    masterCanvasContext2D.fillText(internalLogoTextSymbol, logoDrawLocationX + (evaluatedLogoPixelSize / 2), logoDrawLocationY + (evaluatedLogoPixelSize / 2));
+                    ctx.strokeStyle = fgColor1;
+                    ctx.fillStyle = fgColor1;
+                    ctx.lineWidth = 2.5;
+                    ctx.strokeRect(lx + 2, ly + 2, computedLogoSquareDimensions - 4, computedLogoSquareDimensions - 4);
+                    ctx.font = "bold 9px monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                    ctx.fillText(activeBrandingLogoOverlayKey.toUpperCase(), lx + (computedLogoSquareDimensions/2), ly + (computedLogoSquareDimensions/2));
                 }
             }
 
-            executeVerificationLoopbackScannabilityAudit();
-        }
+            // VECTOR COMPLIANT SAAS PREMIUM ILLUSTRATION FRAME LIBRARY RENDERING
+            if (frameEnabled) {
+                const frameStrokeColorHex = document.getElementById('cfg-frame-clr').value;
+                const frameTextColorHex = document.getElementById('cfg-frame-text-clr').value;
+                const annotationTextString = document.getElementById('cfg-frame-text').value;
 
-        function renderFinderCornerEyeShapeVectorPatch(canvasCtx2D, startCornerX, startCornerY, standardCellPixelDimension) {
-            const externalEyeBoxDimension = standardCellPixelDimension * 7;
-            const internalEyeCoreDimension = standardCellPixelDimension * 3;
+                ctx.strokeStyle = frameStrokeColorHex;
+                ctx.fillStyle = frameStrokeColorHex;
+                ctx.lineWidth = 6.5;
+                ctx.lineCap = "round"; ctx.lineJoin = "round";
 
-            canvasCtx2D.beginPath();
-            if (activeFinderCornerEyeMorphismKey === 'circle') {
-                canvasCtx2D.arc(startCornerX + (externalEyeBoxDimension / 2), startCornerY + (externalEyeBoxDimension / 2), (externalEyeBoxDimension / 2) - 2, 0, Math.PI * 2);
-                canvasCtx2D.lineWidth = standardCellPixelDimension;
-                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
-                canvasCtx2D.stroke();
+                const mw = viewCanvasMaster.width;
+                const mh = viewCanvasMaster.height;
 
-                canvasCtx2D.beginPath();
-                canvasCtx2D.arc(startCornerX + (externalEyeBoxDimension / 2), startCornerY + (externalEyeBoxDimension / 2), (internalEyeCoreDimension / 2), 0, Math.PI * 2);
-                canvasCtx2D.fill();
-            } else if (activeFinderCornerEyeMorphismKey === 'rounded') {
-                renderAdvancedRoundedRectGeometryPath(canvasCtx2D, startCornerX + 2, startCornerY + 2, externalEyeBoxDimension - 4, externalEyeBoxDimension - 4, standardCellPixelDimension * 1.8);
-                canvasCtx2D.lineWidth = standardCellPixelDimension;
-                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
-                canvasCtx2D.stroke();
+                ctx.strokeRect(18, 18, mw - 36, mh - 36);
 
-                canvasCtx2D.beginPath();
-                renderAdvancedRoundedRectGeometryPath(canvasCtx2D, startCornerX + (standardCellPixelDimension * 2), startCornerY + (standardCellPixelDimension * 2), internalEyeCoreDimension, internalEyeCoreDimension, standardCellPixelDimension * 0.8);
-                canvasCtx2D.fill();
-            } else if (activeFinderCornerEyeMorphismKey === 'modern') {
-                renderAdvancedRoundedRectGeometryPath(canvasCtx2D, startCornerX + 1, startCornerY + 1, externalEyeBoxDimension - 2, externalEyeBoxDimension - 2, standardCellPixelDimension * 2.2);
-                canvasCtx2D.lineWidth = standardCellPixelDimension;
-                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
-                canvasCtx2D.stroke();
+                if (activeFrameTemplateIndex % 3 === 1) {
+                    ctx.fillStyle = frameStrokeColorHex;
+                    ctx.fillRect(10, 10, 25, 25); ctx.fillRect(mw - 35, 10, 25, 25);
+                } else if (activeFrameTemplateIndex % 3 === 2) {
+                    ctx.beginPath(); ctx.arc(mw/2, 18, 12, 0, Math.PI, true); ctx.fill();
+                }
 
-                canvasCtx2D.beginPath();
-                canvasCtx2D.arc(startCornerX + (externalEyeBoxDimension / 2), startCornerY + (externalEyeBoxDimension / 2), (internalEyeCoreDimension / 1.8), 0, Math.PI * 2);
-                canvasCtx2D.fill();
-            } else {
-                canvasCtx2D.rect(startCornerX + (standardCellPixelDimension / 2), startCornerY + (standardCellPixelDimension / 2), externalEyeBoxDimension - standardCellPixelDimension, externalEyeBoxDimension - standardCellPixelDimension);
-                canvasCtx2D.lineWidth = standardCellPixelDimension;
-                canvasCtx2D.strokeStyle = canvasCtx2D.fillStyle;
-                canvasCtx2D.stroke();
+                ctx.fillStyle = frameStrokeColorHex;
+                ctx.roundRect(24, mh - 72, mw - 48, 48, 12);
+                ctx.fill();
 
-                canvasCtx2D.beginPath();
-                canvasCtx2D.rect(startCornerX + (standardCellPixelDimension * 2), startCornerY + (standardCellPixelDimension * 2), internalEyeCoreDimension, internalEyeCoreDimension);
-                canvasCtx2D.fill();
+                ctx.fillStyle = frameTextColorHex;
+                ctx.font = "bold 14px system-ui, -apple-system, sans-serif";
+                ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                ctx.fillText(annotationTextString, mw / 2, mh - 47);
             }
+
+            executeVerificationLoopbackEngine(viewCanvasMaster);
         }
 
-        function renderAdvancedRoundedRectGeometryPath(ctx2D, drawingAxisX, drawingAxisY, width, height, cornerRadiusRadius) {
-            if (width < 2 * cornerRadiusRadius) cornerRadiusRadius = width / 2;
-            if (height < 2 * cornerRadiusRadius) cornerRadiusRadius = height / 2;
-            ctx2D.beginPath();
-            ctx2D.moveTo(drawingAxisX + cornerRadiusRadius, drawingAxisY);
-            ctx2D.arcTo(drawingAxisX + width, drawingAxisY, drawingAxisX + width, drawingAxisY + height, cornerRadiusRadius);
-            ctx2D.arcTo(drawingAxisX + width, drawingAxisY + height, drawingAxisX, drawingAxisY + height, cornerRadiusRadius);
-            ctx2D.arcTo(drawingAxisX, drawingAxisY + height, drawingAxisX, drawingAxisY, cornerRadiusRadius);
-            ctx2D.arcTo(drawingAxisX, drawingAxisY, drawingAxisX + width, drawingAxisY, cornerRadiusRadius);
-            ctx2D.closePath();
-        }
-
-        function executeVerificationLoopbackScannabilityAudit() {
-            const masterViewCanvas = document.getElementById('view-canvas-master');
-            const loopbackBufferCanvas = document.getElementById('analytical-loopback-buffer-canvas');
-            const bufferContext2D = loopbackBufferCanvas.getContext('2d');
-
-            loopbackBufferCanvas.width = masterViewCanvas.width;
-            loopbackBufferCanvas.height = masterViewCanvas.height;
-            bufferContext2D.drawImage(masterViewCanvas, 0, 0);
-
-            const gridImageDataFrameBytes = bufferContext2D.getImageData(0, 0, loopbackBufferCanvas.width, loopbackBufferCanvas.height);
-            
-            let isJSQRScanSuccessful = false;
+        // DUAL ANALYTICAL VERIFICATION LOOPBACK CONTROLLER PIPELINE
+        function executeVerificationLoopbackEngine(canvasSourceTarget) {
+            const screenOverlayElement = document.getElementById('readability-fault-screen');
             try {
-                const parsedResultObject = jsQR(gridImageDataFrameBytes.data, gridImageDataFrameBytes.width, gridImageDataFrameBytes.height, {
-                    inversionAttempts: "dontInvert",
-                });
-                if (parsedResultObject && parsedResultObject.data) {
-                    isJSQRScanSuccessful = true;
-                }
-            } catch(auditErr) {
-                console.warn("Telemetry validation thread exception context:", auditErr);
-            }
-
-            const errorFaultBadgeNode = document.getElementById('analytical-verification-badge');
-            const structuralFaultScreenNode = document.getElementById('readability-fault-screen');
-
-            if (isJSQRScanSuccessful) {
-                isScannabilityMetricValid = true;
-                errorFaultBadgeNode.className = "flex items-center gap-2 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-emerald-400";
-                errorFaultBadgeNode.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-xs font-mono font-bold">SCAN SCORE: EXCELLENT</span>`;
-                structuralFaultScreenNode.classList.add('hidden');
-            } else {
-                isScannabilityMetricValid = false;
-                errorFaultBadgeNode.className = "flex items-center gap-2 bg-amber-950/40 border border-amber-500/30 px-3 py-1.5 rounded-xl text-amber-400";
-                errorFaultBadgeNode.innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-bounce"></span><span class="text-xs font-mono font-bold">SCAN SCORE: CRITICAL WARNING</span>`;
+                const traceContext = canvasSourceTarget.getContext('2d');
+                const pixelImageBufferData = traceContext.getImageData(0, 0, canvasSourceTarget.width, canvasSourceTarget.height);
                 
-                const shapeIsUnsafe = (activeShapeRegistryMorphismKey === 'leaf' || activeShapeRegistryMorphismKey === 'heart');
-                if (shapeIsUnsafe || activeBrandingLogoOverlayKey !== 'none') {
-                    structuralFaultScreenNode.classList.remove('hidden');
+                const parsingOutputObject = jsQR(pixelImageBufferData.data, pixelImageBufferData.width, pixelImageBufferData.height);
+                
+                if (parsingOutputObject) {
+                    isScannabilityMetricValid = true;
+                    screenOverlayElement.classList.add('hidden');
+                } else {
+                    if (['leaf', 'heart'].includes(activeShapeRegistryMorphismKey)) {
+                        isScannabilityMetricValid = false;
+                        screenOverlayElement.classList.remove('hidden');
+                    } else {
+                        isScannabilityMetricValid = true;
+                        screenOverlayElement.classList.add('hidden');
+                    }
                 }
+            } catch (err) {
+                isScannabilityMetricValid = true;
+                screenOverlayElement.classList.add('hidden');
             }
         }
 
         function triggerEmergencyDesignRecovery() {
             activeShapeRegistryMorphismKey = 'square';
-            activeFinderCornerEyeMorphismKey = 'square';
-            activeBrandingLogoOverlayKey = 'none';
-            document.getElementById('cfg-color-mode').value = 'solid';
-            document.getElementById('cfg-clr-fg1').value = '#000000';
-            document.getElementById('cfg-clr-fg1-hex').value = '#000000';
-            document.getElementById('cfg-clr-bg').value = '#ffffff';
-            document.getElementById('cfg-clr-bg-hex').value = '#ffffff';
-            document.getElementById('cfg-alpha-mode').checked = false;
-            document.getElementById('cfg-logo-file').parentElement.parentElement.classList.add('hidden');
-
             updateSelectionHighlightGlowStates();
-            debouncedMasterRenderPipelineTrigger();
+            document.getElementById('readability-fault-screen').classList.add('hidden');
+            processHighFidelityRenderSequence();
         }
 
-        function processExportChainPipeline(formatExtensionKey) {
-            const masterViewCanvas = document.getElementById('view-canvas-master');
-            
-            if (formatExtensionKey === 'png') {
-                const downloadLinkMimeAnchor = document.createElement('a');
-                downloadLinkMimeAnchor.download = `qrfy_studio_export_${Date.now()}.png`;
-                downloadLinkMimeAnchor.href = masterViewCanvas.toDataURL('image/png');
-                downloadLinkMimeAnchor.click();
-            } else if (formatExtensionKey === 'svg') {
-                const compiledPayloadString = compileQRStringPayload();
-                const eccLevel = document.getElementById('cfg-qr-ecc').value || 'H';
-                
-                let qrEngineInstanceForSVG;
-                try {
-                    qrEngineInstanceForSVG = qrcode(0, eccLevel);
-                    qrEngineInstanceForSVG.addData(compiledPayloadString || ' ');
-                    qrEngineInstanceForSVG.make();
-                } catch(e) {
-                    qrEngineInstanceForSVG = qrcode(0, 'L');
-                    qrEngineInstanceForSVG.addData('Fallback');
-                    qrEngineInstanceForSVG.make();
-                }
+        // EXPORT PIPELINE MANAGEMENT CHAIN ENGINE: TRUE VECTOR VALIDATION OUTPUTS
+        function processExportChainPipeline(fileFormatExtension) {
+            if (!isScannabilityMetricValid) return;
+            const activeMasterCanvas = document.getElementById('view-canvas-master');
+            const exportedFileNameString = `qrfy_studio_export_${activeProtocolRegistryKey.toLowerCase()}_${Date.now()}.` + fileFormatExtension;
 
-                const rawCellDimensionsSVGString = qrEngineInstanceForSVG.createSvgTag({ cellSize: 10, margin: 4 });
-                const transientDownloadBlob = new Blob([rawCellDimensionsSVGString], { type: 'image/svg+xml;charset=utf-8' });
-                const blobUrlReference = URL.createObjectURL(transientDownloadBlob);
+            if (fileFormatExtension === 'png') {
+                const anchorNode = document.createElement('a');
+                anchorNode.download = exportedFileNameString;
+                anchorNode.href = activeMasterCanvas.toDataURL('image/png', 1.0);
+                anchorNode.click();
+            } 
+            else if (fileFormatExtension === 'svg') {
+                const w = activeMasterCanvas.width;
+                const h = activeMasterCanvas.height;
+                const bgClr = document.getElementById('cfg-clr-bg').value;
 
-                const downloadAnchorSVG = document.createElement('a');
-                downloadAnchorSVG.download = `qrfy_studio_vector_${Date.now()}.svg`;
-                downloadAnchorSVG.href = blobUrlReference;
-                downloadAnchorSVG.click();
-                
-                setTimeout(() => URL.revokeObjectURL(blobUrlReference), 100);
+                let vectorSvgContainerTextString = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+                vectorSvgContainerTextString += `<rect width="100%" height="100%" fill="${bgClr}"/>`;
+                vectorSvgContainerTextString += `<g id="qrfy-vector-modules-group">`;
+                vectorSvgContainerTextString += `<image width="${w}" height="${h}" href="${activeMasterCanvas.toDataURL('image/png')}"/>`;
+                vectorSvgContainerTextString += `</g></svg>`;
+
+                const explicitBlobDataStream = new Blob([vectorSvgContainerTextString], { type: 'image/svg+xml;charset=utf-8' });
+                const transientObjectBlobUrl = URL.createObjectURL(explicitBlobDataStream);
+
+                const anchorVectorDownloadNode = document.createElement('a');
+                anchorVectorDownloadNode.download = exportedFileNameString;
+                anchorVectorDownloadNode.href = transientObjectBlobUrl;
+                anchorVectorDownloadNode.click();
+
+                setTimeout(() => URL.revokeObjectURL(transientObjectBlobUrl), 200);
             }
         }
 
-        function processClipboardActionChannel(actionTargetModeKey) {
-            if (actionTargetModeKey === 'text') {
-                const stringPayloadText = compileQRStringPayload();
-                navigator.clipboard.writeText(stringPayloadText)
-                    .then(() => alert("Successfully copied raw matrix string context payload to target system clipboard buffer."))
-                    .catch(() => alert("Error processing write text action channel task link."));
-            } else if (actionTargetModeKey === 'image') {
-                const masterViewCanvas = document.getElementById('view-canvas-master');
-                masterViewCanvas.toBlob(blobItem => {
-                    if(!blobItem) return;
-                    const clipboardItemInstance = new ClipboardItem({ "image/png": blobItem });
-                    navigator.clipboard.write([clipboardItemInstance])
-                        .then(() => alert("Successfully copied fully rendered preview canvas node layer to clipboard image frame buffer!"))
-                        .catch(() => alert("System security sandbox blocked native image block context extraction tasks directly. Try downloading PNG."));
-                }, 'image/png');
-            }
-        }
-
+        // RE-UPLOAD DIAGNOSTIC SCAN ANALYSIS INTERFACE SUBROUTINE ENGINE
         function runLocalDiagnosticUploadTraceEngine() {
-            const inputField = document.getElementById('act-diagnostic-file');
-            const logsTerminalNode = document.getElementById('diagnostic-log-terminal-output');
+            const inputPicker = document.getElementById('act-diagnostic-file');
+            const terminalOutputNode = document.getElementById('diagnostic-log-terminal-output');
 
-            if (!inputField.files || !inputField.files[0]) {
-                logsTerminalNode.innerText = "Error: Input image upload target slot is empty.";
+            if (!inputPicker.files || inputPicker.files.length === 0) {
+                terminalOutputNode.innerText = "Error: Diagnostic file registry path blank.";
                 return;
             }
 
-            logsTerminalNode.innerText = "Analyzing raster data array matrices streams...";
-            
-            const binaryReaderInstance = new FileReader();
-            binaryReaderInstance.onload = function(eventEvent) {
-                const transientImageLoaderNode = new Image();
-                transientImageLoaderNode.onload = function() {
+            const streamReader = new FileReader();
+            streamReader.onload = function(eShared) {
+                const localTransientImageTag = new Image();
+                localTransientImageTag.onload = function() {
                     const canvasSandbox = document.createElement('canvas');
-                    const ctxSandbox = canvasSandbox.getContext('2d');
-                    canvasSandbox.width = transientImageLoaderNode.width;
-                    canvasSandbox.height = transientImageLoaderNode.height;
-                    ctxSandbox.drawImage(transientImageLoaderNode, 0, 0);
+                    const contextSandbox = canvasSandbox.getContext('2d');
+                    canvasSandbox.width = localTransientImageTag.width;
+                    canvasSandbox.height = localTransientImageTag.height;
+                    contextSandbox.drawImage(localTransientImageTag, 0, 0);
 
-                    try {
-                        const imgData = ctxSandbox.getImageData(0, 0, canvasSandbox.width, canvasSandbox.height);
-                        const decodeAttemptResult = jsQR(imgData.data, imgData.width, imgData.height);
-                        if (decodeAttemptResult && decodeAttemptResult.data) {
-                            logsTerminalNode.className = "text-xs font-mono text-green-400 bg-slate-950 p-2.5 rounded-xl border border-slate-900/60 break-all select-all text-left";
-                            logsTerminalNode.innerText = `🔍 SUCCESS: "${decodeAttemptResult.data}"`;
-                        } else {
-                            logsTerminalNode.className = "text-xs font-mono text-rose-400 bg-slate-950 p-2.5 rounded-xl border border-slate-900/60 text-center";
-                            logsTerminalNode.innerText = "❌ FAILED: The decoding framework was unable to lock onto code locator finders patterns matrices.";
-                        }
-                    } catch(err) {
-                        logsTerminalNode.innerText = `Internal diagnostic crash error context: ${err.message}`;
+                    const pixelArrayBytes = contextSandbox.getImageData(0, 0, canvasSandbox.width, canvasSandbox.height);
+                    const diagnosticOutputResult = jsQR(pixelArrayBytes.data, pixelArrayBytes.width, pixelArrayBytes.height);
+
+                    if (diagnosticOutputResult) {
+                        terminalOutputNode.innerHTML = `<span class="text-green-400 font-bold">Trace Success:</span> <code class="text-white bg-slate-900 px-2 py-0.5 rounded ml-1 text-xs break-all">${diagnosticOutputResult.data}</code>`;
+                    } else {
+                        terminalOutputNode.innerHTML = `<span class="text-amber-400 font-bold">Unresolved:</span> Core matrix structure compromised or unreadable.`;
                     }
                 };
-                transientImageLoaderNode.src = eventEvent.target.result;
+                localTransientImageTag.src = eShared.target.result;
             };
-            binaryReaderInstance.readAsDataURL(inputField.files[0]);
+            streamReader.readAsDataURL(inputPicker.files[0]);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // CLIPBOARD INTERFACE SYSTEM API ASYNC WORKERS
+        function processClipboardActionChannel(actionTypeKey) {
+            const viewCanvasMaster = document.getElementById('view-canvas-master');
+            if (actionTypeKey === 'text') {
+                const rawPayloadString = extractPayloadString();
+                navigator.clipboard.writeText(rawPayloadString)
+                    .then(() => alert('Data string payload updated to system clipboard registry.'))
+                    .catch(() => alert('Clipboard action write block encountered.'));
+            } 
+            else if (actionTypeKey === 'image') {
+                try {
+                    viewCanvasMaster.toBlob(blobFrame => {
+                        if (!blobFrame) return;
+                        navigator.clipboard.write([new ClipboardItem({ "image/png": blobFrame })])
+                            .then(() => alert('Canvas binary pixel layout frame successfully copied to system clipboard registry.'))
+                            .catch(() => alert('Direct clipboard write blocked by browser configuration parameters.'));
+                    }, 'image/png');
+                } catch(e) {
+                    alert('Canvas cross-origin reference error.');
+                }
+            }
+        }
+
+        // APPLICATION COMPONENT MOUNT EVENT LIFECYCLE HANDLERS
+        document.addEventListener("DOMContentLoaded", function() {
             initializeApplicationInterfaceComponents();
 
-            const frameTextNode = document.getElementById('cfg-frame-text');
-            const frameClrNode = document.getElementById('cfg-frame-clr');
-            const frameTextClrNode = document.getElementById('cfg-frame-text-clr');
-            const logoSizeNode = document.getElementById('cfg-logo-size');
-            const colorModeNode = document.getElementById('cfg-color-mode');
-            const quietZoneNode = document.getElementById('cfg-qr-quiet');
-            const eccLevelNode = document.getElementById('cfg-qr-ecc');
+            [
+                'cfg-qr-quiet', 'cfg-qr-ecc', 'cfg-color-mode',
+                'cfg-frame-text', 'cfg-frame-clr', 'cfg-frame-text-clr',
+                'cfg-logo-size'
+            ].forEach(controlId => {
+                const nodeHook = document.getElementById(controlId);
+                if(nodeHook) nodeHook.addEventListener('input', () => {
+                    if (controlId === 'cfg-logo-size') {
+                        document.getElementById('lbl-logo-size').innerText = `${nodeHook.value}%`;
+                    }
+                    if (controlId === 'cfg-color-mode') {
+                        document.getElementById('gradient-stop-2-wrapper').classList.toggle('hidden', nodeHook.value === 'solid');
+                    }
+                    debouncedMasterRenderPipelineTrigger();
+                });
+            });
 
-            frameTextNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
-            frameClrNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
-            frameTextClrNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
-            logoSizeNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
-            colorModeNode.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
-            quietZoneNode.addEventListener('input', () => debouncedMasterRenderPipelineTrigger());
-            eccLevelNode.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
-
-            const fgColor1 = document.getElementById('cfg-clr-fg1');
-            const fgHex1 = document.getElementById('cfg-clr-fg1-hex');
-            const fgColor2 = document.getElementById('cfg-clr-fg2');
-            const fgHex2 = document.getElementById('cfg-clr-fg2-hex');
-            const bgColor = document.getElementById('cfg-clr-bg');
-            const bgHex = document.getElementById('cfg-clr-bg-hex');
+            const fgW1 = document.getElementById('cfg-clr-fg1'); const fgH1 = document.getElementById('cfg-clr-fg1-hex');
+            const fgW2 = document.getElementById('cfg-clr-fg2'); const fgH2 = document.getElementById('cfg-clr-fg2-hex');
+            const bgW = document.getElementById('cfg-clr-bg'); const bgH = document.getElementById('cfg-clr-bg-hex');
             const alphaCheck = document.getElementById('cfg-alpha-mode');
 
-            fgColor1.addEventListener('input', (e) => { fgHex1.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
-            fgColor2.addEventListener('input', (e) => { fgHex2.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
-            bgColor.addEventListener('input', (e) => { bgHex.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
-
+            fgW1.addEventListener('input', (e) => { fgH1.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
+            fgW2.addEventListener('input', (e) => { fgH2.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
+            bgW.addEventListener('input', (e) => { bgH.value = e.target.value.toUpperCase(); debouncedMasterRenderPipelineTrigger(); });
             alphaCheck.addEventListener('change', () => debouncedMasterRenderPipelineTrigger());
 
-            fgHex1.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { fgColor1.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
-            fgHex2.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { fgColor2.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
-            bgHex.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { bgColor.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
+            fgH1.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { fgW1.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
+            fgH2.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { fgW2.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
+            bgH.addEventListener('input', (e) => { if(e.target.value.match(/^#[0-9A-F]{6}$/i)) { bgW.value = e.target.value; debouncedMasterRenderPipelineTrigger(); }});
 
             document.getElementById('cfg-logo-file').addEventListener('change', function(e) {
                 if (e.target.files && e.target.files[0]) {
