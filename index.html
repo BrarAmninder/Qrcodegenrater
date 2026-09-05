@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -273,8 +273,9 @@
         #converting-sub   { font-size: 12px; color: var(--gray-400); }
 
         /* RESULTS SECTION */
-        #results-section { display: none; margin-top: 28px; }
+        #results-section { display: none; margin-top: 28px; opacity: 0; transition: opacity 0.35s ease; }
         #results-section.visible { display: block; }
+        #results-section.visible.shown { opacity: 1; }
 
         /* FORMAT + CONTROLS BAR */
         .controls-bar {
@@ -283,11 +284,23 @@
             border-radius: 14px;
             padding: 16px 20px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 16px;
+        }
+
+        /* Desktop: row-top = left group, row-bottom = right group, both inline */
+        .controls-row-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .controls-row-bottom {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .fmt-group {
@@ -305,6 +318,24 @@
             color: var(--gray-500);
             cursor: pointer;
             transition: all .15s;
+        }
+
+        /* MOBILE ONLY: two-row layout */
+        @media (max-width: 540px) {
+            .controls-bar {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px 14px;
+            }
+            .controls-row-top,
+            .controls-row-bottom {
+                justify-content: space-between;
+                width: 100%;
+                flex-wrap: nowrap;
+            }
+            .fmt-group { gap: 4px; flex-shrink: 0; }
+            .fmt-btn { padding: 5px 9px; white-space: nowrap; }
+            .btn-select { flex-shrink: 0; white-space: nowrap; }
         }
 
         .fmt-btn:hover { border-color: var(--red-mid); color: var(--red); }
@@ -397,6 +428,19 @@
         }
 
         .thumb-dl:hover { background: var(--red-light); }
+
+        .thumb-del {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--gray-400);
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            border-radius: 4px;
+            transition: background .15s, color .15s;
+        }
+        .thumb-del:hover { background: #fee2e2; color: #dc2626; }
 
         /* ACTION BAR */
         .action-bar {
@@ -631,26 +675,7 @@
             color: var(--gray-400);
         }
 
-        .btn-select {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 8px;
-            border: 1.5px solid #fee2e2;
-            background: #fff5f5;
-            color: #ef4444;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: all .15s;
-        }
-        .btn-select:hover, .btn-select.active {
-            background: #fee2e2;
-            border-color: #fca5a5;
-            color: #dc2626;
-        }
-
+        .btn-select,
         .btn-clear {
             font-size: 12px;
             font-weight: 600;
@@ -665,6 +690,8 @@
             gap: 5px;
             transition: all .15s;
         }
+        .btn-select:hover,
+        .btn-select.active,
         .btn-clear:hover {
             background: #fee2e2;
             border-color: #fca5a5;
@@ -802,19 +829,21 @@
 
         <!-- Format + info bar -->
         <div class="controls-bar">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <!-- Row 1: Format buttons + Select Pages -->
+            <div class="controls-row-top">
                 <div class="fmt-group">
                     <button class="fmt-btn active" id="fmt-png"  onclick="setFmt('png')">PNG</button>
                     <button class="fmt-btn"        id="fmt-jpeg" onclick="setFmt('jpeg')">JPEG</button>
                     <button class="fmt-btn"        id="fmt-jpg"  onclick="setFmt('jpg')">JPG</button>
                     <button class="fmt-btn"        id="fmt-webp" onclick="setFmt('webp')">WEBP</button>
                 </div>
-                <button class="btn-select" id="select-pages-btn" onclick="toggleSelectMode()">
+                <button class="btn-select" id="select-pages-btn" onclick="toggleSelectMode()" style="white-space:nowrap; flex-shrink:0;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
                     Select Pages
                 </button>
             </div>
-            <div style="display:flex; align-items:center; gap:10px;">
+            <!-- Row 2: Page count + Clear -->
+            <div class="controls-row-bottom">
                 <div class="page-count"><strong id="page-count">0</strong> pages converted</div>
                 <button class="btn-clear" id="clear-btn" onclick="clearAll()">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -1153,14 +1182,23 @@ async function encodeFormat(fmt, token) {
 }
 
 // Called after conversion: encode current format immediately, cache rest in background
-async function rebuildImages() {
+async function rebuildImages(fromHandleFiles = false) {
     const token = ++rebuildToken;
 
-    // Encode the active format first — show results ASAP
+    // Encode the active format first
     await encodeFormat(currentFmt, token);
     if (token !== rebuildToken) return;
 
     convertedImages = formatCache[currentFmt];
+
+    // If called from handleFiles, hide the loading bar first, then show results with smooth fade
+    if (fromHandleFiles) {
+        convertingBar.classList.remove('visible');
+        // Small delay so the bar hides cleanly before results appear
+        await new Promise(r => setTimeout(r, 120));
+        if (token !== rebuildToken) return;
+    }
+
     renderGrid();
 
     // Then silently pre-encode remaining formats in background
@@ -1241,14 +1279,30 @@ function renderGrid() {
         num.className = 'thumb-num';
         num.textContent = 'Page ' + (idx + 1);
 
+        const btnGroup = document.createElement('div');
+        btnGroup.style.cssText = 'display:flex; align-items:center; gap:4px;';
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'thumb-del';
+        delBtn.title = 'Remove page ' + (idx + 1);
+        delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
+        delBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            rawCanvases.splice(idx, 1);
+            formatCache = { png: null, jpeg: null, jpg: null, webp: null };
+            rebuildImages();
+        });
+
         const dlBtn = document.createElement('button');
         dlBtn.className = 'thumb-dl';
         dlBtn.title = 'Download ' + name;
         dlBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
         dlBtn.addEventListener('click', e => { e.stopPropagation(); triggerDownload(name, dataUrl); });
 
+        btnGroup.appendChild(delBtn);
+        btnGroup.appendChild(dlBtn);
         footer.appendChild(num);
-        footer.appendChild(dlBtn);
+        footer.appendChild(btnGroup);
         card.appendChild(wrap);
         card.appendChild(footer);
 
@@ -1266,6 +1320,8 @@ function renderGrid() {
 
     pageCount.textContent = convertedImages.length;
     resultsSection.classList.add('visible');
+    // Trigger fade-in on next paint
+    requestAnimationFrame(() => requestAnimationFrame(() => resultsSection.classList.add('shown')));
 
     setTimeout(() => {
         const navH = document.querySelector('header')?.offsetHeight ?? 60;
@@ -1329,6 +1385,7 @@ window.clearAll = function() {
     const bar = document.getElementById('selection-bar');
     btn.classList.remove('active');
     bar.style.display = 'none';
+    resultsSection.classList.remove('shown');
 };
 
 // Conversion
@@ -1379,14 +1436,14 @@ async function handleFiles(fileList) {
             }
         }
 
-        await rebuildImages();
+        await rebuildImages(true);
 
     } catch (err) {
         console.error(err);
+        convertingBar.classList.remove('visible');
         convertLabel.textContent = 'Error converting PDF. Please try another file.';
         convertSub.textContent = '';
     } finally {
-        convertingBar.classList.remove('visible');
         isConverting = false;
     }
 }
