@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V12 Engine – PDF to Image</title>
+    <title>PDF Compressor – Compress PDF from MB to KB Free</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,6 +18,7 @@
             --gray-50: #f9fafb;
             --gray-100: #f3f4f6;
             --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
             --gray-400: #9ca3af;
             --gray-500: #6b7280;
             --gray-700: #374151;
@@ -33,7 +34,7 @@
 
         a { text-decoration: none; color: inherit; }
 
-        /* NAV */
+        /* ── NAV ── */
         header {
             position: sticky;
             top: 0;
@@ -69,6 +70,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
 
         .nav-links {
@@ -96,25 +98,26 @@
             align-items: center;
             gap: 6px;
             white-space: nowrap;
+            text-decoration: none;
         }
         .btn-primary:hover { opacity: .88; }
         .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
 
-        /* HERO */
+        /* ── HERO ── */
         .hero {
             background: var(--gray-50);
             text-align: center;
-            padding: 56px 20px 48px;
+            padding: 60px 20px 52px;
             border-bottom: 1px solid var(--gray-200);
         }
 
         .hero h1 {
-            font-size: clamp(26px, 6vw, 42px);
+            font-size: clamp(28px, 6vw, 46px);
             font-weight: 800;
             line-height: 1.15;
             color: var(--gray-900);
-            max-width: 560px;
-            margin: 0 auto 14px;
+            max-width: 600px;
+            margin: 0 auto 16px;
         }
 
         .hero h1 span { color: var(--red); }
@@ -122,7 +125,7 @@
         .hero p {
             font-size: 16px;
             color: var(--gray-500);
-            max-width: 420px;
+            max-width: 400px;
             margin: 0 auto 28px;
             line-height: 1.6;
         }
@@ -139,19 +142,23 @@
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             background: #fff;
             border: 1px solid var(--gray-200);
             border-radius: 99px;
-            padding: 5px 12px;
+            padding: 5px 14px;
         }
 
-        .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+        .badge .dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            flex-shrink: 0;
+        }
 
-        /* MARQUEE */
+        /* ── MARQUEE ── */
         .marquee-wrap {
             overflow: hidden;
-            border-top: 1px solid var(--gray-200);
             border-bottom: 1px solid var(--gray-200);
             background: #fff;
             padding: 14px 0;
@@ -171,21 +178,26 @@
             to   { transform: translateX(-50%); }
         }
 
-        .marquee-track span { font-size: 13px; font-weight: 600; color: var(--gray-400); }
+        .marquee-track span {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gray-400);
+        }
+
         .marquee-track .sep { color: var(--gray-200); }
 
-        /* TOOL SECTION */
+        /* ── TOOL SECTION ── */
         .tool-section {
             max-width: 780px;
             margin: 0 auto;
             padding: 40px 16px 60px;
         }
 
-        /* DROPZONE */
+        /* ── DROPZONE ── */
         .dropzone {
             border: 2px dashed var(--gray-200);
             border-radius: 16px;
-            padding: 48px 24px;
+            padding: 60px 24px 52px;
             text-align: center;
             cursor: pointer;
             position: relative;
@@ -208,19 +220,29 @@
         }
 
         .dropzone-icon {
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             background: var(--red-light);
-            border-radius: 14px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
+            margin: 0 auto 20px;
             color: var(--red);
         }
 
-        .dropzone h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-        .dropzone p  { font-size: 13px; color: var(--gray-400); margin-bottom: 20px; }
+        .dropzone h3 {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--gray-900);
+        }
+
+        .dropzone p {
+            font-size: 13px;
+            color: var(--gray-400);
+            margin-bottom: 22px;
+        }
 
         .btn-outline {
             display: inline-flex;
@@ -235,280 +257,294 @@
             border-radius: 8px;
             cursor: pointer;
             transition: background .15s;
-            pointer-events: none;
+            font-family: 'Inter', sans-serif;
         }
+        .btn-outline:hover { background: var(--red-light); }
 
-        .dropzone:hover .btn-outline, .dropzone.drag-over .btn-outline { background: var(--red-light); }
+        /* ── PREVIEW ── */
+        #preview-container { display: none; margin-top: 24px; }
+        #preview-container.visible { display: block; }
 
-        /* CONVERTING */
-        #converting-bar {
-            display: none;
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #converting-bar.visible { display: block; }
-
-        .progress-track {
-            background: var(--gray-200);
-            border-radius: 99px;
-            height: 6px;
-            margin: 12px 0 8px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--red);
-            border-radius: 99px;
-            width: 0%;
-            transition: width .2s ease;
-        }
-
-        #converting-label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
-        #converting-sub   { font-size: 12px; color: var(--gray-400); }
-
-        /* RESULTS SECTION */
-        #results-section { display: none; margin-top: 28px; opacity: 0; transition: opacity 0.35s ease; }
-        #results-section.visible { display: block; }
-        #results-section.visible.shown { opacity: 1; }
-
-        /* FORMAT + CONTROLS BAR */
-        .controls-bar {
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: 14px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
             margin-bottom: 16px;
         }
 
-        /* Desktop: row-top = left group, row-bottom = right group, both inline */
-        .controls-row-top {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+        @media (max-width: 500px) { .preview-grid { grid-template-columns: 1fr; } }
 
-        .controls-row-bottom {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .fmt-group {
-            display: flex;
-            gap: 6px;
-        }
-
-        .fmt-btn {
-            font-size: 11px;
-            font-weight: 700;
-            padding: 5px 11px;
-            border-radius: 7px;
-            border: 1.5px solid var(--gray-200);
-            background: #fff;
-            color: var(--gray-500);
-            cursor: pointer;
-            transition: all .15s;
-        }
-
-        /* MOBILE ONLY: two-row layout */
-        @media (max-width: 540px) {
-            .controls-bar {
-                flex-direction: column;
-                gap: 10px;
-                padding: 12px 14px;
-            }
-            .controls-row-top,
-            .controls-row-bottom {
-                justify-content: space-between;
-                width: 100%;
-                flex-wrap: nowrap;
-            }
-            .fmt-group { gap: 4px; flex-shrink: 0; }
-            .fmt-btn { padding: 5px 9px; white-space: nowrap; }
-            .btn-select { flex-shrink: 0; white-space: nowrap; }
-        }
-
-        .fmt-btn:hover { border-color: var(--red-mid); color: var(--red); }
-        .fmt-btn.active { background: var(--red-light); border-color: var(--red-mid); color: var(--red); }
-
-        .page-count {
-            font-size: 13px;
-            color: var(--gray-500);
-        }
-
-        .page-count strong { color: var(--gray-900); }
-
-        /* IMAGE GRID — horizontal scroll */
-        #image-grid {
-            display: flex;
-            flex-direction: row;
-            gap: 12px;
-            margin-bottom: 20px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: 10px;
-            transition: opacity .2s ease;
-        }
-
-        #image-grid.fading { opacity: 0.4; pointer-events: none; }
-
-        /* Custom scrollbar */
-        #image-grid::-webkit-scrollbar { height: 5px; }
-        #image-grid::-webkit-scrollbar-track { background: var(--gray-100); border-radius: 99px; }
-        #image-grid::-webkit-scrollbar-thumb { background: var(--red); border-radius: 99px; }
-        #image-grid { scrollbar-width: thin; scrollbar-color: var(--red) var(--gray-100); }
-
-        .thumb-card {
+        .preview-card {
             border: 1px solid var(--gray-200);
             border-radius: 12px;
             overflow: hidden;
             background: var(--gray-50);
-            cursor: pointer;
-            transition: border-color .15s, box-shadow .15s;
-            flex: 0 0 calc(25% - 9px);
-            scroll-snap-align: start;
         }
 
-        @media (max-width: 600px) {
-            .thumb-card { flex: 0 0 calc(50% - 6px); }
-        }
-
-        .thumb-card:hover { border-color: var(--red-mid); box-shadow: 0 2px 12px rgba(232,20,60,.07); }
-
-        .thumb-img-wrap {
-            aspect-ratio: 3/4;
+        .preview-iframe-wrap {
+            position: relative;
+            height: 260px;
             background: var(--gray-100);
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
         }
 
-        .thumb-img-wrap img {
+        @media (max-width: 500px) { .preview-iframe-wrap { height: 200px; } }
+
+        .preview-iframe-wrap iframe {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            border: 0;
+            background: #fff;
+            display: block;
         }
 
-        .thumb-footer {
-            padding: 7px 10px;
+        .preview-iframe-wrap iframe.blurred { filter: blur(4px); }
+
+        .processing-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,.85);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .processing-overlay.visible { display: flex; }
+
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--red);
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .processing-overlay span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--red);
+        }
+
+        .preview-info {
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border-top: 1px solid var(--gray-200);
+            gap: 8px;
+        }
+
+        .preview-meta { min-width: 0; }
+
+        .preview-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: var(--gray-400);
+            margin-bottom: 2px;
+        }
+
+        .preview-name {
+            font-size: 12px;
+            color: var(--gray-700);
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .preview-size {
+            font-size: 13px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .size-original   { color: var(--gray-500); }
+        .size-compressed { color: var(--red); }
+
+        /* ── COMPRESSION LEVELS ── */
+        .levels-section {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+
+        .levels-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
-        .thumb-num {
-            font-size: 11px;
+        .compression-result-badge {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
             font-weight: 700;
-            color: var(--gray-400);
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            padding: 3px 10px;
+            border-radius: 99px;
         }
+        .compression-result-badge.visible { display: inline-flex; }
 
-        .thumb-dl {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--red);
-            display: flex;
-            align-items: center;
-            padding: 2px;
-            border-radius: 4px;
-            transition: background .15s;
-        }
-
-        .thumb-dl:hover { background: var(--red-light); }
-
-        .thumb-del {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--gray-400);
-            display: flex;
-            align-items: center;
-            padding: 2px;
-            border-radius: 4px;
-            transition: background .15s, color .15s;
-        }
-        .thumb-del:hover { background: #fee2e2; color: #dc2626; }
-
-        /* ACTION BAR */
-        .action-bar {
-            display: flex;
-            flex-direction: column;
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
 
-        @media (min-width: 480px) {
-            .action-bar { flex-direction: row; align-items: center; justify-content: space-between; }
+        @media (max-width: 480px) { .levels-grid { grid-template-columns: 1fr; } }
+
+        .level-btn {
+            position: relative;
+            border: 1.5px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 14px 14px 12px;
+            text-align: left;
+            background: #fff;
+            cursor: pointer;
+            transition: border-color .2s, background .2s, box-shadow .2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .level-btn:hover { border-color: var(--gray-300); background: var(--gray-50); }
+
+        .level-btn.active-extreme     { border-color: #f97316; background: #fff7ed; box-shadow: 0 0 0 3px rgba(249,115,22,.08); }
+        .level-btn.active-recommended { border-color: var(--red); background: var(--red-light); box-shadow: 0 0 0 3px rgba(232,20,60,.08); }
+        .level-btn.active-less        { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,.08); }
+
+        .level-best-badge {
+            position: absolute;
+            top: -1px; right: -1px;
+            background: var(--red);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 0 10px 0 8px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .level-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .level-icon.extreme     { background: #ffedd5; color: #f97316; }
+        .level-icon.recommended { background: var(--red-light); color: var(--red); }
+        .level-icon.less        { background: #dbeafe; color: #3b82f6; }
+
+        .level-check {
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            opacity: 0;
+            transition: opacity .15s;
+        }
+        .level-check.extreme     { background: #f97316; }
+        .level-check.recommended { background: var(--red); }
+        .level-check.less        { background: #3b82f6; }
+
+        .level-btn.active-extreme     .level-check.extreme     { opacity: 1; }
+        .level-btn.active-recommended .level-check.recommended { opacity: 1; }
+        .level-btn.active-less        .level-check.less        { opacity: 1; }
+
+        .level-name {
+            font-size: 11px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .06em;
+            margin-bottom: 1px;
+        }
+        .level-name.extreme     { color: #f97316; }
+        .level-name.recommended { color: var(--red); }
+        .level-name.less        { color: #3b82f6; }
+
+        .level-title { font-size: 13px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+        .level-desc  { font-size: 12px; color: var(--gray-400); margin-bottom: 10px; line-height: 1.45; }
+
+        .quality-bar-labels {
+            display: flex; justify-content: space-between;
+            font-size: 10px; font-weight: 600; color: var(--gray-400);
+            margin-bottom: 4px;
+        }
+        .quality-bar-track { height: 3px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+        .quality-bar-fill  { height: 100%; border-radius: 99px; }
+        .quality-bar-fill.extreme     { width: 22%; background: #f97316; }
+        .quality-bar-fill.recommended { width: 60%; background: var(--red); }
+        .quality-bar-fill.less        { width: 88%; background: #3b82f6; }
+
+        /* ── ACTION BAR ── */
+        .action-bar {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 4px 0 8px;
         }
 
         .privacy-note {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--gray-400);
+            flex: 1;
         }
 
-        .privacy-note svg { flex-shrink: 0; color: #22c55e; }
-
-        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
-
-        .btn-secondary {
-            background: #fff;
-            color: var(--gray-700);
-            border: 1.5px solid var(--gray-200);
-            font-weight: 600;
+        #download-btn {
+            width: auto !important;
+            padding: 11px 28px;
             font-size: 14px;
-            padding: 9px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: border-color .15s, color .15s;
+            flex-shrink: 0;
         }
 
-        .btn-secondary:hover { border-color: var(--gray-400); color: var(--gray-900); }
+        @media (max-width: 520px) {
+            .action-bar { flex-direction: column; align-items: stretch; }
+            #download-btn { width: 100% !important; justify-content: center; }
+            .privacy-note { justify-content: center; }
+        }
 
-        /* HOW IT WORKS */
+        /* ── HOW IT WORKS ── */
         .section {
             max-width: 1100px;
             margin: 0 auto;
             padding: 60px 20px;
         }
 
-        .section-header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .section-header h2 {
-            font-size: clamp(22px, 4vw, 30px);
-            font-weight: 800;
-            color: var(--gray-900);
-            margin-bottom: 8px;
-        }
-
-        .section-header p { font-size: 15px; color: var(--gray-500); }
+        .section-header { text-align: center; margin-bottom: 40px; }
+        .section-header h2 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; color: var(--gray-900); margin-bottom: 8px; }
+        .section-header p  { font-size: 15px; color: var(--gray-500); }
 
         .steps-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px;
         }
-
         @media (min-width: 760px) { .steps-grid { grid-template-columns: repeat(4, 1fr); } }
 
         .step-card {
@@ -517,32 +553,12 @@
             border-radius: 14px;
             padding: 22px 18px;
         }
-
-        .step-num {
-            font-size: 11px;
-            font-weight: 800;
-            color: var(--red);
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .step-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--red-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-            color: var(--red);
-        }
-
+        .step-num  { font-size: 11px; font-weight: 800; color: var(--red); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+        .step-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--red-light); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--red); }
         .step-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
         .step-card p  { font-size: 13px; color: var(--gray-500); line-height: 1.55; }
 
-        /* FEATURES */
+        /* ── FEATURES ── */
         .features-bg { background: var(--gray-50); border-top: 1px solid var(--gray-200); border-bottom: 1px solid var(--gray-200); }
 
         .features-grid {
@@ -550,189 +566,45 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 16px;
         }
-
         @media (min-width: 640px) { .features-grid { grid-template-columns: repeat(4, 1fr); } }
 
-        .feature-card {
-            background: #fff;
-            border: 1px solid var(--gray-200);
-            border-radius: 14px;
-            padding: 20px 16px;
-        }
-
-        .feature-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 9px;
-            background: var(--red-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 12px;
-            color: var(--red);
-        }
-
+        .feature-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 14px; padding: 20px 16px; }
+        .feature-icon { width: 38px; height: 38px; border-radius: 9px; background: var(--red-light); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; color: var(--red); }
         .feature-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 5px; }
         .feature-card p  { font-size: 12px; color: var(--gray-500); line-height: 1.5; }
 
-        /* FAQ */
+        /* ── FAQ ── */
         .faq-list { max-width: 680px; margin: 0 auto; }
-
-        .faq-item {
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 10px;
-            background: #fff;
-        }
-
+        .faq-item { border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; margin-bottom: 10px; background: #fff; }
         .faq-trigger {
-            width: 100%;
-            padding: 16px 20px;
-            text-align: left;
-            background: none;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--gray-900);
-            gap: 12px;
+            width: 100%; padding: 16px 20px; text-align: left; background: none; border: none;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            font-size: 14px; font-weight: 600; color: var(--gray-900); gap: 12px;
+            font-family: 'Inter', sans-serif;
         }
-
         .faq-trigger:hover { background: var(--gray-50); }
-
         .faq-trigger svg { flex-shrink: 0; transition: transform .25s; color: var(--gray-400); }
         .faq-trigger.open svg { transform: rotate(180deg); }
-
         .faq-content { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
+        .faq-content p { padding: 4px 20px 16px; font-size: 14px; color: var(--gray-500); line-height: 1.6; border-top: 1px solid var(--gray-100); }
 
-        .faq-content p {
-            padding: 4px 20px 16px;
-            font-size: 14px;
-            color: var(--gray-500);
-            line-height: 1.6;
-            border-top: 1px solid var(--gray-100);
-        }
-
-        /* CTA */
-        .cta-section {
-            text-align: center;
-            padding: 64px 20px;
-            max-width: 520px;
-            margin: 0 auto;
-        }
-
+        /* ── CTA ── */
+        .cta-section { text-align: center; padding: 64px 20px; max-width: 520px; margin: 0 auto; }
         .cta-section h2 { font-size: clamp(22px, 4vw, 30px); font-weight: 800; margin-bottom: 10px; }
         .cta-section p  { font-size: 15px; color: var(--gray-500); margin-bottom: 24px; }
 
-        /* FOOTER */
-        footer {
-            background: var(--gray-50);
-            border-top: 1px solid var(--gray-200);
-            padding: 40px 20px 28px;
-        }
-
+        /* ── FOOTER ── */
+        footer { background: var(--gray-50); border-top: 1px solid var(--gray-200); padding: 40px 20px 28px; }
         .footer-inner { max-width: 1100px; margin: 0 auto; }
-
-        .footer-top {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 32px;
-            margin-bottom: 32px;
-        }
-
+        .footer-top { display: grid; grid-template-columns: 1fr; gap: 32px; margin-bottom: 32px; }
         @media (min-width: 640px) { .footer-top { grid-template-columns: 1fr 1fr 1fr 1fr; } }
-
-        .footer-brand p {
-            font-size: 13px;
-            color: var(--gray-500);
-            margin-top: 10px;
-            line-height: 1.6;
-        }
-
-        .footer-col h5 {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: var(--gray-400);
-            margin-bottom: 12px;
-        }
-
+        .footer-brand p { font-size: 13px; color: var(--gray-500); margin-top: 10px; line-height: 1.6; }
+        .footer-col h5 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray-400); margin-bottom: 12px; }
         .footer-col ul { list-style: none; }
         .footer-col li + li { margin-top: 8px; }
-        .footer-col a { font-size: 14px; color: var(--gray-500); }
+        .footer-col a { font-size: 13px; color: var(--gray-500); }
         .footer-col a:hover { color: var(--gray-900); }
-
-        .footer-bottom {
-            border-top: 1px solid var(--gray-200);
-            padding-top: 20px;
-            text-align: center;
-            font-size: 13px;
-            color: var(--gray-400);
-        }
-
-        .btn-select,
-        .btn-clear {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 6px 14px;
-            border-radius: 8px;
-            border: 1.5px solid #fee2e2;
-            background: #fff5f5;
-            color: #ef4444;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: all .15s;
-        }
-        .btn-select:hover,
-        .btn-select.active,
-        .btn-clear:hover {
-            background: #fee2e2;
-            border-color: #fca5a5;
-            color: #dc2626;
-        }
-
-        /* Selection overlay on thumb cards */
-        .thumb-card.selectable { cursor: pointer; }
-        .thumb-card.selectable:hover { border-color: var(--red-mid); }
-        .thumb-card.selected { border-color: var(--red); box-shadow: 0 0 0 2px var(--red-mid); }
-
-        .sel-overlay {
-            display: none;
-            position: absolute;
-            top: 8px; right: 8px;
-            width: 22px; height: 22px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid var(--gray-300, #d1d5db);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .thumb-img-wrap { position: relative; }
-
-        .selectable .sel-overlay { display: flex; }
-        .selected .sel-overlay { background: var(--red); border-color: var(--red); }
-        .selected .sel-overlay svg { display: block; }
-        .sel-overlay svg { display: none; color: #fff; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner {
-            display: inline-block;
-            width: 18px; height: 18px;
-            border: 2px solid var(--gray-200);
-            border-top-color: var(--red);
-            border-radius: 50%;
-            animation: spin .7s linear infinite;
-            vertical-align: middle;
-            margin-right: 6px;
-        }
+        .footer-bottom { border-top: 1px solid var(--gray-200); padding-top: 20px; text-align: center; font-size: 13px; color: var(--gray-400); }
     </style>
 </head>
 <body>
@@ -743,55 +615,68 @@
         <a href="#" class="logo">
             <div class="logo-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
                 </svg>
             </div>
             V12 Engine
         </a>
-
         <div class="nav-links">
-            <a href="#tool">Converter</a>
+            <a href="#tool">Compressor</a>
             <a href="#how-it-works">How It Works</a>
             <a href="#features">Features</a>
             <a href="#faq">FAQ</a>
         </div>
-
-        <a href="#tool" class="btn-primary">Convert Now</a>
+        <a href="#tool" class="btn-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Compress PDF
+        </a>
     </nav>
 </header>
 
 <!-- HERO -->
 <section class="hero">
-    <h1>Convert <span>PDF to Images</span> Instantly</h1>
-    <p>Fast, free, and 100% private. Every page rendered locally — nothing leaves your browser.</p>
-    <a href="#tool" class="btn-primary" style="margin-bottom:24px; display:inline-flex;">
+    <h1>Compress PDF from <span>MB to KB</span> Instantly</h1>
+    <p>Fast, free, and 100% private. Your PDF never leaves your browser.</p>
+    <a href="#tool" class="btn-primary" style="margin-bottom:24px;">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
         </svg>
-        Convert PDF Free
+        Start Compressing Free
     </a>
     <div class="hero-badges">
-        <span class="badge"><span class="dot"></span> 100% Browser-Based</span>
+        <span class="badge"><span class="dot"></span> 100% Free</span>
         <span class="badge"><span class="dot"></span> No File Uploads</span>
-        <span class="badge"><span class="dot"></span> PNG · JPG · WEBP</span>
+        <span class="badge"><span class="dot"></span> PDF Only</span>
     </div>
 </section>
 
 <!-- MARQUEE -->
 <div class="marquee-wrap">
     <div class="marquee-track">
-        <span>📄 PDF Pages</span><span class="sep">•</span>
-        <span>🖼️ High-Res Images</span><span class="sep">•</span>
-        <span>📦 Batch ZIP</span><span class="sep">•</span>
-        <span>🔒 Zero Uploads</span><span class="sep">•</span>
-        <span>⚡ Instant Convert</span><span class="sep">•</span>
-        <span>🎨 PNG · JPG · WEBP</span><span class="sep">•</span>
-        <span>📄 PDF Pages</span><span class="sep">•</span>
-        <span>🖼️ High-Res Images</span><span class="sep">•</span>
-        <span>📦 Batch ZIP</span><span class="sep">•</span>
-        <span>🔒 Zero Uploads</span><span class="sep">•</span>
-        <span>⚡ Instant Convert</span><span class="sep">•</span>
-        <span>🎨 PNG · JPG · WEBP</span><span class="sep">•</span>
+        <span>📄 Office Professionals</span><span class="sep">•</span>
+        <span>💼 Business Teams</span><span class="sep">•</span>
+        <span>🎓 Students</span><span class="sep">•</span>
+        <span>⚖️ Legal Professionals</span><span class="sep">•</span>
+        <span>🏢 Corporate Teams</span><span class="sep">•</span>
+        <span>📚 Educators</span><span class="sep">•</span>
+        <span>🖨️ Print Designers</span><span class="sep">•</span>
+        <!-- duplicate for seamless loop -->
+        <span>📄 Office Professionals</span><span class="sep">•</span>
+        <span>💼 Business Teams</span><span class="sep">•</span>
+        <span>🎓 Students</span><span class="sep">•</span>
+        <span>⚖️ Legal Professionals</span><span class="sep">•</span>
+        <span>🏢 Corporate Teams</span><span class="sep">•</span>
+        <span>📚 Educators</span><span class="sep">•</span>
+        <span>🖨️ Print Designers</span><span class="sep">•</span>
     </div>
 </div>
 
@@ -800,156 +685,207 @@
 
     <!-- Dropzone -->
     <div id="dropzone" class="dropzone">
-        <input type="file" id="file-input" accept="application/pdf" multiple>
+        <input type="file" id="file-input" accept=".pdf,application/pdf">
         <div class="dropzone-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
-                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
         </div>
-        <h3>Drop your PDF here</h3>
-        <p>Single or multiple PDF files supported</p>
+        <h3>Drop your PDF here, or click to select</h3>
+        <p>Supported format: PDF (.pdf) &nbsp;·&nbsp; Processed locally in your browser</p>
         <button type="button" class="btn-outline">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Select PDF
+            Select PDF File
         </button>
     </div>
 
-    <!-- Converting progress -->
-    <div id="converting-bar">
-        <div id="converting-label"><span class="spinner"></span>Loading PDF…</div>
-        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
-        <div id="converting-sub">Please wait</div>
-    </div>
+    <!-- Preview (hidden until file selected) -->
+    <div id="preview-container">
 
-    <!-- Results -->
-    <div id="results-section">
-
-        <!-- Format + info bar -->
-        <div class="controls-bar">
-            <!-- Row 1: Format buttons + Select Pages -->
-            <div class="controls-row-top">
-                <div class="fmt-group">
-                    <button class="fmt-btn active" id="fmt-png"  onclick="setFmt('png')">PNG</button>
-                    <button class="fmt-btn"        id="fmt-jpeg" onclick="setFmt('jpeg')">JPEG</button>
-                    <button class="fmt-btn"        id="fmt-jpg"  onclick="setFmt('jpg')">JPG</button>
-                    <button class="fmt-btn"        id="fmt-webp" onclick="setFmt('webp')">WEBP</button>
+        <div class="preview-grid">
+            <!-- Original -->
+            <div class="preview-card">
+                <div class="preview-iframe-wrap">
+                    <iframe id="input-pdf-viewer" src="" title="Original PDF"></iframe>
                 </div>
-                <button class="btn-select" id="select-pages-btn" onclick="toggleSelectMode()" style="white-space:nowrap; flex-shrink:0;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
-                    Select Pages
-                </button>
+                <div class="preview-info">
+                    <div class="preview-meta">
+                        <div class="preview-label">Original</div>
+                        <div class="preview-name" id="input-name">document.pdf</div>
+                    </div>
+                    <span class="preview-size size-original" id="input-size">— MB</span>
+                </div>
             </div>
-            <!-- Row 2: Page count + Clear -->
-            <div class="controls-row-bottom">
-                <div class="page-count"><strong id="page-count">0</strong> pages converted</div>
-                <button class="btn-clear" id="clear-btn" onclick="clearAll()">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-                    Clear
-                </button>
+            <!-- Compressed -->
+            <div class="preview-card">
+                <div class="preview-iframe-wrap">
+                    <iframe id="output-pdf-viewer" src="" class="blurred" title="Compressed PDF"></iframe>
+                    <div class="processing-overlay" id="processing-overlay">
+                        <div class="spinner"></div>
+                        <span>Compressing…</span>
+                    </div>
+                </div>
+                <div class="preview-info">
+                    <div class="preview-meta">
+                        <div class="preview-label">Compressed</div>
+                        <div class="preview-name">Ready to download</div>
+                    </div>
+                    <span class="preview-size size-compressed" id="output-size">— KB</span>
+                </div>
             </div>
         </div>
 
-        <!-- Selection bar (shown when select mode is active) -->
-        <div id="selection-bar" style="display:none; background:var(--red-light); border:1px solid var(--red-mid); border-radius:10px; padding:10px 16px; margin-bottom:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-            <span style="font-size:13px; font-weight:600; color:var(--red);"><span id="sel-count">0</span> of <span id="sel-total">0</span> pages selected</span>
-            <div style="display:flex; gap:8px;">
-                <button onclick="selectAll()" style="font-size:12px; font-weight:600; color:var(--red); background:none; border:1.5px solid var(--red-mid); padding:5px 12px; border-radius:6px; cursor:pointer;">Select All</button>
-                <button onclick="deselectAll()" style="font-size:12px; font-weight:600; color:var(--gray-500); background:none; border:1.5px solid var(--gray-200); padding:5px 12px; border-radius:6px; cursor:pointer;">Deselect All</button>
+        <!-- Compression Levels -->
+        <div class="levels-section">
+            <div class="levels-label">
+                Compression Level
+                <span class="compression-result-badge" id="compression-result-badge">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                        <polyline points="17 6 23 6 23 12"/>
+                    </svg>
+                    <span id="compression-ratio-text">—</span>
+                </span>
+            </div>
+            <div class="levels-grid" id="compression-level-group">
+
+                <!-- Extreme -->
+                <button type="button" class="level-btn" data-level="extreme">
+                    <div class="level-header">
+                        <div class="level-icon extreme">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        </div>
+                        <div class="level-check extreme">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                    </div>
+                    <div class="level-name extreme">Extreme</div>
+                    <div class="level-title">Compression</div>
+                    <div class="level-desc">Less quality, high compression</div>
+                    <div class="quality-bar-labels"><span>Quality</span><span>Low</span></div>
+                    <div class="quality-bar-track"><div class="quality-bar-fill extreme"></div></div>
+                </button>
+
+                <!-- Recommended -->
+                <button type="button" class="level-btn active-recommended" data-level="recommended">
+                    <div class="level-best-badge">Best</div>
+                    <div class="level-header">
+                        <div class="level-icon recommended">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        </div>
+                        <div class="level-check recommended">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                    </div>
+                    <div class="level-name recommended">Recommended</div>
+                    <div class="level-title">Compression</div>
+                    <div class="level-desc">Good quality, good compression</div>
+                    <div class="quality-bar-labels"><span>Quality</span><span>Balanced</span></div>
+                    <div class="quality-bar-track"><div class="quality-bar-fill recommended"></div></div>
+                </button>
+
+                <!-- Less -->
+                <button type="button" class="level-btn" data-level="less">
+                    <div class="level-header">
+                        <div class="level-icon less">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        </div>
+                        <div class="level-check less">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                    </div>
+                    <div class="level-name less">Less</div>
+                    <div class="level-title">Compression</div>
+                    <div class="level-desc">High quality, less compression</div>
+                    <div class="quality-bar-labels"><span>Quality</span><span>High</span></div>
+                    <div class="quality-bar-track"><div class="quality-bar-fill less"></div></div>
+                </button>
+
             </div>
         </div>
-
-        <!-- Grid -->
-        <div id="image-grid"></div>
 
         <!-- Action bar -->
         <div class="action-bar">
             <div class="privacy-note">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#22c55e;flex-shrink:0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Processed locally — your file never leaves your device.
+            </div>
+            <button id="download-btn" class="btn-primary" disabled>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                100% local — no uploads, no servers
-            </div>
-            <div class="btn-group">
-                <button class="btn-secondary" id="dl-individual">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
-                    Download All
-                </button>
-                <button class="btn-primary" id="dl-zip">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/>
-                    </svg>
-                    Download ZIP
-                </button>
-            </div>
+                Download Compressed PDF
+            </button>
         </div>
 
+        <!-- Hidden inputs for JS engine compatibility -->
+        <input type="range"  id="quality-slider"   min="5" max="100" value="80"  style="display:none">
+        <span                id="quality-val"                                     style="display:none">80%</span>
+        <input type="range"  id="kb-slider"         min="20" max="5000" value="300" style="display:none">
+        <input type="number" id="target-kb-input"   value="300" min="10" max="15000" style="display:none">
     </div>
 
 </section>
 
 <!-- HOW IT WORKS -->
-<section id="how-it-works" style="background:var(--gray-50); border-top:1px solid var(--gray-200); border-bottom:1px solid var(--gray-200);">
+<div style="border-top:1px solid var(--gray-200);" id="how-it-works">
     <div class="section">
         <div class="section-header">
             <h2>How It Works</h2>
-            <p>Four simple steps — done in seconds.</p>
+            <p>Compress your PDF in three simple steps — no account, no software, no waiting.</p>
         </div>
         <div class="steps-grid">
             <div class="step-card">
                 <div class="step-num">Step 01</div>
                 <div class="step-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 </div>
                 <h4>Upload Your PDF</h4>
-                <p>Drag and drop or click to select one or more PDF files.</p>
+                <p>Drag and drop your PDF onto the tool, or click to browse from your device.</p>
             </div>
             <div class="step-card">
                 <div class="step-num">Step 02</div>
                 <div class="step-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
                 </div>
-                <h4>Auto Convert</h4>
-                <p>Every page is rendered locally in your browser at high resolution.</p>
+                <h4>Choose Compression Level</h4>
+                <p>Pick Extreme, Recommended, or Less compression based on your quality needs.</p>
             </div>
             <div class="step-card">
                 <div class="step-num">Step 03</div>
                 <div class="step-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/>
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                 </div>
-                <h4>Pick Format</h4>
-                <p>Choose PNG, JPG, or WEBP. Preview all pages before downloading.</p>
+                <h4>Preview the Result</h4>
+                <p>See a live side-by-side preview of your original and compressed PDF instantly.</p>
             </div>
             <div class="step-card">
                 <div class="step-num">Step 04</div>
                 <div class="step-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-                    </svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </div>
                 <h4>Download</h4>
-                <p>Save images individually or grab them all in a single ZIP file.</p>
+                <p>Click Download to save the compressed PDF to your device. Done!</p>
             </div>
         </div>
     </div>
-</section>
+</div>
 
 <!-- FEATURES -->
 <div class="features-bg" id="features">
     <div class="section">
         <div class="section-header">
             <h2>Why Use V12 Engine?</h2>
-            <p>Built for speed, privacy, and quality.</p>
+            <p>Built for speed, privacy, and quality — without any sign-ups or servers.</p>
         </div>
         <div class="features-grid">
             <div class="feature-card">
@@ -957,28 +893,28 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
                 <h4>100% Private</h4>
-                <p>Files never leave your device. All processing runs in your browser.</p>
+                <p>All processing happens in your browser. Your PDF is never sent anywhere.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                 </div>
-                <h4>High Resolution</h4>
-                <p>Pages are rendered at 4× scale for sharp, print-ready images.</p>
+                <h4>Blazing Fast</h4>
+                <p>PDF compression takes seconds, not minutes. No queues, no waiting.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                 </div>
-                <h4>Multiple Formats</h4>
-                <p>Export as PNG, JPG, or WEBP — switch formats instantly.</p>
+                <h4>Always Free</h4>
+                <p>No limits, no subscriptions. Compress as many PDFs as you need for free.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8m-4-4h8"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
                 </div>
-                <h4>Batch ZIP</h4>
-                <p>Convert multiple PDFs and download all pages as one ZIP archive.</p>
+                <h4>Mobile Friendly</h4>
+                <p>Works perfectly on phones and tablets — compress PDFs from anywhere.</p>
             </div>
         </div>
     </div>
@@ -989,43 +925,28 @@
     <div class="section">
         <div class="section-header">
             <h2>Frequently Asked Questions</h2>
-            <p>Everything you need to know.</p>
+            <p>Everything you need to know about compressing PDFs.</p>
         </div>
         <div class="faq-list">
             <div class="faq-item">
-                <button class="faq-trigger" type="button">
-                    Is my PDF uploaded to a server?
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-content"><p>No. Everything runs locally in your browser using PDF.js and the HTML5 Canvas API. Your files are never sent anywhere.</p></div>
+                <button class="faq-trigger" type="button">Is my PDF file kept private?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <div class="faq-content"><p>Yes, completely. Your PDF is processed entirely inside your browser using JavaScript — it is never uploaded to any server, and nothing is stored after you close the page.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-trigger" type="button">
-                    Can I convert multiple PDFs at once?
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-content"><p>Yes. Select multiple PDF files at once. All pages from all files are converted and available to download individually or as a ZIP.</p></div>
+                <button class="faq-trigger" type="button">What compression levels are available?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <div class="faq-content"><p>Three levels: Extreme (smallest file, lower quality), Recommended (great balance of quality and compression), and Less Compression (highest quality, moderate size reduction). Recommended is best for most use cases.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-trigger" type="button">
-                    What image formats are supported?
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-content"><p>PNG, JPG, and WEBP. You can switch between formats after conversion without re-processing the PDF.</p></div>
+                <button class="faq-trigger" type="button">How much can a PDF be compressed?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <div class="faq-content"><p>It depends on the content. PDFs with many images can often be reduced by 50–90%. Text-heavy PDFs with few images may see smaller reductions, since text is already compact data.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-trigger" type="button">
-                    What resolution will the images be?
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-content"><p>Pages are rendered at 4× scale (~288 DPI), producing high-quality images suitable for both screen and print use.</p></div>
+                <button class="faq-trigger" type="button">Will the compressed PDF still look good?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <div class="faq-content"><p>With Recommended or Less Compression, the result looks great for sharing and web use. You can preview the result before downloading to check quality.</p></div>
             </div>
             <div class="faq-item">
-                <button class="faq-trigger" type="button">
-                    Will watermarks be added to my images?
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-content"><p>Never. Images are generated exactly from your PDF pages with no watermarks, branding, or modifications of any kind.</p></div>
+                <button class="faq-trigger" type="button">How many PDFs can I compress?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+                <div class="faq-content"><p>Unlimited. There's no cap on the number of PDFs you can compress — completely free with no restrictions.</p></div>
             </div>
         </div>
     </div>
@@ -1034,13 +955,15 @@
 <!-- CTA -->
 <div style="background:var(--gray-50); border-top:1px solid var(--gray-200);">
     <div class="cta-section">
-        <h2>Convert Your PDF in Seconds</h2>
-        <p>High-quality images from every page. Free, private, and instant.</p>
+        <h2>Compress Your PDF in Seconds</h2>
+        <p>Reduce file size instantly while keeping great quality. Free, private, and fast.</p>
         <a href="#tool" class="btn-primary">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Convert Now — It's Free
+            Compress Now — It's Free
         </a>
     </div>
 </div>
@@ -1050,23 +973,24 @@
     <div class="footer-inner">
         <div class="footer-top">
             <div class="footer-brand">
-                <a href="#" class="logo" style="margin-bottom:0;">
+                <a href="#" class="logo">
                     <div class="logo-icon">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
                         </svg>
                     </div>
                     V12 Engine
                 </a>
-                <p>Fast, free, and secure PDF to image conversion running entirely in your browser.</p>
+                <p>Fast, free, and secure PDF compression running entirely in your browser.</p>
             </div>
             <div class="footer-col">
-                <h5>Features</h5>
+                <h5>Tools</h5>
                 <ul>
-                    <li><a href="#">PDF to PNG</a></li>
-                    <li><a href="#">PDF to JPG</a></li>
-                    <li><a href="#">PDF to WEBP</a></li>
-                    <li><a href="#">Batch Conversion</a></li>
+                    <li><a href="#">PDF Compressor</a></li>
+                    <li><a href="#">Image Compressor</a></li>
+                    <li><a href="#">PDF Merger</a></li>
+                    <li><a href="#">PDF Splitter</a></li>
                 </ul>
             </div>
             <div class="footer-col">
@@ -1087,20 +1011,18 @@
                 </ul>
             </div>
         </div>
-        <div class="footer-bottom">
-            © <span id="footer-year"></span> V12 Engine. All rights reserved.
-        </div>
+        <div class="footer-bottom">© <span id="footer-year">2026</span> V12 Engine. All rights reserved.</div>
     </div>
 </footer>
 
 <script>
 document.getElementById('footer-year').textContent = new Date().getFullYear();
 
-// FAQ
+// ── FAQ ──
 document.querySelectorAll('.faq-trigger').forEach(btn => {
     btn.addEventListener('click', () => {
         const content = btn.nextElementSibling;
-        const isOpen = btn.classList.contains('open');
+        const isOpen  = btn.classList.contains('open');
         document.querySelectorAll('.faq-trigger').forEach(b => {
             b.classList.remove('open');
             b.nextElementSibling.style.maxHeight = '0';
@@ -1112,370 +1034,215 @@ document.querySelectorAll('.faq-trigger').forEach(btn => {
     });
 });
 
-// PDF.js worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-// DOM refs
-const dropzone      = document.getElementById('dropzone');
-const fileInput     = document.getElementById('file-input');
-const convertingBar = document.getElementById('converting-bar');
-const convertLabel  = document.getElementById('converting-label');
-const convertSub    = document.getElementById('converting-sub');
-const progressFill  = document.getElementById('progress-fill');
-const resultsSection = document.getElementById('results-section');
-const imageGrid     = document.getElementById('image-grid');
-const pageCount     = document.getElementById('page-count');
-
-// State
-let rawCanvases     = [];
-let convertedImages = [];
-let currentFmt      = 'png';
-let isConverting    = false;
-let rebuildToken    = 0;
-let selectMode      = false;
-let selectedPages   = new Set();
-
-// Drag & drop
+// ── DRAG/DROP VISUAL ──
+const dropzone = document.getElementById('dropzone');
 ['dragenter','dragover'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.add('drag-over'); }));
 ['dragleave','drop'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.remove('drag-over'); }));
-dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
-dropzone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', e => { if (e.target.files.length) handleFiles(e.target.files); fileInput.value = ''; });
+dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleSelectedFile(e.dataTransfer.files[0]); });
 
-// ── Format cache: stores pre-encoded dataUrls for all 4 formats ──────────────
-// Structure: formatCache[fmt][pageIndex] = { name, dataUrl }
-let formatCache = { png: null, jpeg: null, jpg: null, webp: null };
+// ── SMART V12 COMPRESSION ENGINE ──
+const fileInput         = document.getElementById('file-input');
+const previewContainer  = document.getElementById('preview-container');
+const inputViewer       = document.getElementById('input-pdf-viewer');
+const outputViewer      = document.getElementById('output-pdf-viewer');
+const inputName         = document.getElementById('input-name');
+const inputSizeEl       = document.getElementById('input-size');
+const outputSizeEl      = document.getElementById('output-size');
+const qualitySlider     = document.getElementById('quality-slider');
+const qualityVal        = document.getElementById('quality-val');
+const kbSlider          = document.getElementById('kb-slider');
+const targetKbInput     = document.getElementById('target-kb-input');
+const downloadBtn       = document.getElementById('download-btn');
+const processingOverlay = document.getElementById('processing-overlay');
 
-// Check WEBP support once
-const webpSupported = (() => {
-    const c = document.createElement('canvas');
-    return c.toDataURL('image/webp').startsWith('data:image/webp');
-})();
+let activePdfFile = null, compressedBlob = null;
+let _debounceTimer = null, _runId = 0;
 
-function mimeAndExt(fmt) {
-    if (fmt === 'jpeg') return { mime: 'image/jpeg', ext: 'jpeg' };
-    if (fmt === 'jpg')  return { mime: 'image/jpeg', ext: 'jpg' };
-    if (fmt === 'webp') return webpSupported
-        ? { mime: 'image/webp', ext: 'webp' }
-        : { mime: 'image/png',  ext: 'png' };
-    return { mime: 'image/png', ext: 'png' };
-}
+const CLEAN_VIEW = '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH';
 
-const yieldToMain = () => new Promise(r => setTimeout(r, 0));
-
-// Encode a single format for all pages and store in cache
-async function encodeFormat(fmt, token) {
-    if (formatCache[fmt]) return; // already cached
-    const { mime, ext } = mimeAndExt(fmt);
-    const result = [];
-    for (let i = 0; i < rawCanvases.length; i++) {
-        if (token !== rebuildToken) return; // aborted
-        const { canvas, baseName, pageNum } = rawCanvases[i];
-        const dataUrl = (mime === 'image/jpeg' || mime === 'image/webp')
-            ? canvas.toDataURL(mime, 0.95)
-            : canvas.toDataURL(mime);
-        result.push({ name: `${baseName}_page${String(pageNum).padStart(3,'0')}.${ext}`, dataUrl });
-        await yieldToMain();
-    }
-    if (token !== rebuildToken) return;
-    formatCache[fmt] = result;
-}
-
-// Called after conversion: encode current format immediately, cache rest in background
-async function rebuildImages(fromHandleFiles = false) {
-    const token = ++rebuildToken;
-
-    // Encode the active format first
-    await encodeFormat(currentFmt, token);
-    if (token !== rebuildToken) return;
-
-    convertedImages = formatCache[currentFmt];
-
-    // If called from handleFiles, hide the loading bar first, then show results with smooth fade
-    if (fromHandleFiles) {
-        convertingBar.classList.remove('visible');
-        // Small delay so the bar hides cleanly before results appear
-        await new Promise(r => setTimeout(r, 120));
-        if (token !== rebuildToken) return;
-    }
-
-    renderGrid();
-
-    // Then silently pre-encode remaining formats in background
-    const others = ['png','jpeg','jpg','webp'].filter(f => f !== currentFmt);
-    for (const fmt of others) {
-        if (token !== rebuildToken) return;
-        await encodeFormat(fmt, token);
-    }
-}
-
-// Format switching — instant if cached, fast if not
-window.setFmt = function(fmt) {
-    if (fmt === currentFmt) return;
-    currentFmt = fmt;
-    document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('fmt-' + fmt).classList.add('active');
-    if (!rawCanvases.length) return;
-
-    if (formatCache[fmt]) {
-        // Instant — already cached, just swap
-        convertedImages = formatCache[fmt];
-        updateGridImages();
-    } else {
-        // Not cached yet — encode now (rare: only if user switches very fast)
-        imageGrid.classList.add('fading');
-        const token = ++rebuildToken;
-        encodeFormat(fmt, token).then(() => {
-            if (token !== rebuildToken) return;
-            convertedImages = formatCache[fmt];
-            renderGrid();
-            imageGrid.classList.remove('fading');
-        });
-    }
+const COMPRESSION_PRESETS = {
+    extreme:     { percentSmaller: 0.90, quality: 0.18, scale: 1.0 },
+    recommended: { percentSmaller: 0.50, quality: 0.62, scale: 1.5 },
+    less:        { percentSmaller: 0.20, quality: 0.92, scale: 2.0 }
 };
 
-// Fast in-place image swap — no DOM rebuild, no scroll jump
-function updateGridImages() {
-    const cards = imageGrid.querySelectorAll('.thumb-card');
-    cards.forEach((card, idx) => {
-        const img   = card.querySelector('img');
-        const dlBtn = card.querySelector('.thumb-dl');
-        const { name, dataUrl } = convertedImages[idx];
-        if (img)   { img.src = dataUrl; img.alt = name; }
-        if (dlBtn) {
-            dlBtn.title = 'Download ' + name;
-            dlBtn.onclick = e => { e.stopPropagation(); triggerDownload(name, dataUrl); };
-        }
+// Mobile-safe scale: cap canvas dimensions so rendering stays efficient on all devices
+function getMobileAwareScale(page, desiredScale) {
+    const MAX_CANVAS_PX = 2048; // safe for all devices including mobile
+    const vp = page.getViewport({ scale: desiredScale });
+    const ratio = Math.min(1, MAX_CANVAS_PX / Math.max(vp.width, vp.height));
+    return desiredScale * ratio;
+}
+let activeLevel = 'recommended';
+
+function formatBytesLabel(bytes) {
+    const kb = bytes / 1024;
+    return kb < 1000 ? `${Math.round(kb)} KB` : `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function getTargetBytesForActiveFile() {
+    if (!activePdfFile) return null;
+    const preset = COMPRESSION_PRESETS[activeLevel];
+    return Math.max(1024, Math.round(activePdfFile.size * (1 - preset.percentSmaller)));
+}
+
+function updateExpectedOutputDisplay() {
+    if (!activePdfFile) return;
+    outputSizeEl.textContent = formatBytesLabel(getTargetBytesForActiveFile());
+}
+
+function applyCompressionLevel(level) {
+    activeLevel = level;
+    const preset = COMPRESSION_PRESETS[level];
+    qualitySlider.value    = Math.round(preset.quality * 100);
+    qualityVal.textContent = Math.round(preset.quality * 100) + '%';
+    if (activePdfFile) {
+        const targetBytes = getTargetBytesForActiveFile();
+        targetKbInput.value = Math.round(targetBytes / 1024);
+        kbSlider.value      = Math.round(targetBytes / 1024);
+        updateExpectedOutputDisplay();
+    }
+    document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.classList.remove('active-extreme', 'active-recommended', 'active-less');
+        if (btn.dataset.level === level) btn.classList.add(`active-${level}`);
     });
+    if (activePdfFile) triggerLiveCompressionSimulation();
 }
 
-function renderGrid() {
-    imageGrid.innerHTML = '';
-    convertedImages.forEach(({ name, dataUrl }, idx) => {
-        const card = document.createElement('div');
-        card.className = 'thumb-card' + (selectMode ? ' selectable' : '') + (selectedPages.has(idx) ? ' selected' : '');
-        card.dataset.idx = idx;
-
-        const wrap = document.createElement('div');
-        wrap.className = 'thumb-img-wrap';
-
-        const img = document.createElement('img');
-        img.src = dataUrl;
-        img.alt = name;
-        img.loading = 'lazy';
-
-        // Selection overlay (checkbox circle)
-        const selOv = document.createElement('div');
-        selOv.className = 'sel-overlay';
-        selOv.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-
-        wrap.appendChild(img);
-        wrap.appendChild(selOv);
-
-        const footer = document.createElement('div');
-        footer.className = 'thumb-footer';
-
-        const num = document.createElement('span');
-        num.className = 'thumb-num';
-        num.textContent = 'Page ' + (idx + 1);
-
-        const btnGroup = document.createElement('div');
-        btnGroup.style.cssText = 'display:flex; align-items:center; gap:4px;';
-
-        const delBtn = document.createElement('button');
-        delBtn.className = 'thumb-del';
-        delBtn.title = 'Remove page ' + (idx + 1);
-        delBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>`;
-        delBtn.addEventListener('click', e => {
-            e.stopPropagation();
-            rawCanvases.splice(idx, 1);
-            formatCache = { png: null, jpeg: null, jpg: null, webp: null };
-            rebuildImages();
-        });
-
-        const dlBtn = document.createElement('button');
-        dlBtn.className = 'thumb-dl';
-        dlBtn.title = 'Download ' + name;
-        dlBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`;
-        dlBtn.addEventListener('click', e => { e.stopPropagation(); triggerDownload(name, dataUrl); });
-
-        btnGroup.appendChild(delBtn);
-        btnGroup.appendChild(dlBtn);
-        footer.appendChild(num);
-        footer.appendChild(btnGroup);
-        card.appendChild(wrap);
-        card.appendChild(footer);
-
-        // Click to toggle selection
-        card.addEventListener('click', () => {
-            if (!selectMode) return;
-            if (selectedPages.has(idx)) selectedPages.delete(idx);
-            else selectedPages.add(idx);
-            card.classList.toggle('selected', selectedPages.has(idx));
-            updateSelectionBar();
-        });
-
-        imageGrid.appendChild(card);
-    });
-
-    pageCount.textContent = convertedImages.length;
-    resultsSection.classList.add('visible');
-    // Trigger fade-in on next paint
-    requestAnimationFrame(() => requestAnimationFrame(() => resultsSection.classList.add('shown')));
-
-    setTimeout(() => {
-        const navH = document.querySelector('header')?.offsetHeight ?? 60;
-        const controlsBar = document.querySelector('.controls-bar');
-        const target = controlsBar ?? resultsSection;
-        const top = target.getBoundingClientRect().top + window.scrollY - navH - 12;
-        window.scrollTo({ top, behavior: 'smooth' });
-    }, 80);
-}
-
-// Select mode
-window.toggleSelectMode = function() {
-    selectMode = !selectMode;
-    const btn = document.getElementById('select-pages-btn');
-    const bar = document.getElementById('selection-bar');
-    if (selectMode) {
-        selectedPages.clear(); // start with nothing selected
-        btn.classList.add('active');
-        bar.style.display = 'flex';
-    } else {
-        selectedPages.clear();
-        btn.classList.remove('active');
-        bar.style.display = 'none';
-    }
-    updateSelectionBar();
-    renderGrid();
-};
-
-window.selectAll = function() {
-    selectedPages = new Set(convertedImages.map((_, i) => i));
-    updateSelectionBar();
-    renderGrid();
-};
-
-window.deselectAll = function() {
-    selectedPages.clear();
-    updateSelectionBar();
-    renderGrid();
-};
-
-function updateSelectionBar() {
-    document.getElementById('sel-count').textContent = selectedPages.size;
-    document.getElementById('sel-total').textContent = convertedImages.length;
-}
-
-function getActiveImages() {
-    if (!selectMode || selectedPages.size === 0) return convertedImages;
-    return convertedImages.filter((_, i) => selectedPages.has(i));
-}
-
-// Clear all
-window.clearAll = function() {
-    selectMode = false;
-    selectedPages.clear();
-    rawCanvases = [];
-    convertedImages = [];
-    formatCache = { png: null, jpeg: null, jpg: null, webp: null };
-    imageGrid.innerHTML = '';
-    resultsSection.classList.remove('visible');
-    const btn = document.getElementById('select-pages-btn');
-    const bar = document.getElementById('selection-bar');
-    btn.classList.remove('active');
-    bar.style.display = 'none';
-    resultsSection.classList.remove('shown');
-};
-
-// Conversion
-async function handleFiles(fileList) {
-    const pdfs = Array.from(fileList).filter(f => f.type === 'application/pdf');
-    if (!pdfs.length || isConverting) return;
-
-    isConverting = true;
-    rawCanvases = [];
-    convertedImages = [];
-    formatCache = { png: null, jpeg: null, jpg: null, webp: null };
-    imageGrid.innerHTML = '';
-    resultsSection.classList.remove('visible');
-    convertingBar.classList.add('visible');
-    progressFill.style.width = '0%';
-    convertLabel.innerHTML = '<span class="spinner"></span>Loading PDF…';
-    convertSub.textContent = 'Please wait';
-
-    try {
-        let pdfDocs = [];
-        let total = 0;
-
-        for (const file of pdfs) {
-            const buf = await file.arrayBuffer();
-            const doc = await pdfjsLib.getDocument({ data: buf }).promise;
-            total += doc.numPages;
-            pdfDocs.push({ doc, baseName: file.name.replace(/\.pdf$/i, '') });
-        }
-
-        let done = 0;
-        for (const { doc, baseName } of pdfDocs) {
-            for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
-                done++;
-                convertLabel.innerHTML = `<span class="spinner"></span>Converting page ${done} of ${total}…`;
-                convertSub.textContent = baseName;
-                progressFill.style.width = `${Math.round((done / total) * 100)}%`;
-
-                const page = await doc.getPage(pageNum);
-                const viewport = page.getViewport({ scale: 4 });
-                const canvas = document.createElement('canvas');
-                canvas.width  = viewport.width;
-                canvas.height = viewport.height;
-                const ctx = canvas.getContext('2d');
-                ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
-                await page.render({ canvasContext: ctx, viewport, intent: 'print' }).promise;
-                rawCanvases.push({ canvas, baseName, pageNum });
-            }
-        }
-
-        await rebuildImages(true);
-
-    } catch (err) {
-        console.error(err);
-        convertingBar.classList.remove('visible');
-        convertLabel.textContent = 'Error converting PDF. Please try another file.';
-        convertSub.textContent = '';
-    } finally {
-        isConverting = false;
-    }
-}
-
-// Download helpers
-function triggerDownload(name, url) {
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
-
-document.getElementById('dl-individual').addEventListener('click', async () => {
-    const imgs = getActiveImages();
-    for (let i = 0; i < imgs.length; i++) {
-        triggerDownload(imgs[i].name, imgs[i].dataUrl);
-        await new Promise(r => setTimeout(r, 120));
-    }
+document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyCompressionLevel(btn.dataset.level));
 });
 
-document.getElementById('dl-zip').addEventListener('click', async () => {
-    const imgs = getActiveImages();
-    if (!imgs.length) return;
-    const zip = new JSZip();
-    imgs.forEach(img => {
-        zip.file(img.name, img.dataUrl.split(',')[1], { base64: true });
-    });
-    const blob = await zip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(blob);
-    triggerDownload('V12-PDF-Images.zip', url);
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleSelectedFile(e.target.files[0]); });
+
+function handleSelectedFile(file) {
+    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return;
+    activePdfFile  = file;
+    compressedBlob = null;
+    inputName.textContent  = file.name;
+    inputSizeEl.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    inputViewer.src = URL.createObjectURL(file) + CLEAN_VIEW;
+    previewContainer.classList.add('visible');
+    updateExpectedOutputDisplay();
+    triggerLiveCompressionSimulation();
+}
+
+function triggerLiveCompressionSimulation() {
+    clearTimeout(_debounceTimer);
+    _debounceTimer = setTimeout(runCompression, 350);
+}
+
+async function renderPagesToJpegs(pdfLibrary, rawBuffer, scale, quality) {
+    const pdfJsDoc = await pdfLibrary.getDocument({ data: rawBuffer.slice(0) }).promise;
+    const images   = [];
+    // Render pages sequentially to avoid memory spikes on mobile
+    for (let i = 0; i < pdfJsDoc.numPages; i++) {
+        const page        = await pdfJsDoc.getPage(i + 1);
+        const safeScale   = getMobileAwareScale(page, scale);
+        const vp          = page.getViewport({ scale: safeScale });
+        const c           = document.createElement('canvas');
+        c.width  = Math.round(vp.width);
+        c.height = Math.round(vp.height);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        await page.render({ canvasContext: ctx, viewport: vp }).promise;
+        images.push({ dataUrl: c.toDataURL('image/jpeg', quality), width: vp.width, height: vp.height });
+        // Release canvas memory immediately after encoding
+        c.width = 0; c.height = 0;
+    }
+    return images;
+}
+
+async function assemblePdfFromJpegs(allImages) {
+    const outDoc = await PDFLib.PDFDocument.create();
+    for (const item of allImages) {
+        const imgBytes = Uint8Array.from(atob(item.dataUrl.split(',')[1]), c => c.charCodeAt(0));
+        const img = await outDoc.embedJpg(imgBytes);
+        // Use actual pixel dimensions converted to PDF points (72 dpi base)
+        // This preserves the real page aspect ratio instead of forcing A4
+        const ptWidth  = item.width  * (72 / 96);  // CSS px → PDF points
+        const ptHeight = item.height * (72 / 96);
+        const pg = outDoc.addPage([ptWidth, ptHeight]);
+        pg.drawImage(img, { x: 0, y: 0, width: ptWidth, height: ptHeight });
+    }
+    return outDoc;
+}
+
+// Removed forceExactByteSize — padding PDF bytes with zeros corrupts the file structure
+// and causes blurry/broken rendering especially on mobile PDF viewers.
+// The binary search already gets the file close enough to the target size naturally.
+
+async function runCompression() {
+    if (!activePdfFile) return;
+    const thisRun = ++_runId;
+    processingOverlay.classList.add('visible');
+    outputViewer.classList.add('blurred');
+    compressedBlob = null;
+
+    const targetBytes = getTargetBytesForActiveFile();
+    const preset      = COMPRESSION_PRESETS[activeLevel];
+
+    try {
+        const rawBuffer   = await activePdfFile.arrayBuffer();
+        const pdfLibrary  = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
+        pdfLibrary.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let bestBytes = null;
+        let lo = 0.05, hi = Math.min(0.97, preset.quality + 0.3);
+        let candidateQuality = preset.quality;
+
+        for (let attempt = 0; attempt < 6; attempt++) {
+            if (thisRun !== _runId) return;
+            const images       = await renderPagesToJpegs(pdfLibrary, rawBuffer, preset.scale, candidateQuality);
+            const outDoc       = await assemblePdfFromJpegs(images);
+            const generatedBytes = await outDoc.save();
+            if (generatedBytes.byteLength <= targetBytes) {
+                if (!bestBytes || generatedBytes.byteLength > bestBytes.byteLength) bestBytes = generatedBytes;
+                lo = candidateQuality;
+            } else {
+                hi = candidateQuality;
+            }
+            candidateQuality = (lo + hi) / 2;
+        }
+
+        if (thisRun !== _runId) return;
+
+        if (!bestBytes) {
+            const safeScaleFallback = Math.min(preset.scale, 1.0);
+            const images = await renderPagesToJpegs(pdfLibrary, rawBuffer, safeScaleFallback, 0.05);
+            const outDoc = await assemblePdfFromJpegs(images);
+            bestBytes    = await outDoc.save();
+        }
+
+        compressedBlob = new Blob([bestBytes], { type: 'application/pdf' });
+
+        outputViewer.src = URL.createObjectURL(compressedBlob) + CLEAN_VIEW;
+        outputViewer.classList.remove('blurred');
+        processingOverlay.classList.remove('visible');
+        outputSizeEl.textContent = formatBytesLabel(bestBytes.byteLength);
+
+        const badge     = document.getElementById('compression-result-badge');
+        const ratioText = document.getElementById('compression-ratio-text');
+        ratioText.textContent = `${(preset.percentSmaller * 100).toFixed(1)}% smaller`;
+        badge.classList.add('visible');
+
+        downloadBtn.removeAttribute('disabled');
+
+    } catch (err) {
+        console.error('Engine Error:', err);
+        processingOverlay.classList.remove('visible');
+        alert('Could not process document. Ensure it is a valid, unlocked PDF.');
+    }
+}
+
+downloadBtn.addEventListener('click', () => {
+    if (!compressedBlob || !activePdfFile) return;
+    const url  = URL.createObjectURL(compressedBlob);
+    const link = document.createElement('a');
+    link.download = `${activePdfFile.name.replace(/\.pdf$/i, '')}_${activeLevel}_compressed.pdf`;
+    link.href = url;
+    link.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
 });
 </script>
