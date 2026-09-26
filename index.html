@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1069,10 +1070,13 @@ const CLEAN_VIEW = '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&vie
 // 200 DPI = print-quality sharp. We use 150 always — high enough that
 // text and logos are pixel-perfect, low enough to compress well.
 // Quality controls JPEG compression of the rendered pages.
+// All levels use 150 DPI — sharp enough that text/logos are pixel-perfect.
+// The only thing that changes is JPEG quality, which controls file size.
+// 150 DPI renders an A4 page as ~1240×1754px — 8pt text is 16px tall = crisp.
 const COMPRESSION_PRESETS = {
-    extreme:     { label: '~70% smaller', dpi: 120, quality: 0.72 },
-    recommended: { label: '~50% smaller', dpi: 150, quality: 0.82 },
-    less:        { label: '~25% smaller', dpi: 150, quality: 0.92 }
+    extreme:     { dpi: 150, quality: 0.60 },   // ~60-70% smaller
+    recommended: { dpi: 150, quality: 0.78 },   // ~40-55% smaller
+    less:        { dpi: 150, quality: 0.92 }    // ~15-25% smaller
 };
 let activeLevel = 'recommended';
 
@@ -1135,48 +1139,50 @@ function scheduleCompression() {
     _debounceTimer = setTimeout(runCompression, 400);
 }
 
-// Render a single PDF page to a canvas at the given DPI and return as JPEG bytes.
-// PDF points are 72/inch — multiply by (dpi/72) to get pixel dimensions at that DPI.
+// Render one PDF page to JPEG bytes at the given DPI.
+// pdf.js uses scale=1 → 72 DPI (1 CSS px per PDF point).
+// We get the original page size in PDF points at scale=1, then render
+// at a higher scale for sharpness, but store the original point dimensions
+// so the output PDF page is exactly the same physical size as the input.
 async function renderPageToJpegBytes(pdfJsDoc, pageNum, dpi, quality) {
-    const page  = await pdfJsDoc.getPage(pageNum);
-    const scale = dpi / 72;                           // e.g. 150dpi → scale 2.083
+    const page = await pdfJsDoc.getPage(pageNum);
+
+    // Original page dimensions in PDF points (at scale=1, 1px = 1pt = 1/72 inch)
+    const vpNative = page.getViewport({ scale: 1 });
+    const widthPt  = vpNative.width;   // e.g. 595 for A4
+    const heightPt = vpNative.height;  // e.g. 842 for A4
+
+    // Render at higher scale for crisp pixels
+    const scale = dpi / 72;
     const vp    = page.getViewport({ scale });
 
-    const canvas = document.createElement('canvas');
+    const canvas  = document.createElement('canvas');
     canvas.width  = Math.round(vp.width);
     canvas.height = Math.round(vp.height);
 
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     await page.render({ canvasContext: ctx, viewport: vp }).promise;
 
-    // toDataURL('image/jpeg', quality) — at 150 DPI a page is ~1240×1754px,
-    // which is MORE than enough for crisp text even at quality 0.75.
-    const dataUrl   = canvas.toDataURL('image/jpeg', quality);
-    const b64       = dataUrl.split(',')[1];
-    const bytes     = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    const b64     = dataUrl.split(',')[1];
+    const bytes   = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
 
-    // Free the canvas immediately
+    // Release canvas memory immediately
     canvas.width = 0; canvas.height = 0;
 
-    return {
-        jpegBytes: bytes,
-        widthPt:  vp.width  / scale * 0.75,  // back to PDF points (1pt = 1/72in)
-        heightPt: vp.height / scale * 0.75
-    };
+    return { jpegBytes: bytes, widthPt, heightPt };
 }
 
 async function buildPdfFromJpegs(pageData) {
     const doc = await PDFLib.PDFDocument.create();
     for (const { jpegBytes, widthPt, heightPt } of pageData) {
         const img  = await doc.embedJpg(jpegBytes);
-        // Page size matches the original page dimensions exactly
+        // Page is the exact same physical size as the original
         const page = doc.addPage([widthPt, heightPt]);
         page.drawImage(img, { x: 0, y: 0, width: widthPt, height: heightPt });
     }
-    // useObjectStreams compresses the PDF cross-reference table too
     return doc.save({ useObjectStreams: true });
 }
 
