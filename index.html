@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1041,12 +1040,8 @@ const dropzone = document.getElementById('dropzone');
 ['dragleave','drop'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.remove('drag-over'); }));
 dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleSelectedFile(e.dataTransfer.files[0]); });
 
-// ── PDF COMPRESSOR ENGINE v3 ──
-// Strategy: render each page at HIGH DPI (300 DPI equivalent) so text, fonts,
-// logos all remain razor-sharp. Then encode the page images using the best
-// quality that still meets the target size. High DPI render = crisp text even
-// after JPEG encoding. This is exactly how Adobe Acrobat "Reduce File Size" works.
 
+// ── COMPRESSION ENGINE ──
 const fileInput         = document.getElementById('file-input');
 const previewContainer  = document.getElementById('preview-container');
 const inputViewer       = document.getElementById('input-pdf-viewer');
@@ -1054,205 +1049,158 @@ const outputViewer      = document.getElementById('output-pdf-viewer');
 const inputName         = document.getElementById('input-name');
 const inputSizeEl       = document.getElementById('input-size');
 const outputSizeEl      = document.getElementById('output-size');
-const qualitySlider     = document.getElementById('quality-slider');
-const qualityVal        = document.getElementById('quality-val');
-const kbSlider          = document.getElementById('kb-slider');
-const targetKbInput     = document.getElementById('target-kb-input');
 const downloadBtn       = document.getElementById('download-btn');
 const processingOverlay = document.getElementById('processing-overlay');
+const badge             = document.getElementById('compression-result-badge');
+const ratioTxt          = document.getElementById('compression-ratio-text');
 
 let activePdfFile = null, compressedBlob = null;
-let _debounceTimer = null, _runId = 0;
+let debounce = null, runId = 0;
 
-const CLEAN_VIEW = '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH';
-
-// DPI controls render sharpness. 150 DPI = very sharp text for screen/email.
-// 200 DPI = print-quality sharp. We use 150 always — high enough that
-// text and logos are pixel-perfect, low enough to compress well.
-// Quality controls JPEG compression of the rendered pages.
-// All levels use 150 DPI — sharp enough that text/logos are pixel-perfect.
-// The only thing that changes is JPEG quality, which controls file size.
-// 150 DPI renders an A4 page as ~1240×1754px — 8pt text is 16px tall = crisp.
-const COMPRESSION_PRESETS = {
-    extreme:     { dpi: 150, quality: 0.60 },   // ~60-70% smaller
-    recommended: { dpi: 150, quality: 0.78 },   // ~40-55% smaller
-    less:        { dpi: 150, quality: 0.92 }    // ~15-25% smaller
+// JPEG quality per level — DPI stays 150 always so text/logos stay sharp.
+// At 150 DPI an A4 page = 1240×1754 px. That's sharp at any quality above 0.5.
+const PRESETS = {
+    extreme:     0.55,
+    recommended: 0.78,
+    less:        0.92
 };
 let activeLevel = 'recommended';
 
-function formatBytesLabel(bytes) {
-    const kb = bytes / 1024;
-    return kb < 1000 ? `${Math.round(kb)} KB` : `${(bytes/(1024*1024)).toFixed(2)} MB`;
+const CLEAN = '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&view=FitH';
+const DPI   = 150;
+
+function fmt(bytes) {
+    return bytes < 1024*1024
+        ? Math.round(bytes/1024) + ' KB'
+        : (bytes/(1024*1024)).toFixed(2) + ' MB';
 }
 
-function getEstimatedOutputBytes() {
-    if (!activePdfFile) return null;
-    const ratios = { extreme: 0.30, recommended: 0.50, less: 0.75 };
-    return Math.max(20480, Math.round(activePdfFile.size * ratios[activeLevel]));
-}
-
-function updateExpectedOutputDisplay() {
-    if (!activePdfFile) return;
-    outputSizeEl.textContent = formatBytesLabel(getEstimatedOutputBytes());
-}
-
-function applyCompressionLevel(level) {
-    activeLevel = level;
-    const preset = COMPRESSION_PRESETS[level];
-    qualitySlider.value    = Math.round(preset.quality * 100);
-    qualityVal.textContent = Math.round(preset.quality * 100) + '%';
-    if (activePdfFile) {
-        const est = getEstimatedOutputBytes();
-        targetKbInput.value = Math.round(est / 1024);
-        kbSlider.value      = Math.round(est / 1024);
-        updateExpectedOutputDisplay();
-    }
-    document.querySelectorAll('.level-btn').forEach(btn => {
-        btn.classList.remove('active-extreme','active-recommended','active-less');
-        if (btn.dataset.level === level) btn.classList.add(`active-${level}`);
+// Level buttons
+document.querySelectorAll('.level-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        activeLevel = btn.dataset.level;
+        document.querySelectorAll('.level-btn').forEach(b =>
+            b.classList.remove('active-extreme','active-recommended','active-less'));
+        btn.classList.add('active-' + activeLevel);
+        if (activePdfFile) schedule();
     });
-    if (activePdfFile) scheduleCompression();
-}
-
-document.querySelectorAll('.level-btn').forEach(btn =>
-    btn.addEventListener('click', () => applyCompressionLevel(btn.dataset.level))
-);
-
-fileInput.addEventListener('change', e => {
-    if (e.target.files.length) handleSelectedFile(e.target.files[0]);
 });
 
-function handleSelectedFile(file) {
-    if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return;
+fileInput.addEventListener('change', e => {
+    if (e.target.files[0]) load(e.target.files[0]);
+});
+
+function load(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf') && file.type !== 'application/pdf') return;
     activePdfFile  = file;
     compressedBlob = null;
+    downloadBtn.setAttribute('disabled', '');
+    badge.classList.remove('visible');
     inputName.textContent   = file.name;
-    inputSizeEl.textContent = (file.size / (1024*1024)).toFixed(2) + ' MB';
-    inputViewer.src = URL.createObjectURL(file) + CLEAN_VIEW;
+    inputSizeEl.textContent = fmt(file.size);
+    inputViewer.src = URL.createObjectURL(file) + CLEAN;
     previewContainer.classList.add('visible');
-    updateExpectedOutputDisplay();
-    scheduleCompression();
+    outputSizeEl.textContent = '—';
+    schedule();
 }
 
-function scheduleCompression() {
-    clearTimeout(_debounceTimer);
-    _debounceTimer = setTimeout(runCompression, 400);
+function schedule() {
+    clearTimeout(debounce);
+    debounce = setTimeout(compress, 300);
 }
 
-// Render one PDF page to JPEG bytes at the given DPI.
-// pdf.js uses scale=1 → 72 DPI (1 CSS px per PDF point).
-// We get the original page size in PDF points at scale=1, then render
-// at a higher scale for sharpness, but store the original point dimensions
-// so the output PDF page is exactly the same physical size as the input.
-async function renderPageToJpegBytes(pdfJsDoc, pageNum, dpi, quality) {
-    const page = await pdfJsDoc.getPage(pageNum);
-
-    // Original page dimensions in PDF points (at scale=1, 1px = 1pt = 1/72 inch)
-    const vpNative = page.getViewport({ scale: 1 });
-    const widthPt  = vpNative.width;   // e.g. 595 for A4
-    const heightPt = vpNative.height;  // e.g. 842 for A4
-
-    // Render at higher scale for crisp pixels
-    const scale = dpi / 72;
-    const vp    = page.getViewport({ scale });
-
-    const canvas  = document.createElement('canvas');
-    canvas.width  = Math.round(vp.width);
-    canvas.height = Math.round(vp.height);
-
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    await page.render({ canvasContext: ctx, viewport: vp }).promise;
-
-    const dataUrl = canvas.toDataURL('image/jpeg', quality);
-    const b64     = dataUrl.split(',')[1];
-    const bytes   = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-
-    // Release canvas memory immediately
-    canvas.width = 0; canvas.height = 0;
-
-    return { jpegBytes: bytes, widthPt, heightPt };
-}
-
-async function buildPdfFromJpegs(pageData) {
-    const doc = await PDFLib.PDFDocument.create();
-    for (const { jpegBytes, widthPt, heightPt } of pageData) {
-        const img  = await doc.embedJpg(jpegBytes);
-        // Page is the exact same physical size as the original
-        const page = doc.addPage([widthPt, heightPt]);
-        page.drawImage(img, { x: 0, y: 0, width: widthPt, height: heightPt });
-    }
-    return doc.save({ useObjectStreams: true });
-}
-
-async function runCompression() {
+async function compress() {
     if (!activePdfFile) return;
-    const thisRun = ++_runId;
+    const me = ++runId;
 
     processingOverlay.classList.add('visible');
     outputViewer.classList.add('blurred');
     compressedBlob = null;
 
-    const preset = COMPRESSION_PRESETS[activeLevel];
-
     try {
-        const arrayBuf  = await activePdfFile.arrayBuffer();
-        const pdfLib    = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
-        pdfLib.GlobalWorkerOptions.workerSrc =
+        const quality = PRESETS[activeLevel];
+        const buf     = await activePdfFile.arrayBuffer();
+
+        // 1. Load with pdf.js
+        const lib = window.pdfjsLib;
+        lib.GlobalWorkerOptions.workerSrc =
             'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const pdfDoc   = await lib.getDocument({ data: buf.slice(0) }).promise;
+        if (me !== runId) return;
 
-        const pdfJsDoc  = await pdfLib.getDocument({ data: arrayBuf.slice(0) }).promise;
-        const numPages  = pdfJsDoc.numPages;
-
-        if (thisRun !== _runId) return;
-
-        // ── Render all pages at target DPI sequentially (safe on mobile) ──
+        const scale    = DPI / 72; // 150/72 ≈ 2.08 — renders at 150 DPI
         const pageData = [];
-        for (let i = 1; i <= numPages; i++) {
-            if (thisRun !== _runId) return;
-            const pd = await renderPageToJpegBytes(pdfJsDoc, i, preset.dpi, preset.quality);
-            pageData.push(pd);
+
+        // 2. Render each page to JPEG
+        for (let p = 1; p <= pdfDoc.numPages; p++) {
+            if (me !== runId) return;
+            const page   = await pdfDoc.getPage(p);
+
+            // Get original page size in PDF points (scale=1 → 1px per point)
+            const vpBase = page.getViewport({ scale: 1 });
+            const wPt    = vpBase.width;
+            const hPt    = vpBase.height;
+
+            // Render at high DPI for sharpness
+            const vp     = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width  = Math.round(vp.width);
+            canvas.height = Math.round(vp.height);
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+            // Encode to JPEG
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            const b64     = dataUrl.split(',')[1];
+            const bytes   = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+
+            // Free canvas memory
+            canvas.width = 0; canvas.height = 0;
+
+            pageData.push({ bytes, wPt, hPt });
         }
 
-        if (thisRun !== _runId) return;
+        if (me !== runId) return;
 
-        // ── Build compressed PDF ──
-        const savedBytes = await buildPdfFromJpegs(pageData);
-        if (thisRun !== _runId) return;
+        // 3. Assemble output PDF with pdf-lib
+        const outDoc = await PDFLib.PDFDocument.create();
+        for (const { bytes, wPt, hPt } of pageData) {
+            const img  = await outDoc.embedJpg(bytes);
+            const page = outDoc.addPage([wPt, hPt]);
+            page.drawImage(img, { x: 0, y: 0, width: wPt, height: hPt });
+        }
+        const out = await outDoc.save({ useObjectStreams: true });
+        if (me !== runId) return;
 
-        compressedBlob = new Blob([savedBytes], { type: 'application/pdf' });
-
-        outputViewer.src = URL.createObjectURL(compressedBlob) + CLEAN_VIEW;
+        // 4. Done
+        compressedBlob = new Blob([out], { type: 'application/pdf' });
+        outputViewer.src = URL.createObjectURL(compressedBlob) + CLEAN;
         outputViewer.classList.remove('blurred');
         processingOverlay.classList.remove('visible');
-        outputSizeEl.textContent = formatBytesLabel(savedBytes.byteLength);
+        outputSizeEl.textContent = fmt(out.byteLength);
 
-        const savedPct = ((1 - savedBytes.byteLength / activePdfFile.size) * 100).toFixed(1);
-        const badge    = document.getElementById('compression-result-badge');
-        const ratioTxt = document.getElementById('compression-ratio-text');
-        ratioTxt.textContent = savedPct > 0
-            ? `${savedPct}% smaller`
-            : 'Optimised';
+        const pct = ((1 - out.byteLength / activePdfFile.size) * 100).toFixed(1);
+        ratioTxt.textContent = pct > 0 ? pct + '% smaller' : 'Optimised';
         badge.classList.add('visible');
         downloadBtn.removeAttribute('disabled');
 
     } catch (err) {
-        console.error('Compression error:', err);
+        console.error(err);
         processingOverlay.classList.remove('visible');
         outputViewer.classList.remove('blurred');
-        alert('Could not process this PDF. Make sure it is a valid, unlocked file.');
+        alert('Error: ' + err.message);
     }
 }
 
 downloadBtn.addEventListener('click', () => {
     if (!compressedBlob || !activePdfFile) return;
-    const url  = URL.createObjectURL(compressedBlob);
-    const link = document.createElement('a');
-    link.download = activePdfFile.name.replace(/\.pdf$/i,'') + '_compressed.pdf';
-    link.href = url;
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    const a = document.createElement('a');
+    a.href     = URL.createObjectURL(compressedBlob);
+    a.download = activePdfFile.name.replace(/\.pdf$/i, '') + '_compressed.pdf';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
 });
 </script>
 </body>
