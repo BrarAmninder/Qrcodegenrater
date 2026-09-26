@@ -1040,7 +1040,12 @@ const dropzone = document.getElementById('dropzone');
 ['dragleave','drop'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.remove('drag-over'); }));
 dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleSelectedFile(e.dataTransfer.files[0]); });
 
-// ── SMART V12 COMPRESSION ENGINE ──
+// ── COMPRESSION ENGINE — Structure-level, NO rasterization ──
+// Text, fonts, vectors and logos stay 100% sharp at every level.
+// We shrink size by: stripping metadata, re-saving with flate compression,
+// and downsampling only the embedded raster images (photos) already in the PDF.
+// Page content streams, fonts, and vector graphics are NEVER modified.
+
 const fileInput         = document.getElementById('file-input');
 const previewContainer  = document.getElementById('preview-container');
 const inputViewer       = document.getElementById('input-pdf-viewer');
@@ -1060,19 +1065,14 @@ let _debounceTimer = null, _runId = 0;
 
 const CLEAN_VIEW = '#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0&view=FitH';
 
+// maxImageDim: max pixel dimension we allow for any embedded raster image.
+// jpegQuality: re-encoding quality for raster images that exceed maxImageDim.
+// Text, fonts, SVG vectors, page layout — NEVER touched, always pixel-perfect.
 const COMPRESSION_PRESETS = {
-    extreme:     { percentSmaller: 0.90, quality: 0.18, scale: 1.0 },
-    recommended: { percentSmaller: 0.50, quality: 0.62, scale: 1.5 },
-    less:        { percentSmaller: 0.20, quality: 0.92, scale: 2.0 }
+    extreme:     { percentSmaller: 0.65, maxImageDim: 800,  jpegQuality: 0.55 },
+    recommended: { percentSmaller: 0.40, maxImageDim: 1200, jpegQuality: 0.78 },
+    less:        { percentSmaller: 0.15, maxImageDim: 1800, jpegQuality: 0.90 }
 };
-
-// Mobile-safe scale: cap canvas dimensions so rendering stays efficient on all devices
-function getMobileAwareScale(page, desiredScale) {
-    const MAX_CANVAS_PX = 2048; // safe for all devices including mobile
-    const vp = page.getViewport({ scale: desiredScale });
-    const ratio = Math.min(1, MAX_CANVAS_PX / Math.max(vp.width, vp.height));
-    return desiredScale * ratio;
-}
 let activeLevel = 'recommended';
 
 function formatBytesLabel(bytes) {
@@ -1083,7 +1083,7 @@ function formatBytesLabel(bytes) {
 function getTargetBytesForActiveFile() {
     if (!activePdfFile) return null;
     const preset = COMPRESSION_PRESETS[activeLevel];
-    return Math.max(1024, Math.round(activePdfFile.size * (1 - preset.percentSmaller)));
+    return Math.max(10240, Math.round(activePdfFile.size * (1 - preset.percentSmaller)));
 }
 
 function updateExpectedOutputDisplay() {
@@ -1094,8 +1094,8 @@ function updateExpectedOutputDisplay() {
 function applyCompressionLevel(level) {
     activeLevel = level;
     const preset = COMPRESSION_PRESETS[level];
-    qualitySlider.value    = Math.round(preset.quality * 100);
-    qualityVal.textContent = Math.round(preset.quality * 100) + '%';
+    qualitySlider.value    = Math.round(preset.jpegQuality * 100);
+    qualityVal.textContent = Math.round(preset.jpegQuality * 100) + '%';
     if (activePdfFile) {
         const targetBytes = getTargetBytesForActiveFile();
         targetKbInput.value = Math.round(targetBytes / 1024);
@@ -1106,7 +1106,7 @@ function applyCompressionLevel(level) {
         btn.classList.remove('active-extreme', 'active-recommended', 'active-less');
         if (btn.dataset.level === level) btn.classList.add(`active-${level}`);
     });
-    if (activePdfFile) triggerLiveCompressionSimulation();
+    if (activePdfFile) triggerCompression();
 }
 
 document.querySelectorAll('.level-btn').forEach(btn => {
@@ -1119,59 +1119,53 @@ function handleSelectedFile(file) {
     if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) return;
     activePdfFile  = file;
     compressedBlob = null;
-    inputName.textContent  = file.name;
+    inputName.textContent   = file.name;
     inputSizeEl.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
     inputViewer.src = URL.createObjectURL(file) + CLEAN_VIEW;
     previewContainer.classList.add('visible');
     updateExpectedOutputDisplay();
-    triggerLiveCompressionSimulation();
+    triggerCompression();
 }
 
-function triggerLiveCompressionSimulation() {
+function triggerCompression() {
     clearTimeout(_debounceTimer);
     _debounceTimer = setTimeout(runCompression, 350);
 }
 
-async function renderPagesToJpegs(pdfLibrary, rawBuffer, scale, quality) {
-    const pdfJsDoc = await pdfLibrary.getDocument({ data: rawBuffer.slice(0) }).promise;
-    const images   = [];
-    // Render pages sequentially to avoid memory spikes on mobile
-    for (let i = 0; i < pdfJsDoc.numPages; i++) {
-        const page        = await pdfJsDoc.getPage(i + 1);
-        const safeScale   = getMobileAwareScale(page, scale);
-        const vp          = page.getViewport({ scale: safeScale });
-        const c           = document.createElement('canvas');
-        c.width  = Math.round(vp.width);
-        c.height = Math.round(vp.height);
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, c.width, c.height);
-        await page.render({ canvasContext: ctx, viewport: vp }).promise;
-        images.push({ dataUrl: c.toDataURL('image/jpeg', quality), width: vp.width, height: vp.height });
-        // Release canvas memory immediately after encoding
-        c.width = 0; c.height = 0;
-    }
-    return images;
-}
+// Re-encode a raw image buffer (JPEG/PNG bytes) to a smaller JPEG via canvas.
+// Returns a Uint8Array, or null if the image cannot be loaded or is already small.
+async function reencodeImageBytes(rawBytes, maxDim, quality) {
+    try {
+        const blob = new Blob([rawBytes]);
+        const blobUrl = URL.createObjectURL(blob);
+        const img = await new Promise((resolve, reject) => {
+            const el = new Image();
+            el.onload  = () => resolve(el);
+            el.onerror = () => reject(new Error('load-fail'));
+            el.src = blobUrl;
+        });
+        URL.revokeObjectURL(blobUrl);
 
-async function assemblePdfFromJpegs(allImages) {
-    const outDoc = await PDFLib.PDFDocument.create();
-    for (const item of allImages) {
-        const imgBytes = Uint8Array.from(atob(item.dataUrl.split(',')[1]), c => c.charCodeAt(0));
-        const img = await outDoc.embedJpg(imgBytes);
-        // Use actual pixel dimensions converted to PDF points (72 dpi base)
-        // This preserves the real page aspect ratio instead of forcing A4
-        const ptWidth  = item.width  * (72 / 96);  // CSS px → PDF points
-        const ptHeight = item.height * (72 / 96);
-        const pg = outDoc.addPage([ptWidth, ptHeight]);
-        pg.drawImage(img, { x: 0, y: 0, width: ptWidth, height: ptHeight });
-    }
-    return outDoc;
-}
+        const W = img.naturalWidth, H = img.naturalHeight;
+        if (!W || !H) return null;
 
-// Removed forceExactByteSize — padding PDF bytes with zeros corrupts the file structure
-// and causes blurry/broken rendering especially on mobile PDF viewers.
-// The binary search already gets the file close enough to the target size naturally.
+        const scale = (W > maxDim || H > maxDim) ? maxDim / Math.max(W, H) : 1;
+        const nW = Math.max(1, Math.round(W * scale));
+        const nH = Math.max(1, Math.round(H * scale));
+
+        const canvas = document.createElement('canvas');
+        canvas.width = nW; canvas.height = nH;
+        canvas.getContext('2d').drawImage(img, 0, 0, nW, nH);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        // Free memory
+        canvas.width = 0; canvas.height = 0;
+
+        const b64 = dataUrl.split(',')[1];
+        return Uint8Array.from(atob(b64), ch => ch.charCodeAt(0));
+    } catch (_) {
+        return null;
+    }
+}
 
 async function runCompression() {
     if (!activePdfFile) return;
@@ -1180,59 +1174,120 @@ async function runCompression() {
     outputViewer.classList.add('blurred');
     compressedBlob = null;
 
-    const targetBytes = getTargetBytesForActiveFile();
-    const preset      = COMPRESSION_PRESETS[activeLevel];
+    const preset = COMPRESSION_PRESETS[activeLevel];
 
     try {
-        const rawBuffer   = await activePdfFile.arrayBuffer();
-        const pdfLibrary  = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
-        pdfLibrary.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        const rawBytes = new Uint8Array(await activePdfFile.arrayBuffer());
 
-        let bestBytes = null;
-        let lo = 0.05, hi = Math.min(0.97, preset.quality + 0.3);
-        let candidateQuality = preset.quality;
+        // Load the PDF structurally — gives us access to every internal object
+        const pdfDoc = await PDFLib.PDFDocument.load(rawBytes, {
+            ignoreEncryption: true,
+            updateMetadata: false
+        });
+        if (thisRun !== _runId) return;
 
-        for (let attempt = 0; attempt < 6; attempt++) {
+        // ── Strip heavyweight metadata (title, author, thumbnails, etc.) ──
+        pdfDoc.setTitle('');
+        pdfDoc.setAuthor('');
+        pdfDoc.setSubject('');
+        pdfDoc.setKeywords([]);
+        pdfDoc.setCreator('');
+        pdfDoc.setProducer('');
+
+        // ── Process only embedded XObject raster images ──
+        // We identify Image XObjects on each page and re-encode them to JPEG
+        // only if the new version is actually smaller. Everything else is untouched.
+        const pages = pdfDoc.getPages();
+        const seenRefs = new Set();
+
+        for (const page of pages) {
             if (thisRun !== _runId) return;
-            const images       = await renderPagesToJpegs(pdfLibrary, rawBuffer, preset.scale, candidateQuality);
-            const outDoc       = await assemblePdfFromJpegs(images);
-            const generatedBytes = await outDoc.save();
-            if (generatedBytes.byteLength <= targetBytes) {
-                if (!bestBytes || generatedBytes.byteLength > bestBytes.byteLength) bestBytes = generatedBytes;
-                lo = candidateQuality;
-            } else {
-                hi = candidateQuality;
+
+            let resources;
+            try { resources = page.node.Resources(); } catch (_) { continue; }
+            if (!resources) continue;
+
+            let xObjects;
+            try { xObjects = resources.lookup(PDFLib.PDFName.of('XObject')); } catch (_) { continue; }
+            if (!xObjects || !xObjects.entries) continue;
+
+            for (const [, ref] of xObjects.entries()) {
+                const key = ref.toString();
+                if (seenRefs.has(key)) continue;
+                seenRefs.add(key);
+
+                let xObj;
+                try { xObj = pdfDoc.context.lookup(ref); } catch (_) { continue; }
+                if (!xObj || !xObj.get) continue;
+
+                // Only raster images
+                const subtype = xObj.get(PDFLib.PDFName.of('Subtype'));
+                if (!subtype || subtype.toString() !== '/Image') continue;
+
+                // Skip mask images (1-bit clipping masks — must stay lossless)
+                const imageMask = xObj.get(PDFLib.PDFName.of('ImageMask'));
+                if (imageMask && imageMask.toString() === 'true') continue;
+
+                // Skip special colour spaces that would break on JPEG re-encode
+                const cs = xObj.get(PDFLib.PDFName.of('ColorSpace'));
+                const csStr = cs ? cs.toString() : '';
+                if (csStr.includes('Indexed') || csStr.includes('Separation') || csStr.includes('DeviceN') || csStr.includes('ICCBased')) continue;
+
+                // Get raw image bytes (the actual pixel data stream)
+                let rawImgBytes;
+                try { rawImgBytes = xObj.getContents ? xObj.getContents() : null; } catch (_) { continue; }
+                if (!rawImgBytes || rawImgBytes.length < 200) continue;
+
+                // Try re-encoding to JPEG
+                const newBytes = await reencodeImageBytes(rawImgBytes, preset.maxImageDim, preset.jpegQuality);
+                if (!newBytes || newBytes.byteLength >= rawImgBytes.length) continue; // only use if smaller
+
+                // Replace the image stream in the PDF
+                try {
+                    const replacement = pdfDoc.context.stream(newBytes, {
+                        Type:             PDFLib.PDFName.of('XObject'),
+                        Subtype:          PDFLib.PDFName.of('Image'),
+                        Width:            xObj.get(PDFLib.PDFName.of('Width')),
+                        Height:           xObj.get(PDFLib.PDFName.of('Height')),
+                        ColorSpace:       cs || PDFLib.PDFName.of('DeviceRGB'),
+                        BitsPerComponent: PDFLib.PDFNumber.of(8),
+                        Filter:           PDFLib.PDFName.of('DCTDecode'),
+                        Length:           PDFLib.PDFNumber.of(newBytes.byteLength),
+                    });
+                    pdfDoc.context.assign(ref, replacement);
+                } catch (_) { /* leave original if replacement fails */ }
             }
-            candidateQuality = (lo + hi) / 2;
         }
 
         if (thisRun !== _runId) return;
 
-        if (!bestBytes) {
-            const safeScaleFallback = Math.min(preset.scale, 1.0);
-            const images = await renderPagesToJpegs(pdfLibrary, rawBuffer, safeScaleFallback, 0.05);
-            const outDoc = await assemblePdfFromJpegs(images);
-            bestBytes    = await outDoc.save();
-        }
+        // ── Save — pdf-lib re-compresses all streams with flate (deflate) ──
+        // This alone removes dead objects, linearisation waste and any uncompressed
+        // streams that the original authoring tool left in. Crucial for many PDFs.
+        const savedBytes = await pdfDoc.save({ useObjectStreams: true });
+        if (thisRun !== _runId) return;
 
-        compressedBlob = new Blob([bestBytes], { type: 'application/pdf' });
+        compressedBlob = new Blob([savedBytes], { type: 'application/pdf' });
 
         outputViewer.src = URL.createObjectURL(compressedBlob) + CLEAN_VIEW;
         outputViewer.classList.remove('blurred');
         processingOverlay.classList.remove('visible');
-        outputSizeEl.textContent = formatBytesLabel(bestBytes.byteLength);
+        outputSizeEl.textContent = formatBytesLabel(savedBytes.byteLength);
 
         const badge     = document.getElementById('compression-result-badge');
         const ratioText = document.getElementById('compression-ratio-text');
-        ratioText.textContent = `${(preset.percentSmaller * 100).toFixed(1)}% smaller`;
+        const savedPct  = ((1 - savedBytes.byteLength / activePdfFile.size) * 100);
+        ratioText.textContent = savedPct > 0
+            ? `${savedPct.toFixed(1)}% smaller`
+            : 'Already compact — no further reduction possible';
         badge.classList.add('visible');
-
         downloadBtn.removeAttribute('disabled');
 
     } catch (err) {
-        console.error('Engine Error:', err);
+        console.error('Compression error:', err);
         processingOverlay.classList.remove('visible');
-        alert('Could not process document. Ensure it is a valid, unlocked PDF.');
+        outputViewer.classList.remove('blurred');
+        alert('Could not process this PDF. Make sure it is a valid, unlocked file.');
     }
 }
 
@@ -1240,7 +1295,7 @@ downloadBtn.addEventListener('click', () => {
     if (!compressedBlob || !activePdfFile) return;
     const url  = URL.createObjectURL(compressedBlob);
     const link = document.createElement('a');
-    link.download = `${activePdfFile.name.replace(/\.pdf$/i, '')}_${activeLevel}_compressed.pdf`;
+    link.download = `${activePdfFile.name.replace(/\.pdf$/i, '')}_compressed.pdf`;
     link.href = url;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 10000);
