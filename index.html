@@ -1,1500 +1,862 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>V12 Engine – PDF Protect</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GhostLink — Encrypted one-time messages</title>
+<!-- Supabase JS Client CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --bg: #0D1117;
+    --bg-2: #161B22;
+    --bg-3: #1C2128;
+    --bg-4: #21262D;
+    --border: rgba(48, 54, 61, 0.8);
+    --border-bright: rgba(88, 96, 105, 0.6);
+    --text: #E6EDF3;
+    --text-dim: #8B949E;
+    --text-muted: #484F58;
+    --accent: #6E76E5;
+    --accent-glow: rgba(110, 118, 229, 0.15);
+    --accent-2: #7983E8;
+    --green: #3FB950;
+    --green-bg: rgba(63, 185, 80, 0.1);
+    --red: #F85149;
+    --red-bg: rgba(248, 81, 73, 0.1);
+    --amber: #D29922;
+    --amber-bg: rgba(210, 153, 34, 0.1);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --mono: ui-monospace, 'Cascadia Code', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
 
-    :root {
-      --bg:        #f4f3fb;
-      --white:     #ffffff;
-      --blue:      #2563eb;
-      --blue-l:    #3b82f6;
-      --blue-xl:   #dbeafe;
-      --blue-bg:   #eff6ff;
-      --text:      #1a1033;
-      --muted:     #6b7280;
-      --border:    #e5e7eb;
-      --radius:    14px;
-      --shadow:    0 2px 16px rgba(37,99,235,.08);
-      --shadow-md: 0 8px 32px rgba(37,99,235,.13);
-    }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
-    }
-    ::selection { background: rgba(37,99,235,.15); }
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: #f0f0f0; }
-    ::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 99px; }
-    a { text-decoration: none; color: inherit; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 1rem;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 16px);
+  }
 
-    /* ── NAV ── */
-    header {
-      position: sticky; top: 0; z-index: 100;
-      background: rgba(255,255,255,.9);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--border);
-    }
-    nav {
-      max-width: 1100px; margin: 0 auto; padding: 0 24px;
-      height: 64px; display: flex; align-items: center;
-      justify-content: space-between; gap: 1rem;
-    }
-    .logo {
-      display: flex; align-items: center; gap: 8px;
-      font-weight: 800; font-size: 1.1rem; color: var(--text);
-    }
-    .logo-icon {
-      width: 36px; height: 36px; background: var(--blue);
-      border-radius: 10px; display: flex; align-items: center;
-      justify-content: center; flex-shrink: 0;
-    }
-    .logo-icon svg { display: block; }
-    .logo span { color: var(--blue); }
-    .nav-links {
-      display: none; gap: 4px;
-      font-size: .85rem; font-weight: 500;
-    }
-    @media (min-width: 640px) { .nav-links { display: flex; } }
-    .nav-link {
-      padding: .5rem .9rem; color: var(--muted); border-radius: 8px;
-      transition: color .2s, background .2s;
-    }
-    .nav-link:hover { color: var(--text); background: #f5f5f8; }
-    .nav-btn {
-      background: var(--blue); color: #fff;
-      padding: .55rem 1.3rem; border-radius: 10px;
-      font-size: .85rem; font-weight: 700;
-      display: flex; align-items: center; gap: 6px;
-      border: none; cursor: pointer; font-family: 'Inter', sans-serif;
-      transition: background .2s, transform .2s, box-shadow .2s;
-      box-shadow: 0 2px 12px rgba(37,99,235,.3); white-space: nowrap;
-    }
-    .nav-btn:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,.35); }
-    .nav-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  /* ── Header ── */
+  .header {
+    width: 100%;
+    max-width: 660px;
+    padding: 2rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .logo-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-3);
+    border: 1px solid var(--border-bright);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-icon svg { width: 17px; height: 17px; }
+  .logo-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .logo-name span { color: var(--accent); }
+  .header-spacer { flex: 1; }
+  .header-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    background: var(--green-bg);
+    border: 1px solid rgba(63,185,80,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+    letter-spacing: 0.03em;
+  }
 
-    /* ── HERO ── */
-    .hero {
-      text-align: center;
-      padding: 80px 1.5rem 60px;
-      background: linear-gradient(180deg, #f8f7ff 0%, var(--bg) 100%);
-      position: relative; overflow: hidden;
-      border-bottom: 1px solid var(--border);
-    }
-    .hero::before {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(37,99,235,.07) 0%, transparent 70%);
-      pointer-events: none;
-    }
-    .hero-badge {
-      display: inline-flex; align-items: center; gap: .5rem;
-      background: var(--white); border: 1px solid #e0d9f7;
-      border-radius: 99px; padding: .35rem .9rem .35rem .6rem;
-      font-size: .78rem; font-weight: 600; color: var(--blue);
-      margin-bottom: 1.75rem;
-      box-shadow: 0 2px 10px rgba(37,99,235,.08);
-      animation: fadein .6s ease both;
-    }
-    .badge-dot {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: var(--blue-xl); display: grid; place-items: center; flex-shrink: 0;
-    }
-    .badge-dot svg { width: 12px; height: 12px; stroke: var(--blue); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .hero h1 {
-      font-size: clamp(2.2rem, 5.5vw, 3.8rem);
-      font-weight: 900; line-height: 1.1;
-      letter-spacing: -.03em; color: var(--text);
-      max-width: 600px; margin: 0 auto .6rem;
-      animation: fadein .6s ease .1s both;
-    }
-    .hero h1 .accent { color: var(--blue); }
-    .hero-sub {
-      font-size: 1.05rem; color: var(--muted); font-weight: 400;
-      max-width: 480px; margin: 0 auto 2rem; line-height: 1.7;
-      animation: fadein .6s ease .2s both;
-    }
-    .hero-cta {
-      display: inline-flex; align-items: center; gap: 7px;
-      background: var(--blue); color: #fff;
-      padding: .75rem 1.75rem; border-radius: 12px;
-      font-size: .95rem; font-weight: 700;
-      box-shadow: 0 4px 18px rgba(37,99,235,.35);
-      transition: background .2s, transform .2s, box-shadow .2s;
-      margin-bottom: 2rem;
-      animation: fadein .6s ease .25s both;
-    }
-    .hero-cta:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 8px 28px rgba(37,99,235,.4); }
-    .hero-cta svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .hero-badges {
-      display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center;
-      animation: fadein .6s ease .35s both;
-    }
-    .trust-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: 99px; padding: .4rem 1rem;
-      font-size: .78rem; font-weight: 600; color: var(--muted);
-      box-shadow: 0 1px 4px rgba(0,0,0,.04);
-    }
-    .trust-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+  /* ── Main card ── */
+  .main {
+    width: 100%;
+    max-width: 660px;
+    margin-top: 3rem;
+    flex: 1;
+  }
 
-    @keyframes fadein { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  .view { display: none; }
+  .view.active { display: block; }
 
-    /* ── MARQUEE ── */
-    .marquee-wrap {
-      overflow: hidden;
-      border-bottom: 1px solid var(--border);
-      background: var(--white); padding: 13px 0;
-    }
-    .marquee-track {
-      display: inline-flex; white-space: nowrap;
-      animation: marquee 28s linear infinite; gap: 36px;
-    }
-    .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
-    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    .marquee-track span { font-size: .8rem; font-weight: 600; color: var(--muted); }
-    .marquee-track .sep { color: var(--border); }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
 
-    /* ── TOOL SECTION ── */
-    .tool-section {
-      max-width: 780px; margin: 0 auto;
-      padding: 48px 20px 64px;
-    }
-    .section-eyebrow {
-      display: flex; align-items: center; justify-content: center; gap: .45rem;
-      font-size: .75rem; font-weight: 700; color: var(--blue);
-      letter-spacing: .04em; text-transform: uppercase; margin-bottom: 1rem;
-    }
-    .section-eyebrow::before, .section-eyebrow::after {
-      content: ''; flex: 0 0 24px; height: 1.5px;
-      background: var(--blue-xl); border-radius: 2px;
-    }
+  .compose-heading {
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .compose-sub {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    max-width: 46ch;
+  }
 
-    /* Engine status */
-    .engine-notice {
-      display: flex; align-items: center; gap: 8px;
-      background: #fffbeb; border: 1px solid #fde68a;
-      border-radius: 10px; padding: 10px 14px;
-      margin-bottom: 16px; font-size: .82rem; font-weight: 600;
-      color: #92400e; transition: background .4s, border-color .4s, color .4s;
-    }
-    .engine-notice.ready {
-      background: #f0fdf4; border-color: #bbf7d0; color: #14532d;
-    }
-    .engine-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: currentColor; flex-shrink: 0;
-      animation: blink 1.4s ease-in-out infinite;
-    }
-    .engine-notice.ready .engine-dot { animation: none; }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+  .message-area-wrapper {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  textarea {
+    width: 100%;
+    min-height: 180px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    padding: 16px 18px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.15s;
+    -webkit-appearance: none;
+    caret-color: var(--accent);
+  }
+  textarea::placeholder { color: var(--text-muted); }
+  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 
-    /* Dropzone */
-    .dropzone {
-      border: 2px dashed var(--border); border-radius: var(--radius);
-      padding: 52px 24px; text-align: center; cursor: pointer;
-      position: relative; background: var(--white);
-      transition: border-color .2s, background .2s, box-shadow .2s;
-      box-shadow: var(--shadow);
-    }
-    .dropzone:hover, .dropzone.drag-over {
-      border-color: var(--blue); background: var(--blue-bg);
-      box-shadow: var(--shadow-md);
-    }
-    .dropzone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0;
-      cursor: pointer; width: 100%; height: 100%;
-    }
-    .dropzone-icon {
-      width: 60px; height: 60px; background: var(--blue-xl);
-      border-radius: 16px; display: flex; align-items: center;
-      justify-content: center; margin: 0 auto 18px;
-      transition: transform .3s cubic-bezier(.16,1,.3,1);
-    }
-    .dropzone:hover .dropzone-icon { transform: scale(1.08) rotate(-4deg); }
-    .dropzone-icon svg { color: var(--blue); }
-    .dropzone h3 { font-size: 1rem; font-weight: 700; margin-bottom: 6px; color: var(--text); }
-    .dropzone p { font-size: .82rem; color: var(--muted); margin-bottom: 20px; }
-    .btn-outline {
-      display: inline-flex; align-items: center; gap: 6px;
-      font-size: .85rem; font-weight: 700;
-      color: var(--blue); background: var(--white);
-      border: 1.5px solid var(--blue-xl);
-      padding: .6rem 1.3rem; border-radius: 10px;
-      cursor: pointer; font-family: 'Inter', sans-serif;
-      transition: background .15s, border-color .15s;
-    }
-    .btn-outline:hover { background: var(--blue-bg); border-color: #93c5fd; }
+  .char-count {
+    position: absolute;
+    bottom: 12px;
+    right: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
 
-    /* Preview */
-    #preview-container { display: none; }
-    #preview-container.visible { display: block; }
+  .options-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .option-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12.5px;
+    color: var(--text-dim);
+    cursor: pointer;
+    user-select: none;
+  }
+  .option-pill input { display: none; }
+  .option-pill:has(input:checked) {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .option-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
 
-    .file-bar {
-      border: 1.5px solid var(--border); border-radius: var(--radius);
-      background: var(--white); display: flex; align-items: center;
-      gap: 14px; padding: 14px 18px; margin-top: 20px;
-      box-shadow: var(--shadow);
-    }
-    .file-bar-icon {
-      width: 44px; height: 44px; background: var(--blue-xl);
-      border-radius: 10px; display: flex; align-items: center;
-      justify-content: center; flex-shrink: 0; color: var(--blue);
-    }
-    .file-bar-meta { flex: 1; min-width: 0; }
-    .file-bar-name {
-      font-size: .88rem; font-weight: 700; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .file-bar-size { font-size: .75rem; color: var(--muted); margin-top: 3px; }
-    .btn-remove {
-      background: none; border: none; cursor: pointer;
-      color: var(--muted); padding: 6px; border-radius: 8px;
-      display: flex; align-items: center;
-      transition: color .15s, background .15s;
-    }
-    .btn-remove:hover { color: var(--blue); background: var(--blue-xl); }
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px 20px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 14.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.12s, transform 0.08s;
+    outline: none;
+  }
+  .btn-primary:hover { background: var(--accent-2); box-shadow: 0 0 24px var(--accent-glow); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    /* Controls */
-    .controls {
-      background: var(--white); border: 1.5px solid var(--border);
-      border-radius: var(--radius); padding: 20px;
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 20px; margin: 16px 0;
-      box-shadow: var(--shadow);
-    }
-    @media (max-width: 480px) { .controls { grid-template-columns: 1fr; } }
+  .btn-ghost {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 10px 16px;
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn-ghost:hover { border-color: var(--border-bright); color: var(--text); background: var(--bg-3); }
 
-    .control-group label {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: .8rem; font-weight: 700; color: var(--text); margin-bottom: 10px;
-    }
-    .val-badge {
-      font-size: .72rem; font-weight: 700;
-      background: var(--blue-xl); color: var(--blue);
-      padding: 2px 9px; border-radius: 99px;
-    }
-    .val-badge.weak    { background: #fee2e2; color: #dc2626; }
-    .val-badge.medium  { background: #fef9c3; color: #b45309; }
-    .val-badge.strong  { background: #dcfce7; color: #15803d; }
-    .val-badge.matched { background: #dcfce7; color: #15803d; }
-    .val-badge.miss    { background: #fee2e2; color: #dc2626; }
+  .result-card {
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-top: 1.25rem;
+  }
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .result-icon {
+    width: 32px; height: 32px;
+    background: var(--green-bg);
+    border: 1px solid rgba(63,185,80,0.25);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .result-title { font-size: 15px; font-weight: 600; }
+  .result-desc { font-size: 12.5px; color: var(--text-dim); margin-top: 1px; }
 
-    .input-wrap { position: relative; }
-    .input-wrap input[type="password"],
-    .input-wrap input[type="text"] {
-      width: 100%; border: 1.5px solid var(--border);
-      border-radius: 10px; padding: 10px 38px 10px 12px;
-      font-size: .88rem; font-family: 'Inter', sans-serif;
-      color: var(--text); background: var(--bg); outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .input-wrap input:focus {
-      border-color: var(--blue-l);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.1);
-      background: var(--white);
-    }
-    .eye-btn {
-      position: absolute; right: 10px; top: 50%;
-      transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      color: var(--muted); display: flex; align-items: center; padding: 0;
-      transition: color .15s;
-    }
-    .eye-btn:hover { color: var(--blue); }
-    .eye-btn svg { width: 15px; height: 15px; }
-    .strength-track {
-      height: 3px; background: var(--border);
-      border-radius: 2px; margin-top: 8px; overflow: hidden;
-    }
-    #strength-bar {
-      height: 100%; width: 0; border-radius: 2px;
-      transition: width .35s, background .35s;
-    }
+  .link-box {
+    background: var(--bg-3);
+    border: 1px solid var(--border-bright);
+    border-radius: var(--radius);
+    padding: 11px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .link-text {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text-dim);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 
-    /* Action bar */
-    .action-bar {
-      display: flex; flex-direction: column;
-      gap: 12px; align-items: stretch;
-    }
-    @media (min-width: 480px) {
-      .action-bar { flex-direction: row; justify-content: space-between; align-items: center; }
-    }
-    .privacy-note {
-      display: flex; align-items: center; gap: 6px;
-      font-size: .78rem; font-weight: 600; color: var(--muted);
-    }
-    .privacy-note svg { flex-shrink: 0; color: #22c55e; }
+  .copy-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg-4);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    padding: 6px 11px;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { background: var(--green-bg); border-color: rgba(63,185,80,0.35); color: var(--green); }
 
-    .btn-primary {
-      background: var(--blue); color: #fff; font-weight: 700;
-      font-size: .88rem; padding: .65rem 1.4rem; border-radius: 10px;
-      border: none; cursor: pointer; font-family: 'Inter', sans-serif;
-      display: inline-flex; align-items: center; gap: 6px;
-      transition: background .2s, transform .2s, box-shadow .2s;
-      box-shadow: 0 2px 12px rgba(37,99,235,.3); white-space: nowrap;
-    }
-    .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37,99,235,.35); }
-    .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
-    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    #protect-btn { width: 100%; justify-content: center; }
-    @media (min-width: 480px) { #protect-btn { width: auto; } }
+  .info-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .info-chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-family: var(--mono);
+  }
+  .info-chip .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
 
-    /* Success bar */
-    .success-bar {
-      display: none; align-items: center; gap: 12px;
-      background: #f0fdf4; border: 1.5px solid #bbf7d0;
-      border-radius: var(--radius); padding: 16px 18px; margin-top: 16px;
-    }
-    .success-bar.visible { display: flex; }
-    .success-bar svg { color: #16a34a; flex-shrink: 0; }
-    .success-bar strong { font-size: .88rem; font-weight: 700; color: #14532d; }
-    .success-bar p { font-size: .78rem; color: #166534; margin-top: 2px; }
+  .new-msg-btn { margin-top: 14px; width: 100%; }
 
-    /* Full-page overlay */
-    .page-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(255,255,255,.85);
-      backdrop-filter: blur(4px);
-      z-index: 999; align-items: center; justify-content: center;
-      flex-direction: column; gap: 12px;
-    }
-    .page-overlay.visible { display: flex; }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--border);
-      border-top-color: var(--blue);
-      border-radius: 50%; animation: spin .7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .page-overlay span { font-size: .85rem; font-weight: 700; color: var(--blue); }
+  .reveal-outer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .reveal-icon-wrap {
+    width: 64px; height: 64px;
+    background: var(--bg-2);
+    border: 1px solid var(--border-bright);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+  }
+  .reveal-icon-wrap.ready { border-color: rgba(110,118,229,0.4); background: var(--accent-glow); }
+  .reveal-icon-wrap.burned { border-color: rgba(248,81,73,0.3); background: var(--red-bg); }
+  .reveal-icon-wrap.expired { border-color: rgba(210,153,34,0.3); background: var(--amber-bg); }
 
-    /* ── PRIVACY SECTION ── */
-    .privacy-section {
-      background: var(--white);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 5rem 1.5rem 0;
-    }
-    .privacy-inner {
-      max-width: 1100px; margin: 0 auto;
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 4rem; align-items: center; padding-bottom: 3rem;
-    }
-    @media (max-width: 768px) {
-      .privacy-inner { grid-template-columns: 1fr; gap: 2.5rem; }
-    }
-    .privacy-label {
-      display: inline-flex; align-items: center; gap: .5rem;
-      background: var(--blue-xl); border-radius: 99px;
-      padding: .3rem .85rem; font-size: .72rem; font-weight: 700;
-      letter-spacing: .04em; text-transform: uppercase;
-      color: var(--blue); margin-bottom: 1.25rem;
-    }
-    .privacy-label svg { width: 12px; height: 12px; stroke: var(--blue); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .privacy-left h2 {
-      font-size: clamp(2rem, 3.5vw, 3rem); font-weight: 900;
-      letter-spacing: -.03em; line-height: 1.08; color: var(--text); margin-bottom: 1rem;
-    }
-    .privacy-left h2 .accent-line { color: var(--blue); display: block; }
-    .privacy-left p { font-size: .9rem; color: var(--muted); line-height: 1.75; max-width: 380px; }
-    .privacy-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: .9rem; margin-top: 2.5rem; }
-    @media (max-width: 768px) { .privacy-cards { grid-template-columns: 1fr; } }
-    .priv-card {
-      background: var(--white); border: 1.5px solid var(--border);
-      border-radius: var(--radius); padding: 1.25rem;
-      transition: all .25s; box-shadow: 0 1px 6px rgba(0,0,0,.04);
-    }
-    .priv-card:hover { border-color: #60a5fa; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(37,99,235,.12); }
-    .priv-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      display: grid; place-items: center; margin-bottom: .85rem;
-      transition: transform .25s;
-    }
-    .priv-card:hover .priv-icon { transform: scale(1.08) rotate(-4deg); }
-    .priv-icon svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .priv-card h4 { font-size: .82rem; font-weight: 700; color: var(--text); margin-bottom: .35rem; }
-    .priv-card p { font-size: .74rem; color: var(--muted); line-height: 1.55; margin-bottom: .85rem; }
-    .priv-check { display: flex; justify-content: flex-end; }
-    .priv-check-badge {
-      width: 22px; height: 22px; border-radius: 50%;
-      background: transparent; border: 2px solid var(--blue);
-      display: grid; place-items: center;
-    }
-    .priv-check-badge svg { width: 11px; height: 11px; stroke: var(--blue); fill: none; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+  .reveal-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .reveal-body { font-size: 14px; color: var(--text-dim); line-height: 1.65; max-width: 38ch; margin: 0 auto 1.75rem; }
 
-    /* Privacy visual */
-    .privacy-visual {
-      background: #edeaf8; border-radius: 20px; height: 360px;
-      display: flex; align-items: center; justify-content: center;
-      position: relative; overflow: hidden; border: 1.5px solid #ddd6f7;
-    }
-    @media (max-width: 768px) { .privacy-visual { height: 260px; } }
-    .privacy-visual::before {
-      content: ''; position: absolute;
-      width: 260px; height: 260px; border-radius: 50%;
-      background: #d8d0f0; pointer-events: none; z-index: 0;
-    }
-    .privacy-visual::after {
-      content: ''; position: absolute;
-      width: 200px; height: 200px; border-radius: 50%;
-      background: #c9bfeb; pointer-events: none; z-index: 0;
-    }
-    .priv-ring-outer {
-      position: absolute; width: 320px; height: 320px; border-radius: 50%;
-      background: #e5e0f4; pointer-events: none; z-index: 0;
-    }
-    .priv-big-icon {
-      width: 130px; height: 130px; border-radius: 50%;
-      background: var(--blue); display: grid; place-items: center;
-      position: relative; z-index: 2;
-      animation: floatpulse 4s ease-in-out infinite;
-      box-shadow: 0 12px 40px rgba(37,99,235,.35);
-    }
-    .priv-big-icon svg { width: 58px; height: 58px; stroke: #fff; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    @keyframes floatpulse { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-    .priv-dots {
-      position: absolute; bottom: 16px; right: 16px;
-      display: grid; grid-template-columns: repeat(5,8px); gap: 4px; z-index: 1;
-    }
-    .priv-dots span { width: 3px; height: 3px; border-radius: 50%; background: #60a5fa; opacity: .5; display: block; }
-    .priv-float {
-      position: absolute; background: var(--white);
-      border-radius: 12px; padding: .6rem 1rem;
-      display: flex; align-items: center; gap: .5rem;
-      font-size: .73rem; font-weight: 600; color: var(--text);
-      box-shadow: 0 4px 20px rgba(0,0,0,.1);
-      animation: floatbadge 5s ease-in-out infinite alternate; z-index: 3;
-    }
-    .priv-float svg { width: 14px; height: 14px; stroke: var(--blue); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .priv-float.f1 { top: 18px; right: 18px; animation-delay: 0s; }
-    .priv-float.f2 { bottom: 22px; left: 22px; animation-delay: -2.5s; }
-    @keyframes floatbadge { from{transform:translateY(0)} to{transform:translateY(-7px)} }
-    .priv-circle-sm { position: absolute; border-radius: 50%; background: #b197fc; z-index: 1; }
+  .reveal-btn {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 13px 28px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+  .reveal-btn:hover { background: var(--accent-2); box-shadow: 0 0 28px var(--accent-glow); }
 
-    /* Trust banner */
-    .privacy-trust {
-      max-width: 1100px; margin: 0 auto 2.5rem;
-      background: linear-gradient(120deg, #1e3a8a 0%, #1d4ed8 45%, #2563eb 100%);
-      border-radius: 20px; padding: 2rem 2.5rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 2rem;
-      position: relative; overflow: hidden;
-      box-shadow: 0 16px 48px rgba(37,99,235,.3), 0 2px 8px rgba(37,99,235,.2);
-    }
-    .privacy-trust::before {
-      content: ''; position: absolute;
-      width: 300px; height: 300px; border-radius: 50%;
-      background: rgba(255,255,255,.06);
-      top: -100px; right: 200px; pointer-events: none;
-    }
-    .trust-left { display: flex; align-items: center; gap: 1.5rem; position: relative; z-index: 1; }
-    .trust-lock {
-      width: 60px; height: 60px; border-radius: 16px;
-      background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.25);
-      flex-shrink: 0; display: grid; place-items: center; backdrop-filter: blur(4px);
-    }
-    .trust-lock svg { width: 26px; height: 26px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .trust-text h4 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: .2rem; letter-spacing: -.01em; }
-    .trust-text p { font-size: .82rem; color: rgba(255,255,255,.7); }
+  .message-display {
+    width: 100%;
+    text-align: left;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+    animation: revealIn 0.3s ease;
+  }
+  @keyframes revealIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    /* ── HOW IT WORKS ── */
-    .steps-section { padding: 5rem 1.5rem; text-align: center; background: var(--bg); }
-    .steps-section .inner { max-width: 1100px; margin: 0 auto; }
-    .steps-badge {
-      display: inline-flex; align-items: center; gap: .45rem;
-      background: var(--white); border: 1.5px solid #e0d9f7;
-      border-radius: 99px; padding: .35rem 1rem;
-      font-size: .75rem; font-weight: 700; color: var(--blue);
-      margin-bottom: 1.25rem;
-      box-shadow: 0 2px 10px rgba(37,99,235,.08);
-    }
-    .steps-badge svg { width: 13px; height: 13px; stroke: var(--blue); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .section-title {
-      font-size: clamp(1.7rem, 3vw, 2.5rem); font-weight: 900;
-      letter-spacing: -.03em; color: var(--text); margin-bottom: .6rem;
-    }
-    .section-title .accent { color: var(--blue); }
-    .section-sub { font-size: .9rem; color: var(--muted); margin-bottom: 2.5rem; line-height: 1.7; }
-    .steps-grid {
-      display: grid; grid-template-columns: repeat(4,1fr);
-      gap: 1rem; position: relative;
-    }
-    @media (max-width: 640px) { .steps-grid { grid-template-columns: repeat(2,1fr); } }
-    .steps-grid::before {
-      content: ''; position: absolute;
-      top: 56px; left: calc(12.5%); right: calc(12.5%);
-      height: 0; border-top: 2px dashed #93c5fd;
-      pointer-events: none; z-index: 0;
-    }
-    @media (max-width: 640px) { .steps-grid::before { display: none; } }
-    .step {
-      background: var(--white); border: 1.5px solid var(--border);
-      border-radius: var(--radius); padding: 1.75rem 1.25rem 1.5rem;
-      text-align: center; position: relative; z-index: 1;
-      transition: all .25s;
-    }
-    .step:hover { border-color: #60a5fa; transform: translateY(-4px); box-shadow: 0 10px 30px rgba(37,99,235,.12); }
-    .step-num {
-      position: absolute; top: 12px; left: 12px;
-      width: 26px; height: 26px; border-radius: 8px;
-      background: var(--blue); color: #fff;
-      font-size: .7rem; font-weight: 800;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .step-icon {
-      width: 60px; height: 60px; border-radius: 50%;
-      background: var(--blue-xl); display: flex;
-      align-items: center; justify-content: center;
-      margin: 0 auto 1.1rem; transition: transform .25s;
-    }
-    .step:hover .step-icon { transform: scale(1.08); }
-    .step-icon svg { width: 26px; height: 26px; stroke: var(--blue); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .step h3 { font-size: .88rem; font-weight: 700; color: var(--text); margin-bottom: .4rem; }
-    .step p { font-size: .77rem; color: var(--muted); line-height: 1.55; }
+  .anti-screenshot-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(22, 27, 34, 0.95);
+    backdrop-filter: blur(8px);
+    cursor: pointer;
+    border-radius: var(--radius-lg);
+  }
+  .hidden-protect { filter: blur(14px); opacity: 0.05; pointer-events: none; }
 
-    /* ── FEATURES ── */
-    .features-section {
-      background: var(--white);
-      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
-      padding: 5rem 1.5rem;
-    }
-    .features-section .inner { max-width: 1100px; margin: 0 auto; }
-    .features-grid {
-      display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem;
-    }
-    @media (min-width: 640px) { .features-grid { grid-template-columns: repeat(4,1fr); } }
-    .feature-card {
-      background: var(--bg); border: 1.5px solid var(--border);
-      border-radius: var(--radius); padding: 1.4rem 1.1rem;
-      transition: all .25s; position: relative; overflow: hidden;
-    }
-    .feature-card::before {
-      content: ''; position: absolute;
-      top: -100%; left: -70%; width: 55%; height: 300%;
-      background: linear-gradient(105deg, transparent, rgba(37,99,235,.05) 50%, transparent);
-      transform: skewX(-15deg); transition: left .55s cubic-bezier(.16,1,.3,1);
-      pointer-events: none;
-    }
-    .feature-card:hover::before { left: 130%; }
-    .feature-card:hover { border-color: #60a5fa; transform: translateY(-3px); box-shadow: 0 8px 24px rgba(37,99,235,.12); }
-    .feature-icon {
-      width: 42px; height: 42px; border-radius: 12px;
-      background: var(--blue-xl); display: flex;
-      align-items: center; justify-content: center;
-      margin-bottom: 1rem; color: var(--blue);
-      transition: transform .25s;
-    }
-    .feature-card:hover .feature-icon { transform: scale(1.1) rotate(-4deg); }
-    .feature-icon svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .feature-card h4 { font-size: .82rem; font-weight: 700; color: var(--text); margin-bottom: .35rem; }
-    .feature-card p { font-size: .74rem; color: var(--muted); line-height: 1.55; }
+  .msg-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-3);
+  }
+  .msg-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .msg-live-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    animation: blink 1.4s ease infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
+  .msg-body {
+    padding: 20px;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 200px;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .msg-footer {
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-3);
+  }
+  .burned-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    background: var(--red-bg);
+    border: 1px solid rgba(248,81,73,0.2);
+    border-radius: 20px;
+    padding: 3px 10px;
+  }
 
-    /* ── FAQ ── */
-    .faq-section { padding: 5rem 1.5rem; background: var(--bg); }
-    .faq-section .inner { max-width: 700px; margin: 0 auto; }
-    .faq-item {
-      border: 1.5px solid var(--border); border-radius: var(--radius);
-      overflow: hidden; margin-bottom: 10px; background: var(--white);
-      box-shadow: 0 1px 4px rgba(0,0,0,.04);
-    }
-    .faq-trigger {
-      width: 100%; padding: 16px 20px; text-align: left;
-      background: none; border: none; cursor: pointer;
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: .88rem; font-weight: 600; color: var(--text); gap: 12px;
-      font-family: 'Inter', sans-serif; transition: background .15s;
-    }
-    .faq-trigger:hover { background: var(--blue-bg); }
-    .faq-trigger svg { flex-shrink: 0; transition: transform .25s; color: var(--muted); }
-    .faq-trigger.open svg { transform: rotate(180deg); color: var(--blue); }
-    .faq-trigger.open { color: var(--blue); }
-    .faq-content { max-height: 0; overflow: hidden; transition: max-height .3s ease; }
-    .faq-content p {
-      padding: 4px 20px 16px; font-size: .85rem;
-      color: var(--muted); line-height: 1.65;
-      border-top: 1px solid var(--border);
-    }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── CTA ── */
-    .cta-section { padding: 3rem 1.5rem 5rem; }
-    .cta-box {
-      max-width: 1100px; margin: 0 auto;
-      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
-      border-radius: 24px; padding: 3.5rem 3rem;
-      box-shadow: 0 20px 60px rgba(37,99,235,.35);
-      position: relative; overflow: hidden;
-      display: grid; grid-template-columns: 200px 1fr 120px;
-      align-items: center; gap: 2rem;
-    }
-    @media (max-width: 860px) {
-      .cta-box { grid-template-columns: 1fr; text-align: center; }
-      .cta-illus, .cta-shield { display: none; }
-      .cta-btns { justify-content: center; }
-    }
-    .cta-box::before {
-      content: ''; position: absolute; top: -60px; right: -60px;
-      width: 200px; height: 200px; border-radius: 50%;
-      background: rgba(255,255,255,.06); pointer-events: none;
-    }
-    .cta-illus { display: flex; align-items: flex-end; justify-content: center; height: 130px; }
-    .cta-illus svg { width: 120px; height: 120px; opacity: .9; }
-    .cta-box h2 { font-size: clamp(1.5rem, 2.5vw, 2.1rem); font-weight: 900; color: #fff; letter-spacing: -.03em; margin-bottom: .55rem; }
-    .cta-box p { font-size: .88rem; color: rgba(255,255,255,.75); margin-bottom: 1.75rem; line-height: 1.65; }
-    .cta-btns { display: flex; gap: .75rem; flex-wrap: wrap; }
-    .cta-btn-w {
-      background: #fff; color: var(--blue);
-      padding: .7rem 1.5rem; border-radius: 10px;
-      font-size: .85rem; font-weight: 800;
-      display: inline-flex; align-items: center; gap: .4rem;
-      transition: all .2s; box-shadow: 0 4px 16px rgba(0,0,0,.15);
-    }
-    .cta-btn-w:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.2); }
-    .cta-btn-w svg, .cta-btn-t svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-    .cta-btn-t {
-      background: rgba(255,255,255,.15); color: #fff;
-      padding: .7rem 1.5rem; border-radius: 10px;
-      font-size: .85rem; font-weight: 700; border: 1.5px solid rgba(255,255,255,.3);
-      display: inline-flex; align-items: center; gap: .4rem; transition: all .2s;
-    }
-    .cta-btn-t:hover { background: rgba(255,255,255,.22); }
-    .cta-shield { display: flex; align-items: center; justify-content: center; }
-    .cta-shield svg { width: 90px; height: 90px; opacity: .22; }
-
-    /* ── FOOTER ── */
-    footer {
-      background: var(--white);
-      border-top: 1px solid var(--border);
-      padding: 3.5rem 1.5rem 2rem;
-    }
-    .footer-grid {
-      max-width: 1100px; margin: 0 auto;
-      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 3rem; margin-bottom: 2.5rem;
-    }
-    @media (max-width: 768px) {
-      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
-      .footer-brand { grid-column: 1/-1; }
-    }
-    .footer-brand p { font-size: .82rem; color: var(--muted); line-height: 1.7; margin-top: .75rem; max-width: 260px; }
-    .footer-trust-badge {
-      margin-top: 1.25rem; background: var(--blue-xl);
-      border: 1.5px solid #e0d9f7; border-radius: 12px;
-      padding: .75rem 1rem; display: inline-flex;
-      align-items: flex-start; gap: .75rem; max-width: 260px;
-    }
-    .footer-trust-badge-icon {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: var(--blue); flex-shrink: 0; display: grid; place-items: center;
-    }
-    .footer-trust-badge-icon svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .footer-trust-badge-text strong { display: block; font-size: .78rem; font-weight: 800; color: var(--text); margin-bottom: .15rem; }
-    .footer-trust-badge-text span { font-size: .72rem; color: var(--muted); line-height: 1.4; }
-    .footer-col-head { display: flex; align-items: center; gap: .65rem; margin-bottom: 1.1rem; }
-    .footer-col-head-icon {
-      width: 30px; height: 30px; border-radius: 8px;
-      background: var(--blue-xl); display: grid; place-items: center; flex-shrink: 0;
-    }
-    .footer-col-head-icon svg { width: 15px; height: 15px; stroke: var(--blue); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .footer-col h4 { font-size: .72rem; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: .1em; margin: 0; }
-    .footer-col-underline { width: 28px; height: 2.5px; border-radius: 2px; background: var(--blue); margin-bottom: 1rem; opacity: .7; }
-    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
-    .footer-col li { display: flex; align-items: center; gap: .5rem; }
-    .footer-col li .f-chevron { width: 14px; height: 14px; flex-shrink: 0; stroke: var(--blue); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: .6; }
-    .footer-col li:hover .f-chevron { opacity: 1; }
-    .footer-col a { font-size: .82rem; color: var(--muted); transition: color .2s; }
-    .footer-col a:hover { color: var(--blue); }
-    .footer-bottom {
-      max-width: 1100px; margin: 0 auto;
-      padding-top: 1.25rem; border-top: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: .75rem;
-    }
-    .footer-bottom p { font-size: .78rem; color: #9ca3af; }
-    .footer-lang {
-      display: flex; align-items: center; gap: .4rem;
-      font-size: .78rem; color: var(--muted); font-weight: 600; cursor: pointer;
-    }
-    .footer-lang svg { width: 15px; height: 15px; stroke: var(--blue); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-    /* ── REVEAL ── */
-    .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
-    .reveal.in { opacity: 1; transform: none; }
-    .rd1{transition-delay:.08s} .rd2{transition-delay:.16s} .rd3{transition-delay:.24s}
-  </style>
+  .inline-error {
+    font-size: 12.5px;
+    color: var(--red);
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 20px;
+  }
+</style>
 </head>
 <body>
 
-<!-- NAV -->
-<header>
-  <nav>
-    <a href="#" class="logo">
-      <div class="logo-icon">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-      </div>
-      V12 Engine<span>.io</span>
-    </a>
-
-    <div class="nav-links">
-      <a class="nav-link" href="#tool">Protect PDF</a>
-      <a class="nav-link" href="#how-it-works">How It Works</a>
-      <a class="nav-link" href="#features">Features</a>
-      <a class="nav-link" href="#faq">FAQ</a>
+<header class="header">
+  <div class="logo" onclick="goHome()">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:#6E76E5">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        <path d="m9 12 2 2 4-4"/>
+      </svg>
     </div>
-
-    <button class="nav-btn" onclick="document.getElementById('tool').scrollIntoView({behavior:'smooth'})">
-      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Protect Now
-    </button>
-  </nav>
+    <span class="logo-name">Ghost<span>Link</span></span>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="header-badge">global cloud burn</div>
 </header>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-badge">
-    <span class="badge-dot">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    </span>
-    100% Secure &amp; Browser-Based Encryption
-  </div>
-  <h1>Password Protect Your<br><span class="accent">PDF Files</span> Instantly</h1>
-  <p class="hero-sub">Fast, free, and completely private. Your PDF never leaves your browser — encryption runs on your device.</p>
-  <a href="#tool" class="hero-cta">
-    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-    Protect a PDF Free
-  </a>
-  <div class="hero-badges">
-    <span class="trust-badge"><span class="dot"></span> 100% Browser-Based</span>
-    <span class="trust-badge"><span class="dot"></span> No File Uploads</span>
-    <span class="trust-badge"><span class="dot"></span> Completely Free</span>
-    <span class="trust-badge"><span class="dot"></span> No Account Needed</span>
-  </div>
-</section>
+<main class="main">
+  <!-- Compose View -->
+  <div class="view active" id="view-compose">
+    <p class="section-label">New message</p>
+    <h1 class="compose-heading">Write. Encrypt. Burn globally.</h1>
+    <p class="compose-sub">Your message is end-to-end encrypted locally[cite: 1]. Once opened on any phone, PC, TV, or VPN, it self-destructs worldwide permanently.</p>
 
-<!-- MARQUEE -->
-<div class="marquee-wrap">
-  <div class="marquee-track">
-    <span>⚖️ Legal Teams</span><span class="sep">•</span>
-    <span>💼 Business Users</span><span class="sep">•</span>
-    <span>🏥 Healthcare Staff</span><span class="sep">•</span>
-    <span>🎓 Students</span><span class="sep">•</span>
-    <span>💰 Finance Teams</span><span class="sep">•</span>
-    <span>🔒 IT Professionals</span><span class="sep">•</span>
-    <span>📋 HR Departments</span><span class="sep">•</span>
-    <span>🏢 Enterprises</span><span class="sep">•</span>
-    <span>⚖️ Legal Teams</span><span class="sep">•</span>
-    <span>💼 Business Users</span><span class="sep">•</span>
-    <span>🏥 Healthcare Staff</span><span class="sep">•</span>
-    <span>🎓 Students</span><span class="sep">•</span>
-    <span>💰 Finance Teams</span><span class="sep">•</span>
-    <span>🔒 IT Professionals</span><span class="sep">•</span>
-    <span>📋 HR Departments</span><span class="sep">•</span>
-    <span>🏢 Enterprises</span><span class="sep">•</span>
-  </div>
-</div>
-
-<!-- TOOL -->
-<section id="tool" class="tool-section">
-  <div class="section-eyebrow">PDF Protection Engine</div>
-
-  <!-- Engine notice -->
-  <div class="engine-notice" id="engine-notice">
-    <span class="engine-dot"></span>
-    <span id="engine-label">Loading encryption engine… this takes a few seconds</span>
-  </div>
-
-  <!-- Dropzone -->
-  <div id="dropzone" class="dropzone">
-    <input type="file" id="file-input" accept="application/pdf">
-    <div class="dropzone-icon">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="12" y1="18" x2="12" y2="12"/>
-        <line x1="9" y1="15" x2="15" y2="15"/>
-      </svg>
+    <div class="message-area-wrapper">
+      <textarea id="msg-input" placeholder="Type your private message here…" maxlength="50000" autocomplete="off" spellcheck="true"></textarea>
+      <div class="char-count" id="char-count">0 / 50,000</div>
     </div>
-    <h3>Drop your PDF here</h3>
-    <p>PDF files only — select the document you want to protect</p>
-    <button type="button" class="btn-outline">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      Select PDF File
+
+    <div id="compose-error" class="inline-error"></div>
+
+    <div style="margin-top: 0.75rem; margin-bottom: 1.25rem;">
+      <p class="section-label" style="margin-bottom: 8px;">After opening</p>
+      <div class="options-row">
+        <label class="option-pill">
+          <input type="radio" name="expiry" value="read-once" checked>
+          <span class="option-dot"></span>
+          <span>Read once</span>
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="expiry" value="24h">
+          <span class="option-dot"></span>
+          <span>Read once + 24h window</span>
+        </label>
+        <label class="option-pill">
+          <input type="radio" name="expiry" value="1h">
+          <span class="option-dot"></span>
+          <span>Read once + 1h window</span>
+        </label>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="create-btn" onclick="createLink()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Encrypt and create link
     </button>
-  </div>
 
-  <!-- Preview -->
-  <div id="preview-container">
-    <div class="file-bar">
-      <div class="file-bar-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-        </svg>
-      </div>
-      <div class="file-bar-meta">
-        <div class="file-bar-name" id="file-name">document.pdf</div>
-        <div class="file-bar-size" id="file-size">—</div>
-      </div>
-      <button class="btn-remove" id="btn-remove" title="Remove">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="controls">
-      <!-- Password -->
-      <div class="control-group">
-        <label>Password <span class="val-badge" id="strength-badge">—</span></label>
-        <div class="input-wrap">
-          <input type="password" id="user-password" placeholder="Enter a password" autocomplete="new-password">
-          <button class="eye-btn" id="toggle-pwd" type="button" tabindex="-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+    <div id="result-card" class="result-card" style="display:none">
+      <div class="result-header">
+        <div class="result-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3FB950" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
         </div>
-        <div class="strength-track"><div id="strength-bar"></div></div>
-      </div>
-
-      <!-- Confirm Password -->
-      <div class="control-group">
-        <label>Confirm Password <span class="val-badge" id="match-badge">—</span></label>
-        <div class="input-wrap">
-          <input type="password" id="confirm-password" placeholder="Re-enter your password" autocomplete="new-password">
-          <button class="eye-btn" id="toggle-confirm" type="button" tabindex="-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+        <div>
+          <div class="result-title">Global link created</div>
+          <div class="result-desc">Burns instantly on first read across any device or VPN</div>
         </div>
       </div>
-    </div>
 
-    <div class="action-bar">
-      <div class="privacy-note">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>
-        100% local — no uploads, no servers
+      <div class="link-box">
+        <div class="link-text" id="result-link-display"></div>
+        <button class="copy-btn" id="copy-btn" onclick="copyLink()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copy link
+        </button>
       </div>
-      <button id="protect-btn" class="btn-primary" disabled>
-        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Download Protected PDF
-      </button>
-    </div>
 
-    <div class="success-bar" id="success-bar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-      </svg>
-      <div>
-        <strong>PDF protected successfully!</strong>
-        <p>Your encrypted file has been downloaded.</p>
+      <div class="info-row">
+        <div class="info-chip"><span class="dot"></span> zero-knowledge encrypted</div>
+        <div class="info-chip" id="expiry-chip">burns after reading</div>
       </div>
-      <button class="btn-outline" id="btn-new" style="margin-left:auto;font-size:.78rem;padding:.5rem 1rem;">
-        + New File
+
+      <button class="btn-ghost new-msg-btn" onclick="resetCompose()">
+        Write another message
       </button>
     </div>
   </div>
-</section>
 
-<!-- PRIVACY -->
-<section class="privacy-section reveal" id="privacy">
-  <div class="privacy-inner">
-    <div class="privacy-left">
-      <div class="privacy-label">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Privacy First Philosophy
+  <!-- Reveal View -->
+  <div class="view" id="view-reveal">
+    <div id="state-ready" class="reveal-outer">
+      <div class="reveal-icon-wrap ready">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6E76E5" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
       </div>
-      <h2>Your files stay<br><span class="accent-line">private.</span></h2>
-      <p>Everything runs directly in your browser using WebAssembly. Your PDF is never sent to any server — encryption happens entirely on your device, in seconds.</p>
-      <div class="privacy-cards">
-        <div class="priv-card">
-          <div class="priv-icon" style="background:var(--blue-xl);color:var(--blue)">
-            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <h1 class="reveal-title">Encrypted message waiting</h1>
+      <p class="reveal-body">Opening this message triggers a permanent global server burn across all browsers and networks.</p>
+      <button class="reveal-btn" onclick="revealMessage()" id="reveal-btn">
+        Reveal message
+      </button>
+    </div>
+
+    <div id="state-decrypted" class="reveal-outer" style="display:none">
+      <div class="message-display">
+        <div id="hold-overlay" class="anti-screenshot-overlay">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent); margin-bottom:12px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <h3 style="font-size:16px; font-weight:600; color:var(--text); margin-bottom:6px;">Tap and Hold to Read</h3>
+          <p style="font-size:13px; color:var(--text-dim); text-align:center; max-width:260px;">Protected against screenshots. Letting go hides the text.</p>
+        </div>
+        <div class="msg-header">
+          <div class="msg-header-left">
+            <span class="msg-live-dot"></span>
+            decrypted securely — screenshot restricted
           </div>
-          <h4>Local Processing</h4>
-          <p>Encryption runs inside your browser via WebAssembly. Zero server contact.</p>
-          <div class="priv-check"><div class="priv-check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>
         </div>
-        <div class="priv-card">
-          <div class="priv-icon" style="background:#fce7f3;color:#db2777">
-            <svg viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          </div>
-          <h4>No Uploads</h4>
-          <p>Your file never leaves your device. No cloud storage, no data retention.</p>
-          <div class="priv-check"><div class="priv-check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>
-        </div>
-        <div class="priv-card">
-          <div class="priv-icon" style="background:var(--blue-xl);color:var(--blue)">
-            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <h4>Privacy First</h4>
-          <p>Built from the ground up so your sensitive documents stay yours, always.</p>
-          <div class="priv-check"><div class="priv-check-badge"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div></div>
+        <div class="msg-body hidden-protect" id="decrypted-text"></div>
+        <div class="msg-footer">
+          <div class="burned-badge">Link permanently destroyed globally</div>
+          <div style="font-family:var(--mono); font-size:11px; color:var(--text-muted);" id="decrypted-time">now</div>
         </div>
       </div>
+      <button class="btn-ghost" onclick="goHome()">Send your own message</button>
     </div>
 
-    <div class="privacy-visual">
-      <div class="priv-ring-outer"></div>
-      <div class="priv-dots">
-        <span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span>
+    <div id="state-burned" class="reveal-outer" style="display:none">
+      <div class="reveal-icon-wrap burned">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F85149" stroke-width="1.8"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
       </div>
-      <div class="priv-circle-sm" style="width:8px;height:8px;top:38%;right:10%;opacity:.5"></div>
-      <div class="priv-circle-sm" style="width:5px;height:5px;top:28%;right:18%;opacity:.35"></div>
-      <div class="priv-circle-sm" style="width:6px;height:6px;bottom:32%;right:6%;opacity:.4"></div>
-      <div class="priv-big-icon">
-        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <h1 class="reveal-title">Link Already Burned</h1>
+      <p class="reveal-body">This message has already been opened and destroyed worldwide. One-time links cannot be read twice.</p>
+      <button class="btn-ghost" onclick="goHome()">Go home</button>
+    </div>
+
+    <div id="state-invalid" class="reveal-outer" style="display:none">
+      <div class="reveal-icon-wrap">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B949E" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/></svg>
       </div>
-      <div class="priv-float f1">
-        <div style="width:18px;height:18px;border-radius:50%;background:var(--blue);display:grid;place-items:center;flex-shrink:0;">
-          <svg viewBox="0 0 24 24" width="10" height="10" stroke="white" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-        </div>
-        Browser-only encryption
+      <h1 class="reveal-title">Invalid Link</h1>
+      <p class="reveal-body" id="invalid-reason">This link is malformed, truncated, or no longer exists.</p>
+      <button class="btn-ghost" onclick="goHome()">Go home</button>
+    </div>
+
+    <div id="state-expired" class="reveal-outer" style="display:none">
+      <div class="reveal-icon-wrap expired">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D29922" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
-      <div class="priv-float f2">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Your file stays local
-      </div>
+      <h1 class="reveal-title">Link Expired</h1>
+      <p class="reveal-body">The time window set for this link has passed. The message is gone.</p>
+      <button class="btn-ghost" onclick="goHome()">Go home</button>
     </div>
   </div>
-
-  <div class="privacy-trust">
-    <div class="trust-left">
-      <div class="trust-lock">
-        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </div>
-      <div class="trust-text">
-        <h4>100% Private. 100% Secure. 100% You.</h4>
-        <p>We believe your documents belong to you — and always will.</p>
-      </div>
-    </div>
-    <svg viewBox="0 0 130 105" width="130" height="105" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;opacity:.9">
-      <rect x="35" y="20" width="75" height="54" rx="10" fill="rgba(255,255,255,0.12)"/>
-      <rect x="16" y="30" width="80" height="54" rx="10" fill="rgba(255,255,255,0.2)"/>
-      <rect x="16" y="22" width="32" height="14" rx="5" fill="rgba(255,255,255,0.18)"/>
-      <rect x="30" y="44" width="28" height="32" rx="4" fill="rgba(255,255,255,0.25)"/>
-      <rect x="34" y="50" width="18" height="2.5" rx="1.2" fill="rgba(255,255,255,0.6)"/>
-      <rect x="34" y="55" width="14" height="2" rx="1" fill="rgba(255,255,255,0.4)"/>
-      <circle cx="105" cy="74" r="20" fill="rgba(255,255,255,0.12)"/>
-      <circle cx="105" cy="74" r="14" fill="rgba(255,255,255,0.9)"/>
-      <path d="M105 62l-7 2.8v6.5c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9v-6.5l-7-2.8z" fill="#1d4ed8"/>
-      <polyline points="101,73.5 104.5,77 110,70" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-    </svg>
-  </div>
-</section>
-
-<!-- HOW IT WORKS -->
-<section id="how-it-works" class="steps-section reveal">
-  <div class="inner">
-    <div class="steps-badge">
-      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      FAST. SIMPLE. SECURE.
-    </div>
-    <h2 class="section-title">Done in <span class="accent">4 simple</span> steps</h2>
-    <p class="section-sub">No accounts, no waiting, no file uploads. Just instant protection.</p>
-    <div class="steps-grid">
-      <div class="step">
-        <div class="step-num">01</div>
-        <div class="step-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </div>
-        <h3>Drop your PDF</h3>
-        <p>Drag & drop or click to select any PDF file from your device.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">02</div>
-        <div class="step-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <h3>Set a password</h3>
-        <p>Choose a strong password. Live strength feedback guides your choice.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">03</div>
-        <div class="step-icon">
-          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </div>
-        <h3>Encrypt instantly</h3>
-        <p>Python runs in your browser via WebAssembly. No uploads, no waiting.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">04</div>
-        <div class="step-icon">
-          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </div>
-        <h3>Download output</h3>
-        <p>Your password-protected PDF downloads automatically to your device.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FEATURES -->
-<section id="features" class="features-section reveal">
-  <div class="inner">
-    <div style="text-align:center;margin-bottom:2.5rem">
-      <div class="steps-badge" style="margin-bottom:1rem">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Why V12 Engine
-      </div>
-      <h2 class="section-title">Everything you need, <span class="accent">nothing you don't</span></h2>
-      <p class="section-sub" style="margin-bottom:0">Built for people who need fast, private PDF protection with zero friction.</p>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <h4>Password Protection</h4>
-        <p>Lock any PDF with a custom password so only authorised people can open it.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <h4>Strong Encryption</h4>
-        <p>Industry-standard PDF encryption via pypdf keeps your documents fully secure.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <h4>Instant Results</h4>
-        <p>No upload wait times. Your protected PDF downloads in seconds, every time.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        </div>
-        <h4>100% Browser-Based</h4>
-        <p>Runs entirely on your device using WebAssembly. No install or account needed.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <h4>Strength Meter</h4>
-        <p>Live password strength feedback so you always choose a properly secure password.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </div>
-        <h4>Show / Hide Password</h4>
-        <p>Toggle visibility to confirm what you've typed before locking your file.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        </div>
-        <h4>No Size Limits</h4>
-        <p>Protect PDFs of any size — small reports or large manuals — with zero restrictions.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
-        </div>
-        <h4>Completely Free</h4>
-        <p>No trial, no paywall. Protect as many PDFs as you need at no cost, ever.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FAQ -->
-<section id="faq" class="faq-section reveal">
-  <div class="inner" style="max-width:700px;margin:0 auto">
-    <div style="text-align:center;margin-bottom:2.5rem">
-      <div class="steps-badge" style="margin-bottom:1rem">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        FAQ
-      </div>
-      <h2 class="section-title">Common <span class="accent">questions</span></h2>
-      <p class="section-sub" style="margin-bottom:0">Quick answers about how V12 Engine protects your PDFs.</p>
-    </div>
-    <div class="faq-list">
-      <div class="faq-item">
-        <button class="faq-trigger" type="button">
-          How fast is PDF protection?
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="faq-content"><p>Most PDFs are protected in a few seconds. Since everything runs locally there are no upload delays — speed depends only on your device.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-trigger" type="button">
-          Is my PDF kept private?
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="faq-content"><p>Absolutely. Your file never leaves your device. No data is uploaded, stored, or shared with any server at any point during processing.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-trigger" type="button">
-          Which file formats are supported?
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="faq-content"><p>PDF (.pdf) files only. Upload your PDF, set a password, and download the encrypted version in seconds.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-trigger" type="button">
-          How many PDFs can I protect?
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="faq-content"><p>Unlimited. No cap — protect as many PDFs as you need, completely free with no account required.</p></div>
-      </div>
-      <div class="faq-item">
-        <button class="faq-trigger" type="button">
-          Why does it take a moment to start?
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="faq-content"><p>The encryption engine (Python + pypdf) loads via WebAssembly in your browser. It needs a few seconds to initialise on first load — after that, protecting is instant.</p></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section reveal">
-  <div class="cta-box">
-    <div class="cta-illus">
-      <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="10" y="40" width="100" height="65" rx="10" fill="rgba(255,255,255,0.2)"/>
-        <rect x="10" y="30" width="50" height="20" rx="6" fill="rgba(255,255,255,0.15)"/>
-        <rect x="30" y="20" width="38" height="50" rx="5" fill="rgba(255,255,255,0.85)" transform="rotate(-8 30 20)"/>
-        <rect x="34" y="30" width="22" height="3" rx="1.5" fill="#93c5fd" transform="rotate(-8 34 30)"/>
-        <rect x="48" y="18" width="38" height="50" rx="5" fill="white"/>
-        <rect x="52" y="26" width="12" height="8" rx="2" fill="#2563eb"/>
-        <text x="53" y="33" font-size="6" font-weight="800" fill="white" font-family="Inter,sans-serif">PDF</text>
-        <rect x="52" y="38" width="22" height="2.5" rx="1.2" fill="#e5e7eb"/>
-        <rect x="52" y="43" width="18" height="2" rx="1" fill="#e5e7eb"/>
-        <circle cx="72" cy="88" r="14" fill="#2563eb"/>
-        <rect x="67" y="85" width="10" height="12" rx="2" fill="none" stroke="white" stroke-width="2"/>
-        <path d="M69 85V82a3 3 0 0 1 6 0v3" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
-      </svg>
-    </div>
-    <div>
-      <h2>Protect your PDF in seconds</h2>
-      <p>Add password encryption instantly. Free, private, and no software to install.</p>
-      <div class="cta-btns">
-        <a href="#tool" class="cta-btn-w">
-          Protect Now — Free
-          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
-        <a href="#how-it-works" class="cta-btn-t">
-          See how it works
-          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-        </a>
-      </div>
-    </div>
-    <div class="cta-shield">
-      <svg viewBox="0 0 24 24" stroke="white" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="footer-grid">
-
-    <div class="footer-brand">
-      <a href="#" class="logo" style="margin-bottom:.5rem;display:inline-flex">
-        <div class="logo-icon" style="width:38px;height:38px">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-        </div>
-        V12 Engine<span>.io</span>
-      </a>
-      <p>Fast, free, and secure PDF password protection running entirely in your browser via WebAssembly.</p>
-      <div class="footer-trust-badge">
-        <div class="footer-trust-badge-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        </div>
-        <div class="footer-trust-badge-text">
-          <strong>Browser-Based Only</strong>
-          <span>No servers. No uploads. Your file never leaves your device.</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer-col">
-      <div class="footer-col-head">
-        <div class="footer-col-head-icon">
-          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        </div>
-        <h4>Features</h4>
-      </div>
-      <div class="footer-col-underline"></div>
-      <ul>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">PDF Protection</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Large File Support</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Strong Encryption</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Fast Processing</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-col">
-      <div class="footer-col-head">
-        <div class="footer-col-head-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <h4>Privacy</h4>
-      </div>
-      <div class="footer-col-underline"></div>
-      <ul>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Local Processing</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">No Data Storage</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">No File Uploads</a></li>
-      </ul>
-    </div>
-
-    <div class="footer-col">
-      <div class="footer-col-head">
-        <div class="footer-col-head-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        </div>
-        <h4>Resources</h4>
-      </div>
-      <div class="footer-col-underline"></div>
-      <ul>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#faq">FAQ</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Privacy Policy</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Terms of Use</a></li>
-        <li><svg class="f-chevron" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg><a href="#">Contact</a></li>
-      </ul>
-    </div>
-
-  </div>
-
-  <div class="footer-bottom">
-    <p>© <span id="footer-year">2026</span> V12 Engine. All rights reserved.</p>
-    <div class="footer-lang">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      English
-      <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-  </div>
-</footer>
-
-<!-- Full-page overlay -->
-<div class="page-overlay" id="page-overlay">
-  <div class="spinner"></div>
-  <span>Encrypting your PDF…</span>
-</div>
+</main>
 
 <script>
-document.getElementById('footer-year').textContent = new Date().getFullYear();
+  // ── YOUR SUPABASE CONFIG ──
+  const SUPABASE_URL = 'https://lzrjbrisjgigmlymuxmv.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_b4N20NJ3ERPBXOUud4zZkQ_wqhAXg3Y';
 
-// ── FAQ ──
-document.querySelectorAll('.faq-trigger').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const content = btn.nextElementSibling;
-    const isOpen  = btn.classList.contains('open');
-    document.querySelectorAll('.faq-trigger').forEach(b => {
-      b.classList.remove('open');
-      b.nextElementSibling.style.maxHeight = '0';
-    });
-    if (!isOpen) {
-      btn.classList.add('open');
-      content.style.maxHeight = content.scrollHeight + 'px';
-    }
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  function generateId() {
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  function bytesToBase64url(bytes) {
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+  }
+
+  function base64urlToBytes(str) {
+    const pad = str.length % 4;
+    const padded = pad ? str + '='.repeat(4 - pad) : str;
+    const b64 = padded.replace(/-/g, '+').replace(/_/g, '/');
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  }
+
+  async function generateKey() {
+    return crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
+  }
+
+  async function exportKey(key) {
+    const raw = await crypto.subtle.exportKey('raw', key);
+    return bytesToBase64url(new Uint8Array(raw));
+  }
+
+  async function importKey(keyB64) {
+    const raw = base64urlToBytes(keyB64);
+    return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+  }
+
+  async function encryptMessage(text, key) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const encoded = new TextEncoder().encode(text);
+    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+    return {
+      iv: bytesToBase64url(iv),
+      ct: bytesToBase64url(new Uint8Array(ciphertext))
+    };
+  }
+
+  async function decryptMessage(ivB64, ctB64, key) {
+    const iv = base64urlToBytes(ivB64);
+    const ct = base64urlToBytes(ctB64);
+    const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
+    return new TextDecoder().decode(plaintext);
+  }
+
+  const msgInput = document.getElementById('msg-input');
+  const charCount = document.getElementById('char-count');
+  const createBtn = document.getElementById('create-btn');
+  const resultCard = document.getElementById('result-card');
+  const resultLinkDisplay = document.getElementById('result-link-display');
+  const composeError = document.getElementById('compose-error');
+
+  let generatedLink = '';
+
+  msgInput.addEventListener('input', () => {
+    const len = msgInput.value.length;
+    charCount.textContent = len.toLocaleString() + ' / 50,000';
+    if (composeError.textContent) composeError.textContent = '';
   });
-});
 
-// ── SCROLL REVEAL ──
-const rv = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); } });
-}, { threshold: .08 });
-document.querySelectorAll('.reveal').forEach(el => rv.observe(el));
+  async function createLink() {
+    const text = msgInput.value.trim();
+    if (!text) {
+      composeError.textContent = 'Enter a message first.';
+      msgInput.focus();
+      return;
+    }
+    const expiryMode = document.querySelector('input[name="expiry"]:checked').value;
+    createBtn.disabled = true;
+    createBtn.innerHTML = `<div class="spinner"></div> Encrypting & Uploading…`;
 
-// ── PYODIDE ──
-let pyodideInstance = null;
-const engineNotice = document.getElementById('engine-notice');
-const engineLabel  = document.getElementById('engine-label');
+    try {
+      const key = await generateKey();
+      const keyB64 = await exportKey(key);
+      const { iv, ct } = await encryptMessage(text, key);
+      const id = generateId();
+      const createdAt = Math.floor(Date.now() / 1000);
 
-async function initPyodide() {
-  try {
-    pyodideInstance = await loadPyodide();
-    await pyodideInstance.loadPackage('micropip');
-    const micropip = pyodideInstance.pyimport('micropip');
-    await micropip.install('pypdf');
-    engineNotice.classList.add('ready');
-    engineLabel.textContent = 'Encryption engine ready';
-    updateBtn();
-  } catch(e) {
-    engineLabel.textContent = 'Engine failed to load — please refresh the page.';
+      const { error } = await supabaseClient.from('messages').insert([{
+        id,
+        ciphertext: ct,
+        iv,
+        expiry_mode: expiryMode,
+        created_at: createdAt,
+        is_burned: false
+      }]);
+
+      if (error) throw error;
+
+      const linkUrl = new URL(window.location.href);
+      linkUrl.search = ''; 
+      linkUrl.hash = `${id}.${keyB64}`;
+      generatedLink = linkUrl.href;
+
+      resultLinkDisplay.textContent = generatedLink;
+      resultCard.style.display = 'block';
+      resultCard.scrollIntoView({ behavior: 'smooth' });
+
+      createBtn.innerHTML = `Encrypt and create link`;
+      createBtn.disabled = false;
+    } catch (err) {
+      console.error(err);
+      composeError.textContent = 'Failed to create link. Make sure your Supabase table is set up.';
+      createBtn.disabled = false;
+    }
   }
-}
-initPyodide();
 
-// ── STATE ──
-let currentFileBytes = null;
-let currentFileName  = '';
-
-const dropzone         = document.getElementById('dropzone');
-const fileInput        = document.getElementById('file-input');
-const previewContainer = document.getElementById('preview-container');
-const fileNameEl       = document.getElementById('file-name');
-const fileSizeEl       = document.getElementById('file-size');
-const btnRemove        = document.getElementById('btn-remove');
-const pwdInput         = document.getElementById('user-password');
-const confirmInput     = document.getElementById('confirm-password');
-const strengthBadge    = document.getElementById('strength-badge');
-const matchBadge       = document.getElementById('match-badge');
-const strengthBar      = document.getElementById('strength-bar');
-const protectBtn       = document.getElementById('protect-btn');
-const pageOverlay      = document.getElementById('page-overlay');
-const successBar       = document.getElementById('success-bar');
-const btnNew           = document.getElementById('btn-new');
-
-// ── DRAG/DROP ──
-['dragenter','dragover'].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.add('drag-over'); }));
-['dragleave','drop'].forEach(e =>     dropzone.addEventListener(e, ev => { ev.preventDefault(); dropzone.classList.remove('drag-over'); }));
-dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
-fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
-
-function handleFile(file) {
-  if (!file || file.type !== 'application/pdf') { alert('Please select a valid PDF file.'); return; }
-  const reader = new FileReader();
-  reader.onload = ev => {
-    currentFileBytes = new Uint8Array(ev.target.result);
-    currentFileName  = file.name;
-    fileNameEl.textContent = file.name;
-    fileSizeEl.textContent = formatSize(file.size);
-    dropzone.style.display = 'none';
-    previewContainer.classList.add('visible');
-    successBar.classList.remove('visible');
-    updateBtn();
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-btnRemove.addEventListener('click', reset);
-btnNew.addEventListener('click', reset);
-
-function reset() {
-  currentFileBytes = null; currentFileName = '';
-  fileInput.value = '';
-  pwdInput.value = ''; confirmInput.value = '';
-  strengthBadge.textContent = '—'; strengthBadge.className = 'val-badge';
-  matchBadge.textContent    = '—'; matchBadge.className    = 'val-badge';
-  strengthBar.style.width = '0';
-  dropzone.style.display = 'block';
-  previewContainer.classList.remove('visible');
-  successBar.classList.remove('visible');
-  updateBtn();
-}
-
-// ── PASSWORD ──
-pwdInput.addEventListener('input', () => {
-  const v = pwdInput.value;
-  let score = 0;
-  if (v.length >= 8)          score++;
-  if (/[A-Z]/.test(v))        score++;
-  if (/[0-9]/.test(v))        score++;
-  if (/[^A-Za-z0-9]/.test(v)) score++;
-  if (v.length >= 12)         score++;
-  if (!v) {
-    strengthBadge.textContent = '—'; strengthBadge.className = 'val-badge';
-    strengthBar.style.width = '0'; strengthBar.style.background = '';
-  } else if (score <= 1) {
-    strengthBadge.textContent = 'Weak';   strengthBadge.className = 'val-badge weak';
-    strengthBar.style.width = '33%';  strengthBar.style.background = '#dc2626';
-  } else if (score <= 3) {
-    strengthBadge.textContent = 'Medium'; strengthBadge.className = 'val-badge medium';
-    strengthBar.style.width = '66%';  strengthBar.style.background = '#b45309';
-  } else {
-    strengthBadge.textContent = 'Strong'; strengthBadge.className = 'val-badge strong';
-    strengthBar.style.width = '100%'; strengthBar.style.background = '#16a34a';
+  async function copyLink() {
+    if (!generatedLink) return;
+    try {
+      await navigator.clipboard.writeText(generatedLink);
+      const btn = document.getElementById('copy-btn');
+      btn.classList.add('copied');
+      btn.textContent = 'Copied!';
+      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy link'; }, 2500);
+    } catch { window.prompt('Copy link:', generatedLink); }
   }
-  checkMatch();
-});
 
-confirmInput.addEventListener('input', checkMatch);
-
-function checkMatch() {
-  const a = pwdInput.value, b = confirmInput.value;
-  if (!a || !b)   { matchBadge.textContent = '—';       matchBadge.className = 'val-badge'; }
-  else if (a===b) { matchBadge.textContent = 'Matched';  matchBadge.className = 'val-badge matched'; }
-  else            { matchBadge.textContent = 'Mismatch'; matchBadge.className = 'val-badge miss'; }
-  updateBtn();
-}
-
-function updateBtn() {
-  protectBtn.disabled = !(currentFileBytes && pyodideInstance && pwdInput.value && pwdInput.value === confirmInput.value);
-}
-
-// ── EYE TOGGLES ──
-document.getElementById('toggle-pwd').addEventListener('click', () => {
-  pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
-});
-document.getElementById('toggle-confirm').addEventListener('click', () => {
-  confirmInput.type = confirmInput.type === 'password' ? 'text' : 'password';
-});
-
-// ── ENCRYPT ──
-protectBtn.addEventListener('click', async () => {
-  if (!currentFileBytes || !pyodideInstance || pwdInput.value !== confirmInput.value) return;
-  pageOverlay.classList.add('visible');
-  try {
-    pyodideInstance.globals.set('raw_bytes', currentFileBytes);
-    pyodideInstance.globals.set('user_pass', pwdInput.value);
-    const pyResult = await pyodideInstance.runPythonAsync(`
-import io
-from pypdf import PdfReader, PdfWriter
-
-reader = PdfReader(io.BytesIO(raw_bytes.to_py()))
-writer = PdfWriter()
-
-for page in reader.pages:
-    writer.add_page(page)
-
-writer.encrypt(user_pass)
-
-out = io.BytesIO()
-writer.write(out)
-out.getvalue()
-`);
-    const bytes = pyResult.toJs();
-    pyResult.destroy();
-    const blob = new Blob([bytes], { type: 'application/pdf' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href = url; a.download = 'protected_' + currentFileName; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 15000);
-    successBar.classList.add('visible');
-  } catch(err) {
-    console.error(err);
-    alert('Encryption failed. Please try again.');
-  } finally {
-    pageOverlay.classList.remove('visible');
+  function resetCompose() {
+    msgInput.value = '';
+    charCount.textContent = '0 / 50,000';
+    composeError.textContent = '';
+    resultCard.style.display = 'none';
+    generatedLink = '';
+    msgInput.focus();
   }
-});
 
-// ── HELPERS ──
-function formatSize(bytes) {
-  if (bytes < 1024)    return bytes + ' B';
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
-  return (bytes / 1048576).toFixed(2) + ' MB';
-}
+  async function revealMessage() {
+    const hash = window.location.hash.substring(1);
+    const parts = hash.split('.');
+    if (parts.length < 2) { showState('invalid'); return; }
+    const [id, keyB64] = parts;
+
+    const btn = document.getElementById('reveal-btn');
+    btn.disabled = true;
+    btn.innerHTML = `<div class="spinner"></div> Burning globally...`;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('messages')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) { showState('invalid'); return; }
+      if (data.is_burned) { showState('burned'); return; }
+
+      const now = Math.floor(Date.now() / 1000);
+      const age = now - data.created_at;
+      if (data.expiry_mode === '1h' && age > 3600) { showState('expired'); return; }
+      if (data.expiry_mode === '24h' && age > 86400) { showState('expired'); return; }
+
+      // ATOMIC GLOBAL BURN IN SUPABASE DATABASE
+      const { error: updateError } = await supabaseClient
+        .from('messages')
+        .update({ is_burned: true })
+        .eq('id', id)
+        .eq('is_burned', false);
+
+      if (updateError) { showState('burned'); return; }
+
+      const key = await importKey(keyB64);
+      const plaintext = await decryptMessage(data.iv, data.ciphertext, key);
+
+      document.getElementById('decrypted-text').textContent = plaintext;
+      document.getElementById('decrypted-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      document.getElementById('state-ready').style.display = 'none';
+      document.getElementById('state-decrypted').style.display = 'flex';
+      window.history.replaceState(null, '', window.location.pathname);
+    } catch (err) {
+      console.error(err);
+      showState('invalid');
+    }
+  }
+
+  function showState(name) {
+    ['ready','decrypted','burned','invalid','expired'].forEach(s => {
+      const el = document.getElementById('state-' + s);
+      if (el) el.style.display = s === name ? 'flex' : 'none';
+    });
+  }
+
+  function goHome() {
+    window.history.replaceState(null, '', window.location.pathname);
+    document.getElementById('view-compose').classList.add('active');
+    document.getElementById('view-reveal').classList.remove('active');
+    resetCompose();
+  }
+
+  // Anti-screenshot & Hold-to-view protections
+  const holdOverlay = document.getElementById('hold-overlay');
+  const decText = document.getElementById('decrypted-text');
+
+  function showProtected(e) {
+    if (e && e.type !== 'touchstart') e.preventDefault();
+    holdOverlay.style.opacity = '0';
+    holdOverlay.style.pointerEvents = 'none';
+    decText.classList.remove('hidden-protect');
+  }
+  function hideProtected() {
+    holdOverlay.style.opacity = '1';
+    holdOverlay.style.pointerEvents = 'auto';
+    decText.classList.add('hidden-protect');
+  }
+
+  if (holdOverlay) {
+    holdOverlay.addEventListener('mousedown', showProtected);
+    holdOverlay.addEventListener('touchstart', showProtected, { passive: false });
+  }
+  window.addEventListener('mouseup', hideProtected);
+  window.addEventListener('touchend', hideProtected);
+  window.addEventListener('blur', hideProtected);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) hideProtected(); });
+
+  // Init router
+  (async function init() {
+    const hash = window.location.hash;
+    if (!hash || hash === '#') return;
+
+    document.getElementById('view-compose').classList.remove('active');
+    document.getElementById('view-reveal').classList.add('active');
+    showState('ready');
+  })();
 </script>
 </body>
 </html>
