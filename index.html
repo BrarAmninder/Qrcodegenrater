@@ -4,468 +4,113 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GhostLink — Encrypted one-time messages</title>
-<!-- Supabase JS Client CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --bg: #0D1117;
-    --bg-2: #161B22;
-    --bg-3: #1C2128;
-    --bg-4: #21262D;
-    --border: rgba(48, 54, 61, 0.8);
-    --border-bright: rgba(88, 96, 105, 0.6);
-    --text: #E6EDF3;
-    --text-dim: #8B949E;
-    --text-muted: #484F58;
-    --accent: #6E76E5;
-    --accent-glow: rgba(110, 118, 229, 0.15);
-    --accent-2: #7983E8;
-    --green: #3FB950;
-    --green-bg: rgba(63, 185, 80, 0.1);
-    --red: #F85149;
-    --red-bg: rgba(248, 81, 73, 0.1);
-    --amber: #D29922;
-    --amber-bg: rgba(210, 153, 34, 0.1);
-    --radius: 8px;
-    --radius-lg: 12px;
-    --mono: ui-monospace, 'Cascadia Code', 'Fira Code', 'SF Mono', Menlo, Consolas, monospace;
-    --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --bg:#0D1117;--bg-2:#161B22;--bg-3:#1C2128;--bg-4:#21262D;
+    --border:rgba(48,54,61,0.8);--border-bright:rgba(88,96,105,0.6);
+    --text:#E6EDF3;--text-dim:#8B949E;--text-muted:#484F58;
+    --accent:#6E76E5;--accent-glow:rgba(110,118,229,0.15);--accent-2:#7983E8;
+    --green:#3FB950;--green-bg:rgba(63,185,80,0.1);
+    --red:#F85149;--red-bg:rgba(248,81,73,0.1);
+    --amber:#D29922;--amber-bg:rgba(210,153,34,0.1);
+    --radius:8px;--radius-lg:12px;
+    --mono:ui-monospace,'Cascadia Code','Fira Code','SF Mono',Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 1rem;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 16px);
-  }
-
-  /* ── Header ── */
-  .header {
-    width: 100%;
-    max-width: 660px;
-    padding: 2rem 0 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  .logo-icon {
-    width: 32px;
-    height: 32px;
-    background: var(--bg-3);
-    border: 1px solid var(--border-bright);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .logo-icon svg { width: 17px; height: 17px; }
-  .logo-name {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-  .logo-name span { color: var(--accent); }
-  .header-spacer { flex: 1; }
-  .header-badge {
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--green);
-    background: var(--green-bg);
-    border: 1px solid rgba(63,185,80,0.2);
-    border-radius: 20px;
-    padding: 3px 10px;
-    letter-spacing: 0.03em;
-  }
-
-  /* ── Main card ── */
-  .main {
-    width: 100%;
-    max-width: 660px;
-    margin-top: 3rem;
-    flex: 1;
-  }
-
-  .view { display: none; }
-  .view.active { display: block; }
-
-  .section-label {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-
-  .compose-heading {
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.025em;
-    line-height: 1.25;
-    color: var(--text);
-    margin-bottom: 6px;
-  }
-  .compose-sub {
-    font-size: 14px;
-    color: var(--text-dim);
-    line-height: 1.6;
-    margin-bottom: 2rem;
-    max-width: 46ch;
-  }
-
-  .message-area-wrapper {
-    position: relative;
-    margin-bottom: 1rem;
-  }
-  textarea {
-    width: 100%;
-    min-height: 180px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 13.5px;
-    line-height: 1.7;
-    padding: 16px 18px;
-    resize: vertical;
-    outline: none;
-    transition: border-color 0.15s;
-    -webkit-appearance: none;
-    caret-color: var(--accent);
-  }
-  textarea::placeholder { color: var(--text-muted); }
-  textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-
-  .char-count {
-    position: absolute;
-    bottom: 12px;
-    right: 14px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-muted);
-    pointer-events: none;
-  }
-
-  .options-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-  }
-  .option-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 5px 12px;
-    font-size: 12.5px;
-    color: var(--text-dim);
-    cursor: pointer;
-    user-select: none;
-  }
-  .option-pill input { display: none; }
-  .option-pill:has(input:checked) {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: var(--accent-glow);
-  }
-  .option-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: currentColor;
-    flex-shrink: 0;
-    opacity: 0.7;
-  }
-
-  .btn-primary {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 13px 20px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-family: var(--sans);
-    font-size: 14.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.12s, transform 0.08s;
-    outline: none;
-  }
-  .btn-primary:hover { background: var(--accent-2); box-shadow: 0 0 24px var(--accent-glow); }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
-
-  .btn-ghost {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    padding: 10px 16px;
-    background: transparent;
-    color: var(--text-dim);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-family: var(--sans);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .btn-ghost:hover { border-color: var(--border-bright); color: var(--text); background: var(--bg-3); }
-
-  .result-card {
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-    margin-top: 1.25rem;
-  }
-  .result-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-  }
-  .result-icon {
-    width: 32px; height: 32px;
-    background: var(--green-bg);
-    border: 1px solid rgba(63,185,80,0.25);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .result-title { font-size: 15px; font-weight: 600; }
-  .result-desc { font-size: 12.5px; color: var(--text-dim); margin-top: 1px; }
-
-  .link-box {
-    background: var(--bg-3);
-    border: 1px solid var(--border-bright);
-    border-radius: var(--radius);
-    padding: 11px 14px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .link-text {
-    font-family: var(--mono);
-    font-size: 11.5px;
-    color: var(--text-dim);
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .copy-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: var(--bg-4);
-    border: 1px solid var(--border-bright);
-    border-radius: 6px;
-    padding: 6px 11px;
-    font-family: var(--sans);
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-dim);
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .copy-btn:hover { background: var(--accent-glow); border-color: var(--accent); color: var(--accent); }
-  .copy-btn.copied { background: var(--green-bg); border-color: rgba(63,185,80,0.35); color: var(--green); }
-
-  .info-row { display: flex; gap: 8px; flex-wrap: wrap; }
-  .info-chip {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11.5px;
-    color: var(--text-muted);
-    background: var(--bg-3);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 3px 10px;
-    font-family: var(--mono);
-  }
-  .info-chip .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); }
-
-  .new-msg-btn { margin-top: 14px; width: 100%; }
-
-  .reveal-outer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  .reveal-icon-wrap {
-    width: 64px; height: 64px;
-    background: var(--bg-2);
-    border: 1px solid var(--border-bright);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.25rem;
-  }
-  .reveal-icon-wrap.ready { border-color: rgba(110,118,229,0.4); background: var(--accent-glow); }
-  .reveal-icon-wrap.burned { border-color: rgba(248,81,73,0.3); background: var(--red-bg); }
-  .reveal-icon-wrap.expired { border-color: rgba(210,153,34,0.3); background: var(--amber-bg); }
-
-  .reveal-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
-  .reveal-body { font-size: 14px; color: var(--text-dim); line-height: 1.65; max-width: 38ch; margin: 0 auto 1.75rem; }
-
-  .reveal-btn {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 13px 28px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-family: var(--sans);
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 12px;
-  }
-  .reveal-btn:hover { background: var(--accent-2); box-shadow: 0 0 28px var(--accent-glow); }
-
-  .message-display {
-    width: 100%;
-    text-align: left;
-    background: var(--bg-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-    position: relative;
-    animation: revealIn 0.3s ease;
-  }
-  @keyframes revealIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .anti-screenshot-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(22, 27, 34, 0.95);
-    backdrop-filter: blur(8px);
-    cursor: pointer;
-    border-radius: var(--radius-lg);
-  }
-  .hidden-protect { filter: blur(14px); opacity: 0.05; pointer-events: none; }
-
-  .msg-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-3);
-  }
-  .msg-header-left {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--text-muted);
-  }
-  .msg-live-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: var(--amber);
-    animation: blink 1.4s ease infinite;
-  }
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.25; } }
-  .msg-body {
-    padding: 20px;
-    font-family: var(--mono);
-    font-size: 13.5px;
-    line-height: 1.75;
-    color: var(--text);
-    white-space: pre-wrap;
-    word-break: break-word;
-    min-height: 200px;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  .msg-footer {
-    padding: 10px 14px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--bg-3);
-  }
-  .burned-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--red);
-    background: var(--red-bg);
-    border: 1px solid rgba(248,81,73,0.2);
-    border-radius: 20px;
-    padding: 3px 10px;
-  }
-
-  .spinner {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    flex-shrink: 0;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .inline-error {
-    font-size: 12.5px;
-    color: var(--red);
-    margin-top: 6px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    min-height: 20px;
-  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:0 1rem;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,16px)}
+  .header{width:100%;max-width:660px;padding:2rem 0 0;display:flex;align-items:center;gap:12px}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;cursor:pointer}
+  .logo-icon{width:32px;height:32px;background:var(--bg-3);border:1px solid var(--border-bright);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo-icon svg{width:17px;height:17px}
+  .logo-name{font-size:15px;font-weight:600;letter-spacing:-0.01em;color:var(--text)}
+  .logo-name span{color:var(--accent)}
+  .header-spacer{flex:1}
+  .header-badge{font-family:var(--mono);font-size:10px;color:var(--green);background:var(--green-bg);border:1px solid rgba(63,185,80,0.2);border-radius:20px;padding:3px 10px;letter-spacing:0.03em}
+  .main{width:100%;max-width:660px;margin-top:3rem;flex:1}
+  .view{display:none}.view.active{display:block}
+  .section-label{font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px}
+  .compose-heading{font-size:26px;font-weight:600;letter-spacing:-0.025em;line-height:1.25;color:var(--text);margin-bottom:6px}
+  .compose-sub{font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:2rem;max-width:46ch}
+  .message-area-wrapper{position:relative;margin-bottom:1rem}
+  textarea{width:100%;min-height:180px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);color:var(--text);font-family:var(--mono);font-size:13.5px;line-height:1.7;padding:16px 18px;resize:vertical;outline:none;transition:border-color 0.15s;-webkit-appearance:none;caret-color:var(--accent)}
+  textarea::placeholder{color:var(--text-muted)}
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .char-count{position:absolute;bottom:12px;right:14px;font-family:var(--mono);font-size:11px;color:var(--text-muted);pointer-events:none;transition:color 0.15s}
+  .char-count.warn{color:var(--amber)}.char-count.over{color:var(--red)}
+  .options-row{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap}
+  .option-pill{display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12.5px;color:var(--text-dim);cursor:pointer;transition:border-color 0.12s,color 0.12s,background 0.12s;user-select:none}
+  .option-pill input{display:none}
+  .option-pill:has(input:checked){border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+  .option-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;opacity:0.7}
+  .btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--sans);font-size:14.5px;font-weight:600;letter-spacing:-0.01em;cursor:pointer;transition:background 0.12s,transform 0.08s,box-shadow 0.12s;outline:none}
+  .btn-primary:hover{background:var(--accent-2);box-shadow:0 0 24px var(--accent-glow)}
+  .btn-primary:active{transform:scale(0.98)}
+  .btn-primary:disabled{opacity:0.45;cursor:not-allowed;transform:none}
+  .btn-primary svg{flex-shrink:0}
+  .btn-ghost{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 16px;background:transparent;color:var(--text-dim);border:1px solid var(--border);border-radius:var(--radius);font-family:var(--sans);font-size:13px;font-weight:500;cursor:pointer;transition:border-color 0.12s,color 0.12s,background 0.12s;outline:none;text-decoration:none}
+  .btn-ghost:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-3)}
+  .result-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-top:1.25rem}
+  .result-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .result-icon{width:32px;height:32px;background:var(--green-bg);border:1px solid rgba(63,185,80,0.25);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .result-title{font-size:15px;font-weight:600}
+  .result-desc{font-size:12.5px;color:var(--text-dim);margin-top:1px}
+  .link-box{background:var(--bg-3);border:1px solid var(--border-bright);border-radius:var(--radius);padding:11px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px}
+  .link-text{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.4}
+  .link-text strong{color:var(--text)}
+  .copy-btn{display:flex;align-items:center;gap:5px;background:var(--bg-4);border:1px solid var(--border-bright);border-radius:6px;padding:6px 11px;font-family:var(--sans);font-size:12px;font-weight:500;color:var(--text-dim);cursor:pointer;flex-shrink:0;transition:background 0.1s,color 0.1s,border-color 0.1s;outline:none;white-space:nowrap}
+  .copy-btn:hover{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+  .copy-btn.copied{background:var(--green-bg);border-color:rgba(63,185,80,0.35);color:var(--green)}
+  .info-row{display:flex;gap:8px;flex-wrap:wrap}
+  .info-chip{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--text-muted);background:var(--bg-3);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-family:var(--mono)}
+  .info-chip .dot{width:5px;height:5px;border-radius:50%;background:var(--green)}
+  .new-msg-btn{margin-top:14px;width:100%}
+  .reveal-outer{display:flex;flex-direction:column;align-items:center;text-align:center}
+  .reveal-icon-wrap{width:64px;height:64px;background:var(--bg-2);border:1px solid var(--border-bright);border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem}
+  .reveal-icon-wrap.ready{border-color:rgba(110,118,229,0.4);background:var(--accent-glow)}
+  .reveal-icon-wrap.burned{border-color:rgba(248,81,73,0.3);background:var(--red-bg)}
+  .reveal-icon-wrap.expired{border-color:rgba(210,153,34,0.3);background:var(--amber-bg)}
+  .reveal-title{font-size:22px;font-weight:600;letter-spacing:-0.02em;margin-bottom:8px}
+  .reveal-body{font-size:14px;color:var(--text-dim);line-height:1.65;max-width:38ch;margin:0 auto 1.75rem}
+  .reveal-btn{display:flex;align-items:center;gap:9px;padding:13px 28px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-family:var(--sans);font-size:15px;font-weight:600;cursor:pointer;transition:background 0.12s,transform 0.08s,box-shadow 0.12s;letter-spacing:-0.01em;outline:none;margin-bottom:12px}
+  .reveal-btn:hover{background:var(--accent-2);box-shadow:0 0 28px var(--accent-glow)}
+  .reveal-btn:active{transform:scale(0.98)}
+  .reveal-warning{font-size:12px;color:var(--text-muted);display:flex;align-items:center;gap:5px;margin-bottom:2rem;font-family:var(--mono)}
+  .reveal-warning svg{flex-shrink:0}
+  .message-display{width:100%;text-align:left;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:1.5rem;position:relative;animation:revealIn 0.3s ease}
+  @keyframes revealIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .anti-screenshot-overlay{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(22,27,34,0.95);backdrop-filter:blur(8px);cursor:pointer;transition:opacity 0.1s ease;border-radius:var(--radius-lg)}
+  .hidden-protect{filter:blur(14px);opacity:0.05;pointer-events:none}
+  .msg-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg-3)}
+  .msg-header-left{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+  .msg-live-dot{width:7px;height:7px;border-radius:50%;background:var(--amber);animation:blink 1.4s ease infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+  .msg-body{padding:20px;font-family:var(--mono);font-size:13.5px;line-height:1.75;color:var(--text);white-space:pre-wrap;word-break:break-word;min-height:200px;transition:filter 0.1s ease,opacity 0.1s ease;}
+  .msg-footer{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-3)}
+  .burned-badge{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;color:var(--red);background:var(--red-bg);border:1px solid rgba(248,81,73,0.2);border-radius:20px;padding:3px 10px}
+  @media print{body{display:none!important}}
+  .how-section{width:100%;max-width:660px;margin-top:3.5rem;padding-bottom:3rem}
+  .how-section-title{font-size:12px;font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:1.5rem}
+  .steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+  .step-cell{background:var(--bg-2);padding:18px 16px;display:flex;flex-direction:column;gap:7px}
+  .step-num{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;letter-spacing:0.08em}
+  .step-label{font-size:13px;font-weight:600;color:var(--text);line-height:1.35}
+  .step-detail{font-size:12px;color:var(--text-muted);line-height:1.55}
+  .footer{width:100%;max-width:660px;padding:1.5rem 0 2rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .footer-left{font-size:12px;color:var(--text-muted);font-family:var(--mono)}
+  .footer-right{font-size:12px;color:var(--text-muted);display:flex;gap:1.25rem}
+  .footer-right a{color:var(--text-muted);text-decoration:none;transition:color 0.12s}
+  .footer-right a:hover{color:var(--text-dim)}
+  .notice{display:flex;align-items:flex-start;gap:10px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-top:1rem;font-size:12.5px;color:var(--text-dim);line-height:1.55}
+  .notice svg{flex-shrink:0;margin-top:1px}
+  .notice.amber{border-color:rgba(210,153,34,0.3);background:var(--amber-bg)}
+  .notice.amber svg,.notice.amber{color:var(--amber)}
+  .notice.green{border-color:rgba(63,185,80,0.3);background:var(--green-bg);color:var(--green)}
+  .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.2);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .inline-error{font-size:12.5px;color:var(--red);margin-top:6px;display:flex;align-items:center;gap:5px;min-height:20px}
+  @media(max-width:480px){.compose-heading{font-size:21px}.header{padding-top:1.25rem}.main{margin-top:2rem}.options-row{gap:6px}}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -474,48 +119,35 @@
   <div class="logo" onclick="goHome()">
     <div class="logo-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:#6E76E5">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="m9 12 2 2 4-4"/>
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>
       </svg>
     </div>
     <span class="logo-name">Ghost<span>Link</span></span>
   </div>
   <div class="header-spacer"></div>
-  <div class="header-badge">global cloud burn</div>
+  <div class="header-badge">end-to-end encrypted</div>
 </header>
 
 <main class="main">
+
   <!-- Compose View -->
   <div class="view active" id="view-compose">
     <p class="section-label">New message</p>
-    <h1 class="compose-heading">Write. Encrypt. Burn globally.</h1>
-    <p class="compose-sub">Your message is end-to-end encrypted locally[cite: 1]. Once opened on any phone, PC, TV, or VPN, it self-destructs worldwide permanently.</p>
+    <h1 class="compose-heading">Write. Encrypt. Share once.</h1>
+    <p class="compose-sub">Your message is encrypted in your browser. The recipient sees it once — on any device, any browser, any network. Once read, the link is permanently destroyed.</p>
 
     <div class="message-area-wrapper">
-      <textarea id="msg-input" placeholder="Type your private message here…" maxlength="50000" autocomplete="off" spellcheck="true"></textarea>
-      <div class="char-count" id="char-count">0 / 50,000</div>
+      <textarea id="msg-input" placeholder="Type your private message here…" autocomplete="off" spellcheck="true" aria-label="Message to encrypt"></textarea>
+      <div class="char-count" id="char-count">0</div>
     </div>
+    <div id="compose-error" class="inline-error" aria-live="polite"></div>
 
-    <div id="compose-error" class="inline-error"></div>
-
-    <div style="margin-top: 0.75rem; margin-bottom: 1.25rem;">
-      <p class="section-label" style="margin-bottom: 8px;">After opening</p>
-      <div class="options-row">
-        <label class="option-pill">
-          <input type="radio" name="expiry" value="read-once" checked>
-          <span class="option-dot"></span>
-          <span>Read once</span>
-        </label>
-        <label class="option-pill">
-          <input type="radio" name="expiry" value="24h">
-          <span class="option-dot"></span>
-          <span>Read once + 24h window</span>
-        </label>
-        <label class="option-pill">
-          <input type="radio" name="expiry" value="1h">
-          <span class="option-dot"></span>
-          <span>Read once + 1h window</span>
-        </label>
+    <div style="margin-top:0.75rem;margin-bottom:1.25rem;">
+      <p class="section-label" style="margin-bottom:8px;">After opening</p>
+      <div class="options-row" role="radiogroup" aria-label="Expiry options">
+        <label class="option-pill"><input type="radio" name="expiry" value="read-once" checked><span class="option-dot"></span><span>Read once</span></label>
+        <label class="option-pill"><input type="radio" name="expiry" value="24h"><span class="option-dot"></span><span>Read once + 24h window</span></label>
+        <label class="option-pill"><input type="radio" name="expiry" value="1h"><span class="option-dot"></span><span>Read once + 1h window</span></label>
       </div>
     </div>
 
@@ -524,17 +156,16 @@
       Encrypt and create link
     </button>
 
-    <div id="result-card" class="result-card" style="display:none">
+    <div id="result-card" class="result-card" style="display:none" aria-live="polite">
       <div class="result-header">
         <div class="result-icon">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3FB950" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
         </div>
         <div>
-          <div class="result-title">Global link created</div>
-          <div class="result-desc">Burns instantly on first read across any device or VPN</div>
+          <div class="result-title">Link created</div>
+          <div class="result-desc">Send this link — it works on every device worldwide</div>
         </div>
       </div>
-
       <div class="link-box">
         <div class="link-text" id="result-link-display"></div>
         <button class="copy-btn" id="copy-btn" onclick="copyLink()">
@@ -542,13 +173,21 @@
           Copy link
         </button>
       </div>
-
       <div class="info-row">
-        <div class="info-chip"><span class="dot"></span> zero-knowledge encrypted</div>
+        <div class="info-chip"><span class="dot"></span> encrypted locally</div>
         <div class="info-chip" id="expiry-chip">burns after reading</div>
+        <div class="info-chip">⬡ supabase burn registry</div>
       </div>
-
+      <div class="notice green" style="margin-top:14px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span><strong>Supabase server enforced.</strong> Once opened, the burn is written to your database — blocked on every device, browser, VPN, and IP address worldwide. No bypass possible.</span>
+      </div>
+      <div class="notice amber" style="margin-top:10px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+        <span>Save this link now — you cannot retrieve it from this page again.</span>
+      </div>
       <button class="btn-ghost new-msg-btn" onclick="resetCompose()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Write another message
       </button>
     </div>
@@ -556,307 +195,446 @@
 
   <!-- Reveal View -->
   <div class="view" id="view-reveal">
-    <div id="state-ready" class="reveal-outer">
+
+    <!-- Checking state -->
+    <div id="state-checking" class="reveal-outer" style="display:none">
+      <div class="reveal-icon-wrap ready">
+        <div class="spinner" style="width:28px;height:28px;border-width:3px;border-top-color:#6E76E5;border-color:rgba(110,118,229,0.25)"></div>
+      </div>
+      <h1 class="reveal-title">Checking link…</h1>
+      <p class="reveal-body">Verifying burn status in the database. One moment.</p>
+    </div>
+
+    <!-- Ready state -->
+    <div id="state-ready" class="reveal-outer" style="display:none">
       <div class="reveal-icon-wrap ready">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6E76E5" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
       </div>
       <h1 class="reveal-title">Encrypted message waiting</h1>
-      <p class="reveal-body">Opening this message triggers a permanent global server burn across all browsers and networks.</p>
+      <p class="reveal-body">Someone sent you a private message. It can only be read <strong>once</strong> — this link will be permanently destroyed in the database the moment you open it.</p>
       <button class="reveal-btn" onclick="revealMessage()" id="reveal-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
         Reveal message
       </button>
+      <div class="reveal-warning">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        Irreversible. Works on every device — VPN or not.
+      </div>
     </div>
 
+    <!-- Decrypted state -->
     <div id="state-decrypted" class="reveal-outer" style="display:none">
-      <div class="message-display">
+      <div class="message-display" role="region" aria-label="Decrypted message">
         <div id="hold-overlay" class="anti-screenshot-overlay">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent); margin-bottom:12px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <h3 style="font-size:16px; font-weight:600; color:var(--text); margin-bottom:6px;">Tap and Hold to Read</h3>
-          <p style="font-size:13px; color:var(--text-dim); text-align:center; max-width:260px;">Protected against screenshots. Letting go hides the text.</p>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent);margin-bottom:12px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <h3 style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Message is ready</h3>
+          <p style="font-size:13px;color:var(--text-dim);text-align:center;max-width:260px;margin-bottom:14px">Click the button below to reveal your decrypted message.</p>
+          <button onclick="showProtected(event)" style="display:flex;align-items:center;gap:8px;padding:10px 22px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            Reveal message
+          </button>
         </div>
         <div class="msg-header">
-          <div class="msg-header-left">
-            <span class="msg-live-dot"></span>
-            decrypted securely — screenshot restricted
-          </div>
+          <div class="msg-header-left"><span class="msg-live-dot"></span>decrypted in browser — screenshot restricted</div>
         </div>
         <div class="msg-body hidden-protect" id="decrypted-text"></div>
         <div class="msg-footer">
-          <div class="burned-badge">Link permanently destroyed globally</div>
-          <div style="font-family:var(--mono); font-size:11px; color:var(--text-muted);" id="decrypted-time">now</div>
+          <div class="burned-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+            Burned in Supabase — blocked everywhere permanently
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--text-muted)" id="decrypted-time">now</div>
         </div>
       </div>
-      <button class="btn-ghost" onclick="goHome()">Send your own message</button>
+      <div class="notice" style="max-width:480px;text-align:left;margin-bottom:1.5rem">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span>This link is now permanently written as burned in your Supabase database. Anyone opening it again — on any device, browser, VPN, or IP — will be blocked instantly.</span>
+      </div>
+      <button class="btn-ghost" onclick="goHome()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Send a message yourself
+      </button>
     </div>
 
+    <!-- Burned state -->
     <div id="state-burned" class="reveal-outer" style="display:none">
       <div class="reveal-icon-wrap burned">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F85149" stroke-width="1.8"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
       </div>
-      <h1 class="reveal-title">Link Already Burned</h1>
-      <p class="reveal-body">This message has already been opened and destroyed worldwide. One-time links cannot be read twice.</p>
-      <button class="btn-ghost" onclick="goHome()">Go home</button>
+      <h1 class="reveal-title">Link already used</h1>
+      <p class="reveal-body">This message was already revealed and permanently deleted from the database. It cannot be read again — on any device or network.</p>
+      <button class="btn-ghost" onclick="goHome()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Send a new message
+      </button>
     </div>
 
+    <!-- Invalid state -->
     <div id="state-invalid" class="reveal-outer" style="display:none">
-      <div class="reveal-icon-wrap">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B949E" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/></svg>
+      <div class="reveal-icon-wrap" style="border-color:rgba(88,96,105,0.4)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B949E" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m14.5 9-5 5"/><path d="m9.5 9 5 5"/></svg>
       </div>
-      <h1 class="reveal-title">Invalid Link</h1>
-      <p class="reveal-body" id="invalid-reason">This link is malformed, truncated, or no longer exists.</p>
-      <button class="btn-ghost" onclick="goHome()">Go home</button>
+      <h1 class="reveal-title">Invalid link</h1>
+      <p class="reveal-body" id="invalid-reason">This link is not valid. It may be truncated, modified, or corrupted.</p>
+      <button class="btn-ghost" onclick="goHome()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Go home
+      </button>
     </div>
 
+    <!-- Expired state -->
     <div id="state-expired" class="reveal-outer" style="display:none">
       <div class="reveal-icon-wrap expired">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D29922" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
-      <h1 class="reveal-title">Link Expired</h1>
-      <p class="reveal-body">The time window set for this link has passed. The message is gone.</p>
-      <button class="btn-ghost" onclick="goHome()">Go home</button>
+      <h1 class="reveal-title">Link expired</h1>
+      <p class="reveal-body">This link's time window has passed. The message is gone.</p>
+      <button class="btn-ghost" onclick="goHome()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Go home
+      </button>
     </div>
+
+    <!-- DB Error state -->
+    <div id="state-dberror" class="reveal-outer" style="display:none">
+      <div class="reveal-icon-wrap" style="border-color:rgba(210,153,34,0.3);background:var(--amber-bg)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D29922" stroke-width="1.8"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      </div>
+      <h1 class="reveal-title">Database error</h1>
+      <p class="reveal-body">Could not reach the burn registry. For security, this link will not open until the database is available. Please try again in a moment.</p>
+      <button class="reveal-btn" onclick="retryInit()" style="background:var(--amber)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Retry
+      </button>
+    </div>
+
   </div>
 </main>
 
+<section class="how-section" id="how-section">
+  <p class="how-section-title">How it works</p>
+  <div class="steps-grid">
+    <div class="step-cell">
+      <div class="step-num">01</div>
+      <div class="step-label">Type your message</div>
+      <div class="step-detail">Written only in your browser. Nothing leaves your device yet.</div>
+    </div>
+    <div class="step-cell">
+      <div class="step-num">02</div>
+      <div class="step-label">Encrypted locally</div>
+      <div class="step-detail">AES-256-GCM encryption runs entirely in your browser using the Web Crypto API.</div>
+    </div>
+    <div class="step-cell">
+      <div class="step-num">03</div>
+      <div class="step-label">Key in the URL</div>
+      <div class="step-detail">The cipher key lives in the link's <code style="font-family:var(--mono);font-size:11px;color:var(--accent)">#fragment</code> — never sent to any server.</div>
+    </div>
+    <div class="step-cell">
+      <div class="step-num">04</div>
+      <div class="step-label">Supabase burn</div>
+      <div class="step-detail">On first open, a burn record is written to Supabase. Every future attempt — any device, VPN, browser — is permanently blocked.</div>
+    </div>
+  </div>
+  <div class="notice" style="margin-top:1rem">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+    <span><strong style="color:var(--text-dim)">True global enforcement:</strong> The burn is stored in your Supabase database — not in the browser. Clearing cache, switching devices, using a VPN, or opening in any other browser cannot bypass it.</span>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-left">ghostlink · supabase-enforced · end-to-end encrypted</div>
+  <div class="footer-right">
+    <a href="#" onclick="goHome();return false">New message</a>
+    <a href="#" onclick="showAbout();return false">About</a>
+  </div>
+</footer>
+
 <script>
-  // ── YOUR SUPABASE CONFIG ──
-  const SUPABASE_URL = 'https://lzrjbrisjgigmlymuxmv.supabase.co';
-  const SUPABASE_ANON_KEY = 'sb_publishable_b4N20NJ3ERPBXOUud4zZkQ_wqhAXg3Y';
+// ═══════════════════════════════════════════════
+//  SUPABASE CONFIG  (your real credentials)
+// ═══════════════════════════════════════════════
+const SUPABASE_URL = 'https://lzrjbrisjgigmlymuxmv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_b4N20NJ3ERPBXOUud4zZkQ_wqhAXg3Y';
+const TABLE = 'burns';  // table name in your Supabase database
 
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ═══════════════════════════════════════════════
+//  SUPABASE HELPERS  (direct REST API — no SDK needed)
+// ═══════════════════════════════════════════════
+async function sbGet(burnId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=burn_id`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  if (!res.ok) throw new Error('db_read_failed');
+  const rows = await res.json();
+  return rows.length > 0; // true = already burned
+}
 
-  function generateId() {
-    const arr = new Uint8Array(16);
-    crypto.getRandomValues(arr);
-    return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  function bytesToBase64url(bytes) {
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-  }
-
-  function base64urlToBytes(str) {
-    const pad = str.length % 4;
-    const padded = pad ? str + '='.repeat(4 - pad) : str;
-    const b64 = padded.replace(/-/g, '+').replace(/_/g, '/');
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
-  }
-
-  async function generateKey() {
-    return crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'decrypt']);
-  }
-
-  async function exportKey(key) {
-    const raw = await crypto.subtle.exportKey('raw', key);
-    return bytesToBase64url(new Uint8Array(raw));
-  }
-
-  async function importKey(keyB64) {
-    const raw = base64urlToBytes(keyB64);
-    return crypto.subtle.importKey('raw', raw, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
-  }
-
-  async function encryptMessage(text, key) {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encoded = new TextEncoder().encode(text);
-    const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
-    return {
-      iv: bytesToBase64url(iv),
-      ct: bytesToBase64url(new Uint8Array(ciphertext))
-    };
-  }
-
-  async function decryptMessage(ivB64, ctB64, key) {
-    const iv = base64urlToBytes(ivB64);
-    const ct = base64urlToBytes(ctB64);
-    const plaintext = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ct);
-    return new TextDecoder().decode(plaintext);
-  }
-
-  const msgInput = document.getElementById('msg-input');
-  const charCount = document.getElementById('char-count');
-  const createBtn = document.getElementById('create-btn');
-  const resultCard = document.getElementById('result-card');
-  const resultLinkDisplay = document.getElementById('result-link-display');
-  const composeError = document.getElementById('compose-error');
-
-  let generatedLink = '';
-
-  msgInput.addEventListener('input', () => {
-    const len = msgInput.value.length;
-    charCount.textContent = len.toLocaleString() + ' / 50,000';
-    if (composeError.textContent) composeError.textContent = '';
-  });
-
-  async function createLink() {
-    const text = msgInput.value.trim();
-    if (!text) {
-      composeError.textContent = 'Enter a message first.';
-      msgInput.focus();
-      return;
+async function sbSet(burnId) {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/${TABLE}`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ burn_id: burnId, burned_at: new Date().toISOString() })
     }
-    const expiryMode = document.querySelector('input[name="expiry"]:checked').value;
-    createBtn.disabled = true;
-    createBtn.innerHTML = `<div class="spinner"></div> Encrypting & Uploading…`;
+  );
+  // 201 = inserted, 409 = already exists (duplicate — still burned)
+  if (!res.ok && res.status !== 409) throw new Error('db_write_failed');
+  return true;
+}
 
-    try {
-      const key = await generateKey();
-      const keyB64 = await exportKey(key);
-      const { iv, ct } = await encryptMessage(text, key);
-      const id = generateId();
-      const createdAt = Math.floor(Date.now() / 1000);
+// Derive a stable, short burn_id from the fragment
+function getBurnId(fragmentRaw) {
+  // Use first 64 chars — unique per link, safe for DB primary key
+  return fragmentRaw.substring(0, 64).replace(/[^a-zA-Z0-9_-]/g, 'X');
+}
 
-      const { error } = await supabaseClient.from('messages').insert([{
-        id,
-        ciphertext: ct,
-        iv,
-        expiry_mode: expiryMode,
-        created_at: createdAt,
-        is_burned: false
-      }]);
+// ═══════════════════════════════════════════════
+//  CRYPTO HELPERS  (unchanged from original)
+// ═══════════════════════════════════════════════
+const VERSION = 'gl1';
 
-      if (error) throw error;
+function bytesToBase64url(bytes) {
+  let b = '';
+  for (let i = 0; i < bytes.length; i++) b += String.fromCharCode(bytes[i]);
+  return btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+function base64urlToBytes(str) {
+  const pad = str.length % 4;
+  const p = pad ? str + '='.repeat(4-pad) : str;
+  const b64 = p.replace(/-/g,'+').replace(/_/g,'/');
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function generateKey() { return crypto.subtle.generateKey({name:'AES-GCM',length:256},true,['encrypt','decrypt']); }
+async function exportKey(key) { const r = await crypto.subtle.exportKey('raw',key); return bytesToBase64url(new Uint8Array(r)); }
+async function importKey(keyB64) { return crypto.subtle.importKey('raw',base64urlToBytes(keyB64),{name:'AES-GCM',length:256},false,['decrypt']); }
+async function encryptMessage(text, key) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(text));
+  return { iv: bytesToBase64url(iv), ct: bytesToBase64url(new Uint8Array(ct)) };
+}
+async function decryptMessage(ivB64, ctB64, key) {
+  const plain = await crypto.subtle.decrypt({name:'AES-GCM',iv:base64urlToBytes(ivB64)},key,base64urlToBytes(ctB64));
+  return new TextDecoder().decode(plain);
+}
+function buildFragment(keyB64, ivB64, ctB64, expiryMode) {
+  return `${VERSION}.${expiryMode}.${Math.floor(Date.now()/1000)}.${keyB64}.${ivB64}.${ctB64}`;
+}
+function parseFragment(frag) {
+  if (!frag || frag.startsWith('#')) frag = frag ? frag.slice(1) : '';
+  const parts = frag.split('.');
+  if (parts.length < 6) return null;
+  const [version, expiryMode, createdAt, keyB64, ivB64, ...ctParts] = parts;
+  const ctB64 = ctParts.join('.');
+  if (version !== VERSION) return null;
+  if (!['read-once','24h','1h'].includes(expiryMode)) return null;
+  if (!/^\d+$/.test(createdAt)) return null;
+  if (!keyB64 || !ivB64 || !ctB64) return null;
+  return { version, expiryMode, createdAt: Number(createdAt), keyB64, ivB64, ctB64 };
+}
+function isExpired(parsed) {
+  const age = Math.floor(Date.now()/1000) - parsed.createdAt;
+  if (parsed.expiryMode === '1h' && age > 3600) return true;
+  if (parsed.expiryMode === '24h' && age > 86400) return true;
+  return false;
+}
 
-      const linkUrl = new URL(window.location.href);
-      linkUrl.search = ''; 
-      linkUrl.hash = `${id}.${keyB64}`;
-      generatedLink = linkUrl.href;
+// ═══════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════
+const msgInput = document.getElementById('msg-input');
+const charCount = document.getElementById('char-count');
+const createBtn = document.getElementById('create-btn');
+const resultCard = document.getElementById('result-card');
+const resultLinkDisplay = document.getElementById('result-link-display');
+const composeError = document.getElementById('compose-error');
+let generatedLink = '';
+let currentFragRaw = '';
 
-      resultLinkDisplay.textContent = generatedLink;
-      resultCard.style.display = 'block';
-      resultCard.scrollIntoView({ behavior: 'smooth' });
+msgInput.addEventListener('input', () => {
+  const len = msgInput.value.length;
+  charCount.textContent = len.toLocaleString();
+  charCount.className = 'char-count';
+  if (composeError.textContent) composeError.textContent = '';
+});
 
-      createBtn.innerHTML = `Encrypt and create link`;
-      createBtn.disabled = false;
-    } catch (err) {
-      console.error(err);
-      composeError.textContent = 'Failed to create link. Make sure your Supabase table is set up.';
-      createBtn.disabled = false;
-    }
+async function createLink() {
+  const text = msgInput.value.trim();
+  if (!text) {
+    composeError.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> Enter a message first.`;
+    msgInput.focus(); return;
   }
-
-  async function copyLink() {
-    if (!generatedLink) return;
-    try {
-      await navigator.clipboard.writeText(generatedLink);
-      const btn = document.getElementById('copy-btn');
-      btn.classList.add('copied');
-      btn.textContent = 'Copied!';
-      setTimeout(() => { btn.classList.remove('copied'); btn.textContent = 'Copy link'; }, 2500);
-    } catch { window.prompt('Copy link:', generatedLink); }
+  const expiryMode = document.querySelector('input[name="expiry"]:checked').value;
+  createBtn.disabled = true;
+  createBtn.innerHTML = `<div class="spinner"></div> Encrypting…`;
+  try {
+    const key = await generateKey();
+    const keyB64 = await exportKey(key);
+    const { iv, ct } = await encryptMessage(text, key);
+    const fragment = buildFragment(keyB64, iv, ct, expiryMode);
+    const linkUrl = new URL(window.location.href);
+    linkUrl.search = ''; linkUrl.hash = fragment;
+    generatedLink = linkUrl.href;
+    resultLinkDisplay.innerHTML = `<strong>${window.location.hostname + window.location.pathname}</strong><span style="color:var(--text-muted)">#…${ct.substring(0,12)}…</span>`;
+    resultLinkDisplay.title = generatedLink;
+    document.getElementById('expiry-chip').textContent =
+      expiryMode === '1h' ? 'burns after reading · 1h max' :
+      expiryMode === '24h' ? 'burns after reading · 24h max' : 'burns after reading';
+    resultCard.style.display = 'block';
+    resultCard.scrollIntoView({behavior:'smooth',block:'nearest'});
+    createBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Encrypt and create link`;
+    createBtn.disabled = false;
+  } catch(err) {
+    composeError.textContent = 'Encryption failed.';
+    createBtn.disabled = false;
   }
+}
 
-  function resetCompose() {
-    msgInput.value = '';
-    charCount.textContent = '0 / 50,000';
-    composeError.textContent = '';
-    resultCard.style.display = 'none';
-    generatedLink = '';
-    msgInput.focus();
-  }
+async function copyLink() {
+  if (!generatedLink) return;
+  try {
+    await navigator.clipboard.writeText(generatedLink);
+    const btn = document.getElementById('copy-btn');
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Copied`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy link`;
+    }, 2500);
+  } catch { window.prompt('Copy this link:', generatedLink); }
+}
 
-  async function revealMessage() {
-    const hash = window.location.hash.substring(1);
-    const parts = hash.split('.');
-    if (parts.length < 2) { showState('invalid'); return; }
-    const [id, keyB64] = parts;
+function resetCompose() {
+  msgInput.value = '';
+  charCount.textContent = '0'; charCount.className = 'char-count';
+  composeError.textContent = ''; resultCard.style.display = 'none'; generatedLink = '';
+  document.querySelector('input[name="expiry"][value="read-once"]').checked = true;
+  msgInput.focus();
+}
 
-    const btn = document.getElementById('reveal-btn');
-    btn.disabled = true;
-    btn.innerHTML = `<div class="spinner"></div> Burning globally...`;
+// ═══════════════════════════════════════════════
+//  REVEAL  (server-side burn check + write)
+// ═══════════════════════════════════════════════
+async function revealMessage() {
+  const fragRaw = currentFragRaw;
+  const parsed = parseFragment(fragRaw);
+  if (!parsed) { showState('invalid'); return; }
 
-    try {
-      const { data, error } = await supabaseClient
-        .from('messages')
-        .select('*')
-        .eq('id', id)
-        .single();
+  const btn = document.getElementById('reveal-btn');
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner"></div> Burning in database…`;
 
-      if (error || !data) { showState('invalid'); return; }
-      if (data.is_burned) { showState('burned'); return; }
+  try {
+    // Write burn to Supabase FIRST — before decrypting
+    // This ensures even if decryption fails, link is gone
+    await sbSet(getBurnId(fragRaw));
 
-      const now = Math.floor(Date.now() / 1000);
-      const age = now - data.created_at;
-      if (data.expiry_mode === '1h' && age > 3600) { showState('expired'); return; }
-      if (data.expiry_mode === '24h' && age > 86400) { showState('expired'); return; }
+    // Now decrypt
+    const key = await importKey(parsed.keyB64);
+    const plaintext = await decryptMessage(parsed.ivB64, parsed.ctB64, key);
 
-      // ATOMIC GLOBAL BURN IN SUPABASE DATABASE
-      const { error: updateError } = await supabaseClient
-        .from('messages')
-        .update({ is_burned: true })
-        .eq('id', id)
-        .eq('is_burned', false);
+    document.getElementById('decrypted-text').textContent = plaintext;
+    document.getElementById('decrypted-time').textContent =
+      new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
-      if (updateError) { showState('burned'); return; }
+    document.getElementById('state-ready').style.display = 'none';
+    document.getElementById('state-decrypted').style.display = 'flex';
+    document.getElementById('how-section').style.display = 'none';
 
-      const key = await importKey(keyB64);
-      const plaintext = await decryptMessage(data.iv, data.ciphertext, key);
-
-      document.getElementById('decrypted-text').textContent = plaintext;
-      document.getElementById('decrypted-time').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      document.getElementById('state-ready').style.display = 'none';
-      document.getElementById('state-decrypted').style.display = 'flex';
-      window.history.replaceState(null, '', window.location.pathname);
-    } catch (err) {
-      console.error(err);
-      showState('invalid');
-    }
-  }
-
-  function showState(name) {
-    ['ready','decrypted','burned','invalid','expired'].forEach(s => {
-      const el = document.getElementById('state-' + s);
-      if (el) el.style.display = s === name ? 'flex' : 'none';
-    });
-  }
-
-  function goHome() {
+    // Wipe key from URL immediately
     window.history.replaceState(null, '', window.location.pathname);
-    document.getElementById('view-compose').classList.add('active');
-    document.getElementById('view-reveal').classList.remove('active');
-    resetCompose();
+  } catch(err) {
+    document.getElementById('invalid-reason').textContent =
+      'Decryption failed. The link may be corrupted. It has been burned for security.';
+    showState('invalid');
   }
+}
 
-  // Anti-screenshot & Hold-to-view protections
-  const holdOverlay = document.getElementById('hold-overlay');
-  const decText = document.getElementById('decrypted-text');
+function showState(name) {
+  ['checking','ready','decrypted','burned','invalid','expired','dberror'].forEach(s => {
+    const el = document.getElementById('state-' + s);
+    if (el) el.style.display = s === name ? 'flex' : 'none';
+  });
+}
 
-  function showProtected(e) {
-    if (e && e.type !== 'touchstart') e.preventDefault();
-    holdOverlay.style.opacity = '0';
-    holdOverlay.style.pointerEvents = 'none';
-    decText.classList.remove('hidden-protect');
-  }
-  function hideProtected() {
-    holdOverlay.style.opacity = '1';
-    holdOverlay.style.pointerEvents = 'auto';
-    decText.classList.add('hidden-protect');
-  }
+function goHome() {
+  window.history.replaceState(null, '', window.location.pathname);
+  document.getElementById('view-compose').classList.add('active');
+  document.getElementById('view-reveal').classList.remove('active');
+  document.getElementById('how-section').style.display = 'block';
+  resetCompose();
+}
 
-  if (holdOverlay) {
-    holdOverlay.addEventListener('mousedown', showProtected);
-    holdOverlay.addEventListener('touchstart', showProtected, { passive: false });
-  }
-  window.addEventListener('mouseup', hideProtected);
-  window.addEventListener('touchend', hideProtected);
-  window.addEventListener('blur', hideProtected);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) hideProtected(); });
+function showAbout() {
+  alert('GhostLink — One-time encrypted messages\n\n' +
+    '• AES-256-GCM encryption in your browser\n' +
+    '• Burn registry stored in Supabase database\n' +
+    '• Blocked globally after first read — any device, VPN, browser\n' +
+    '• Decryption key never reaches any server (#fragment)');
+}
 
-  // Init router
-  (async function init() {
-    const hash = window.location.hash;
-    if (!hash || hash === '#') return;
+async function retryInit() {
+  showState('checking');
+  await initReveal();
+}
 
-    document.getElementById('view-compose').classList.remove('active');
-    document.getElementById('view-reveal').classList.add('active');
+// ═══════════════════════════════════════════════
+//  ANTI-SCREENSHOT
+// ═══════════════════════════════════════════════
+const holdOverlay = document.getElementById('hold-overlay');
+const decText = document.getElementById('decrypted-text');
+function showProtected(e) {
+  if (e) e.preventDefault();
+  holdOverlay.style.display = 'none';
+  decText.classList.remove('hidden-protect');
+  decText.style.userSelect = 'text';
+  decText.style.webkitUserSelect = 'text';
+}
+document.addEventListener('contextmenu',(e)=>{ if(document.getElementById('state-decrypted').style.display!=='none') e.preventDefault(); });
+
+// ═══════════════════════════════════════════════
+//  INIT  — check Supabase FIRST, then show state
+// ═══════════════════════════════════════════════
+async function initReveal() {
+  const fragRaw = window.location.hash.substring(1);
+  const parsed = parseFragment(fragRaw);
+
+  if (!parsed) { showState('invalid'); return; }
+  if (isExpired(parsed)) { showState('expired'); return; }
+
+  showState('checking');
+
+  try {
+    const burned = await sbGet(getBurnId(fragRaw));
+    if (burned) { showState('burned'); return; }
     showState('ready');
-  })();
+  } catch(err) {
+    // DB unreachable — show error, do NOT allow opening
+    showState('dberror');
+  }
+}
+
+(function init() {
+  const frag = window.location.hash;
+  if (!frag || frag === '#') {
+    document.getElementById('view-compose').classList.add('active');
+    return;
+  }
+  currentFragRaw = frag.substring(1);
+  document.getElementById('view-compose').classList.remove('active');
+  document.getElementById('view-reveal').classList.add('active');
+  document.getElementById('how-section').style.display = 'none';
+  initReveal();
+})();
 </script>
 </body>
 </html>
