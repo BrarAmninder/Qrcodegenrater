@@ -806,11 +806,13 @@ async function submitPassword() {
     btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Unlock message`;
     const left = MAX_ATTEMPTS - pwAttempts;
     if (left <= 0) {
-      showGateError('Too many incorrect attempts. This link is now locked.');
+      // Burn the link immediately — too many wrong attempts
       btn.disabled = true;
-      document.getElementById('pw-attempts').textContent = '';
-      if (gateType === 'pin') [0,1,2,3].forEach(i => { document.getElementById('gpin-'+i).disabled = true; });
-      else document.getElementById('pw-gate-input').disabled = true;
+      btn.innerHTML = `<div class="spinner"></div> Destroying link…`;
+      try { await sbSet(getBurnId(currentFragRaw)); } catch(e) {}
+      pendingParsed = null;
+      window.history.replaceState(null, '', window.location.pathname);
+      showState('burned');
     } else {
       showGateError('Incorrect ' + (gateType === 'pin' ? 'PIN' : 'password') + '. Please try again.');
       document.getElementById('pw-attempts').textContent = left + ' attempt' + (left === 1 ? '' : 's') + ' remaining';
