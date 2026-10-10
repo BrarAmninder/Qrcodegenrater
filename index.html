@@ -146,6 +146,17 @@
   .pw-gate-error{font-size:12.5px;color:var(--red);min-height:18px;margin-bottom:10px;display:flex;align-items:center;gap:5px}
   .pw-attempts{font-size:11.5px;color:var(--text-muted);font-family:var(--mono);margin-bottom:1rem}
   @media(max-width:480px){.compose-heading{font-size:21px}.header{padding-top:1.25rem}.main{margin-top:2rem}.options-row{gap:6px}}
+  /* ── Image attachments ── */
+  .compose-toolbar{display:flex;align-items:center;gap:8px;margin-top:-6px;margin-bottom:1rem}
+  .toolbar-btn{display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12.5px;color:var(--text-dim);cursor:pointer;transition:border-color .12s,color .12s,background .12s;font-family:var(--sans);font-weight:500;outline:none;user-select:none}
+  .toolbar-btn:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-3)}
+  .toolbar-btn svg{flex-shrink:0}
+  .img-preview-strip{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+  .img-thumb-wrap{position:relative;width:80px;height:80px;flex-shrink:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border-bright);background:var(--bg-3)}
+  .img-thumb-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+  .img-thumb-remove{position:absolute;top:3px;right:3px;width:18px;height:18px;background:rgba(13,17,23,.85);border:1px solid var(--border-bright);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-dim);line-height:1;font-size:12px;transition:background .1s,color .1s}
+  .img-thumb-remove:hover{background:var(--red-bg);border-color:rgba(248,81,73,.4);color:var(--red)}
+  .img-size-warn{font-size:11.5px;color:var(--amber);font-family:var(--mono);display:flex;align-items:center;gap:5px;margin-bottom:.5rem}
   /* ── Language switcher ── */
   .lang-switcher{position:relative;display:flex;align-items:center}
   .lang-btn{display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:20px;padding:4px 11px 4px 9px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:border-color .12s,color .12s,background .12s;font-family:var(--sans);font-weight:500;outline:none;user-select:none;white-space:nowrap}
@@ -205,6 +216,21 @@
       <textarea id="msg-input" placeholder="Write your message here…" autocomplete="off" spellcheck="true" aria-label="Message to encrypt"></textarea>
       <div class="char-count" id="char-count">0</div>
     </div>
+    <!-- Toolbar -->
+    <div class="compose-toolbar">
+      <button class="toolbar-btn" onclick="document.getElementById('img-file-input').click()" type="button">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+        <span data-i18n="attachImage">Attach image</span>
+      </button>
+      <span id="img-count-label" style="font-size:11.5px;color:var(--text-muted);font-family:var(--mono);display:none"></span>
+    </div>
+    <input type="file" id="img-file-input" accept="image/*" multiple style="display:none" onchange="handleImageFiles(this.files)">
+    <div class="img-preview-strip" id="img-preview-strip"></div>
+    <div id="img-size-warn" class="img-size-warn" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      <span data-i18n="imgSizeWarn">Images are large — the link may be very long. Keep total images under 1 MB for best results.</span>
+    </div>
+
     <div id="compose-error" class="inline-error" aria-live="polite"></div>
 
     <div style="margin-top:0.75rem;margin-bottom:1.25rem;">
@@ -359,6 +385,7 @@
           <div class="msg-header-left"><span class="msg-live-dot"></span>secure message — opened once</div>
         </div>
         <div class="msg-body" id="decrypted-text"></div>
+        <div id="decrypted-images" style="padding:0 20px 16px"></div>
         <div class="msg-footer">
           <div class="burned-badge">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
@@ -592,6 +619,59 @@ const composeError = document.getElementById('compose-error');
 let generatedLink = '';
 let currentFragRaw = '';
 
+// ═══════════════════════════════════════════════
+//  IMAGE ATTACHMENTS
+// ═══════════════════════════════════════════════
+let attachedImages = []; // [{name, dataUrl, size}]
+const MAX_IMAGES = 6;
+const WARN_TOTAL_BYTES = 800_000; // warn above ~800KB total
+
+function handleImageFiles(files) {
+  for (const file of files) {
+    if (attachedImages.length >= MAX_IMAGES) break;
+    if (!file.type.startsWith('image/')) continue;
+    const reader = new FileReader();
+    reader.onload = e => {
+      attachedImages.push({ name: file.name, dataUrl: e.target.result, size: file.size });
+      renderImagePreviews();
+    };
+    reader.readAsDataURL(file);
+  }
+  // reset so same file can be re-added
+  document.getElementById('img-file-input').value = '';
+}
+
+function renderImagePreviews() {
+  const strip = document.getElementById('img-preview-strip');
+  const countLabel = document.getElementById('img-count-label');
+  const warn = document.getElementById('img-size-warn');
+  strip.innerHTML = '';
+  attachedImages.forEach((img, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'img-thumb-wrap';
+    wrap.title = img.name;
+    const im = document.createElement('img');
+    im.src = img.dataUrl;
+    im.alt = img.name;
+    const rm = document.createElement('div');
+    rm.className = 'img-thumb-remove';
+    rm.innerHTML = '✕';
+    rm.title = 'Remove';
+    rm.onclick = () => { attachedImages.splice(i, 1); renderImagePreviews(); };
+    wrap.appendChild(im);
+    wrap.appendChild(rm);
+    strip.appendChild(wrap);
+  });
+  if (attachedImages.length > 0) {
+    countLabel.style.display = '';
+    countLabel.textContent = attachedImages.length + '/' + MAX_IMAGES + ' image' + (attachedImages.length > 1 ? 's' : '');
+  } else {
+    countLabel.style.display = 'none';
+  }
+  const totalBytes = attachedImages.reduce((s, img) => s + img.size, 0);
+  warn.style.display = totalBytes > WARN_TOTAL_BYTES ? 'flex' : 'none';
+}
+
 msgInput.addEventListener('input', () => {
   const len = msgInput.value.length;
   charCount.textContent = len.toLocaleString();
@@ -621,7 +701,13 @@ async function createLink() {
   try {
     const key = await generateKey();
     const keyB64 = await exportKey(key);
-    const { iv, ct } = await encryptMessage(text, key);
+    // Bundle text + images into one JSON payload
+    const payload = JSON.stringify({
+      v: 1,
+      text,
+      images: attachedImages.map(img => ({ name: img.name, dataUrl: img.dataUrl }))
+    });
+    const { iv, ct } = await encryptMessage(payload, key);
     let pwHashFrag = null;
     if (pwEnabled) {
       const pwVal = getPwValue();
@@ -666,6 +752,7 @@ function resetCompose() {
   msgInput.value = '';
   charCount.textContent = '0'; charCount.className = 'char-count';
   composeError.textContent = ''; resultCard.style.display = 'none'; generatedLink = '';
+  attachedImages = []; renderImagePreviews();
   document.querySelector('input[name="expiry"][value="read-once"]').checked = true;
   // Reset password section
   pwEnabled = false; pwType = 'password';
@@ -915,7 +1002,28 @@ async function proceedReveal() {
     await sbSet(getBurnId(fragRaw));
     const key = await importKey(parsed.keyB64);
     const plaintext = await decryptMessage(parsed.ivB64, parsed.ctB64, key);
-    document.getElementById('decrypted-text').textContent = plaintext;
+    // Try to parse as structured payload (v1) or fall back to plain text
+    let msgText = plaintext;
+    let msgImages = [];
+    try {
+      const obj = JSON.parse(plaintext);
+      if (obj && obj.v === 1) { msgText = obj.text || ''; msgImages = obj.images || []; }
+    } catch(e) { /* old plain-text link */ }
+    document.getElementById('decrypted-text').textContent = msgText;
+    // Render attached images
+    const imgContainer = document.getElementById('decrypted-images');
+    imgContainer.innerHTML = '';
+    msgImages.forEach(img => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'margin-top:12px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:var(--bg-3)';
+      const im = document.createElement('img');
+      im.src = img.dataUrl;
+      im.alt = img.name || 'image';
+      im.style.cssText = 'max-width:100%;display:block;border-radius:7px';
+      im.oncontextmenu = e => e.preventDefault();
+      wrap.appendChild(im);
+      imgContainer.appendChild(wrap);
+    });
     document.getElementById('decrypted-time').textContent =
       new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
     showState('decrypted');
@@ -985,6 +1093,8 @@ const LANGS = {
     step4n:'04', step4l:'Opens once, then gone', step4d:'The moment the recipient opens it, the link is permanently disabled — on every device, everywhere.',
     noLoophole:'<strong style="color:var(--text-dim)">No loopholes:</strong> Expiry is enforced on our servers, not just in the browser. Clearing cache, switching devices, or using a different network cannot reopen a message that has already been read.',
     aboutText:'GhostLink — Private one-time messages\n\n• Messages are secured in your browser before sending\n• Each link works once — after that, it expires permanently\n• Expiry is enforced on our servers, not just in the browser\n• Your message content never passes through our servers',
+    attachImage:'Attach image',
+    imgSizeWarn:'Images are large — the link may be very long. Keep total images under 1 MB for best results.',
     creatingLink:'Creating link…',
     openingMsg:'Opening message…',
     destroyingLink:'Destroying link…',
@@ -1050,6 +1160,8 @@ const LANGS = {
     step4n:'04', step4l:'Ouvert une fois, puis disparu', step4d:'Dès que le destinataire l\'ouvre, le lien est désactivé définitivement — sur chaque appareil, partout.',
     noLoophole:'<strong style="color:var(--text-dim)">Aucune faille :</strong> L\'expiration est appliquée côté serveur. Vider le cache, changer d\'appareil ou de réseau ne permet pas de rouvrir un message déjà lu.',
     aboutText:'GhostLink — Messages privés à usage unique\n\n• Les messages sont sécurisés dans votre navigateur avant l\'envoi\n• Chaque lien fonctionne une fois — après cela, il expire définitivement\n• L\'expiration est appliquée côté serveur\n• Le contenu de votre message ne passe jamais par nos serveurs',
+    attachImage:'Joindre une image',
+    imgSizeWarn:'Les images sont volumineuses — le lien peut être très long. Gardez le total sous 1 Mo pour de meilleurs résultats.',
     creatingLink:'Création du lien…',
     openingMsg:'Ouverture du message…',
     destroyingLink:'Destruction du lien…',
@@ -1115,6 +1227,8 @@ const LANGS = {
     step4n:'04', step4l:'Se abre una vez, luego desaparece', step4d:'En el momento en que el destinatario lo abre, el enlace se desactiva permanentemente — en todos los dispositivos, en todas partes.',
     noLoophole:'<strong style="color:var(--text-dim)">Sin lagunas:</strong> La expiración se aplica en nuestros servidores. Vaciar la caché, cambiar de dispositivo o de red no puede reabrir un mensaje que ya fue leído.',
     aboutText:'GhostLink — Mensajes privados de un solo uso\n\n• Los mensajes se aseguran en tu navegador antes de enviarse\n• Cada enlace funciona una vez — después expira permanentemente\n• La expiración se aplica en nuestros servidores\n• El contenido de tu mensaje nunca pasa por nuestros servidores',
+    attachImage:'Adjuntar imagen',
+    imgSizeWarn:'Las imágenes son grandes — el enlace puede ser muy largo. Mantén el total por debajo de 1 MB para mejores resultados.',
     creatingLink:'Creando enlace…',
     openingMsg:'Abriendo mensaje…',
     destroyingLink:'Destruyendo enlace…',
@@ -1180,6 +1294,8 @@ const LANGS = {
     step4n:'04', step4l:'يُفتح مرة واحدة ثم يختفي', step4d:'في اللحظة التي يفتحه فيها المستلم، يُعطَّل الرابط نهائياً — على كل جهاز، في كل مكان.',
     noLoophole:'<strong style="color:var(--text-dim)">لا ثغرات:</strong> يتم تطبيق انتهاء الصلاحية على خوادمنا. مسح ذاكرة التخزين المؤقت أو تغيير الأجهزة أو الشبكات لا يمكنه إعادة فتح رسالة تمت قراءتها.',
     aboutText:'GhostLink — رسائل خاصة تُستخدم مرة واحدة\n\n• تُؤمَّن الرسائل في متصفحك قبل الإرسال\n• كل رابط يعمل مرة واحدة — وبعدها ينتهي صلاحيته نهائياً\n• يتم تطبيق الانتهاء على خوادمنا\n• محتوى رسالتك لا يمر أبداً عبر خوادمنا',
+    attachImage:'إرفاق صورة',
+    imgSizeWarn:'الصور كبيرة الحجم — قد يكون الرابط طويلاً جداً. احرص على أن يكون المجموع أقل من 1 ميغابايت للحصول على أفضل النتائج.',
     creatingLink:'جارٍ إنشاء الرابط…',
     openingMsg:'جارٍ فتح الرسالة…',
     destroyingLink:'جارٍ حذف الرابط…',
