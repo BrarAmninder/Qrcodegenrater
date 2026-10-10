@@ -146,6 +146,19 @@
   .pw-gate-error{font-size:12.5px;color:var(--red);min-height:18px;margin-bottom:10px;display:flex;align-items:center;gap:5px}
   .pw-attempts{font-size:11.5px;color:var(--text-muted);font-family:var(--mono);margin-bottom:1rem}
   @media(max-width:480px){.compose-heading{font-size:21px}.header{padding-top:1.25rem}.main{margin-top:2rem}.options-row{gap:6px}}
+  /* ── Language switcher ── */
+  .lang-switcher{position:relative;display:flex;align-items:center}
+  .lang-btn{display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--border);border-radius:20px;padding:4px 11px 4px 9px;font-size:12px;color:var(--text-dim);cursor:pointer;transition:border-color .12s,color .12s,background .12s;font-family:var(--sans);font-weight:500;outline:none;user-select:none;white-space:nowrap}
+  .lang-btn:hover{border-color:var(--border-bright);color:var(--text);background:var(--bg-3)}
+  .lang-flag{font-size:14px;line-height:1}
+  .lang-chevron{width:10px;height:10px;transition:transform .15s;flex-shrink:0}
+  .lang-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg-2);border:1px solid var(--border-bright);border-radius:var(--radius);min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;overflow:hidden;display:none}
+  .lang-switcher.open .lang-dropdown{display:block}
+  .lang-switcher.open .lang-chevron{transform:rotate(180deg)}
+  .lang-option{display:flex;align-items:center;gap:9px;padding:8px 13px;font-size:13px;color:var(--text-dim);cursor:pointer;transition:background .1s,color .1s;white-space:nowrap}
+  .lang-option:hover{background:var(--bg-3);color:var(--text)}
+  .lang-option.active{color:var(--accent);font-weight:600}
+  .lang-option-flag{font-size:15px}
   @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -161,7 +174,22 @@
     <span class="logo-name">Ghost<span>Link</span></span>
   </div>
   <div class="header-spacer"></div>
-  <div class="header-badge">end-to-end encrypted</div>
+  <div class="header-badge" id="badge-encrypted">end-to-end encrypted</div>
+
+  <!-- Language Switcher -->
+  <div class="lang-switcher" id="lang-switcher">
+    <button class="lang-btn" onclick="toggleLangMenu()" aria-label="Select language" aria-expanded="false" id="lang-btn">
+      <span class="lang-flag" id="lang-current-flag">🇬🇧</span>
+      <span id="lang-current-label">EN</span>
+      <svg class="lang-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="lang-dropdown" role="menu">
+      <div class="lang-option active" onclick="setLang('en')" data-lang="en" role="menuitem"><span class="lang-option-flag">🇬🇧</span> English</div>
+      <div class="lang-option" onclick="setLang('fr')" data-lang="fr" role="menuitem"><span class="lang-option-flag">🇫🇷</span> Français</div>
+      <div class="lang-option" onclick="setLang('es')" data-lang="es" role="menuitem"><span class="lang-option-flag">🇪🇸</span> Español</div>
+      <div class="lang-option" onclick="setLang('ar')" data-lang="ar" role="menuitem"><span class="lang-option-flag">🇸🇦</span> العربية</div>
+    </div>
+  </div>
 
 </header>
 
@@ -170,8 +198,8 @@
   <!-- Compose View -->
   <div class="view active" id="view-compose">
     <p class="section-label">New message</p>
-    <h1 class="compose-heading">Send a private message. Once.</h1>
-    <p class="compose-sub">Write your message and we'll create a secure, one-time link. The recipient opens it once — after that, the link stops working forever. No account needed.</p>
+    <h1 class="compose-heading" data-i18n="heading">Send a private message. Once.</h1>
+    <p class="compose-sub" data-i18n="sub">Write your message and we'll create a secure, one-time link. The recipient opens it once — after that, the link stops working forever. No account needed.</p>
 
     <div class="message-area-wrapper">
       <textarea id="msg-input" placeholder="Write your message here…" autocomplete="off" spellcheck="true" aria-label="Message to encrypt"></textarea>
@@ -182,28 +210,28 @@
     <div style="margin-top:0.75rem;margin-bottom:1.25rem;">
       <p class="section-label" style="margin-bottom:8px;">Link expires</p>
       <div class="options-row" role="radiogroup" aria-label="Expiry options">
-        <label class="option-pill"><input type="radio" name="expiry" value="read-once" checked><span class="option-dot"></span><span>After reading</span></label>
-        <label class="option-pill"><input type="radio" name="expiry" value="24h"><span class="option-dot"></span><span>After reading or 24 hours</span></label>
-        <label class="option-pill"><input type="radio" name="expiry" value="1h"><span class="option-dot"></span><span>After reading or 1 hour</span></label>
+        <label class="option-pill"><input type="radio" name="expiry" value="read-once" checked><span class="option-dot"></span><span data-i18n="expiryAfterRead">After reading</span></label>
+        <label class="option-pill"><input type="radio" name="expiry" value="24h"><span class="option-dot"></span><span data-i18n="expiry24h">After reading or 24 hours</span></label>
+        <label class="option-pill"><input type="radio" name="expiry" value="1h"><span class="option-dot"></span><span data-i18n="expiry1h">After reading or 1 hour</span></label>
       </div>
     </div>
 
     <div class="password-section">
-      <p class="section-label" style="margin-bottom:8px;">Password protection</p>
+      <p class="section-label" data-i18n="pwSectionLabel" style="margin-bottom:8px;">Password protection</p>
       <div class="password-toggle" onclick="togglePasswordSection()">
         <div class="password-toggle-box" id="pw-toggle-box">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
-        <span class="password-toggle-label">Require a password to open this message</span>
+        <span class="password-toggle-label" data-i18n="pwToggle">Require a password to open this message</span>
       </div>
       <div class="password-fields" id="pw-fields">
         <div class="pw-type-row">
-          <button class="pw-type-btn active" id="btn-type-password" onclick="setPwType('password')">🔑 Password</button>
-          <button class="pw-type-btn" id="btn-type-pin" onclick="setPwType('pin')">🔢 4-digit PIN</button>
+          <button class="pw-type-btn active" id="btn-type-password" data-i18n="pwTypePw" onclick="setPwType('password')">🔑 Password</button>
+          <button class="pw-type-btn" id="btn-type-pin" data-i18n="pwTypePin" onclick="setPwType('pin')">🔢 4-digit PIN</button>
         </div>
         <!-- Password input -->
         <div id="pw-password-wrap" class="pw-input-wrap">
-          <input class="pw-input" id="pw-password-input" type="password" placeholder="Enter a password…" autocomplete="new-password" maxlength="128">
+          <input class="pw-input" id="pw-password-input" type="password" placeholder="Enter a password…" data-i18n="pwPlaceholder" autocomplete="new-password" maxlength="128">
           <button class="pw-eye" type="button" onclick="togglePwEye()" tabindex="-1">
             <svg id="pw-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
@@ -217,13 +245,13 @@
             <input class="pin-box" id="pin-3" type="number" min="0" max="9" maxlength="1" placeholder="·" oninput="pinMove(this,3)">
           </div>
         </div>
-        <p class="pw-hint" id="pw-hint">Share this password with the recipient separately — do not include it in the message.</p>
+        <p class="pw-hint" id="pw-hint" data-i18n="pwHintPw">Share this password with the recipient separately — do not include it in the message.</p>
       </div>
     </div>
 
     <button class="btn-primary" id="create-btn" onclick="createLink()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Create secure link
+      <span data-i18n="createBtn">Create secure link</span>
     </button>
 
     <div id="result-card" class="result-card" style="display:none" aria-live="polite">
@@ -280,7 +308,7 @@
       <div class="pw-gate-icon">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6E76E5" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       </div>
-      <h1 class="pw-gate-title">Password required</h1>
+      <h1 class="pw-gate-title" data-i18n="pwGateTitle">Password required</h1>
       <p class="pw-gate-body" id="pw-gate-body">This message is protected. Enter the password the sender gave you to continue.</p>
       <!-- Password field (shown for password type) -->
       <div id="pw-gate-password-wrap" style="width:100%;max-width:280px;position:relative;margin-bottom:6px">
@@ -302,7 +330,7 @@
       <div class="pw-attempts" id="pw-attempts"></div>
       <button class="reveal-btn" onclick="submitPassword()" id="pw-submit-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-        Unlock message
+        <span data-i18n="unlockBtn">Unlock message</span>
       </button>
     </div>
 
@@ -311,15 +339,15 @@
       <div class="reveal-icon-wrap ready">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#6E76E5" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
       </div>
-      <h1 class="reveal-title">You have a private message</h1>
-      <p class="reveal-body">Someone sent you a secure message. You can only open it <strong>once</strong> — after that, this link will stop working permanently.</p>
+      <h1 class="reveal-title" data-i18n="readyTitle">You have a private message</h1>
+      <p class="reveal-body" data-i18n="readyBody">Someone sent you a secure message. You can only open it <strong>once</strong> — after that, this link will stop working permanently.</p>
       <button class="reveal-btn" onclick="revealMessage()" id="reveal-btn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-        Open message
+        <span data-i18n="openBtn">Open message</span>
       </button>
       <div class="reveal-warning">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-        This action cannot be undone. The link will expire immediately.
+        <span data-i18n="openWarning">This action cannot be undone. The link will expire immediately.</span>
       </div>
     </div>
 
@@ -354,11 +382,11 @@
       <div class="reveal-icon-wrap burned">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#F85149" stroke-width="1.8"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
       </div>
-      <h1 class="reveal-title">This link has already been used</h1>
-      <p class="reveal-body">This message was already opened and is no longer available. For security, each link can only be used once.</p>
+      <h1 class="reveal-title" data-i18n="burnedTitle">This link has already been used</h1>
+      <p class="reveal-body" data-i18n="burnedBody">This message was already opened and is no longer available. For security, each link can only be used once.</p>
       <button class="btn-ghost" onclick="goHome()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Send a new message
+        <span data-i18n="sendNew">Send a new message</span>
       </button>
     </div>
 
@@ -367,11 +395,11 @@
       <div class="reveal-icon-wrap" style="border-color:rgba(88,96,105,0.4)">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8B949E" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m14.5 9-5 5"/><path d="m9.5 9 5 5"/></svg>
       </div>
-      <h1 class="reveal-title">Link not recognised</h1>
-      <p class="reveal-body" id="invalid-reason">This link doesn't appear to be valid. It may have been copied incorrectly or modified. Please ask the sender to share it again.</p>
+      <h1 class="reveal-title" data-i18n="invalidTitle">Link not recognised</h1>
+      <p class="reveal-body" id="invalid-reason" data-i18n="invalidBody">This link doesn't appear to be valid. It may have been copied incorrectly or modified. Please ask the sender to share it again.</p>
       <button class="btn-ghost" onclick="goHome()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Go home
+        <span data-i18n="goHomeBtn">Go home</span>
       </button>
     </div>
 
@@ -380,11 +408,11 @@
       <div class="reveal-icon-wrap expired">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D29922" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
-      <h1 class="reveal-title">This link has expired</h1>
-      <p class="reveal-body">The time limit set by the sender has passed. This message is no longer available.</p>
+      <h1 class="reveal-title" data-i18n="expiredTitle">This link has expired</h1>
+      <p class="reveal-body" data-i18n="expiredBody">The time limit set by the sender has passed. This message is no longer available.</p>
       <button class="btn-ghost" onclick="goHome()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Go home
+        <span data-i18n="goHomeBtn">Go home</span>
       </button>
     </div>
 
@@ -393,11 +421,11 @@
       <div class="reveal-icon-wrap" style="border-color:rgba(210,153,34,0.3);background:var(--amber-bg)">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D29922" stroke-width="1.8"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
       </div>
-      <h1 class="reveal-title">Something went wrong</h1>
-      <p class="reveal-body">We were unable to verify this link right now. For your security, messages cannot be opened until our service is reachable. Please try again in a moment.</p>
+      <h1 class="reveal-title" data-i18n="dberrorTitle">Something went wrong</h1>
+      <p class="reveal-body" data-i18n="dberrorBody">We were unable to verify this link right now. For your security, messages cannot be opened until our service is reachable. Please try again in a moment.</p>
       <button class="reveal-btn" onclick="retryInit()" style="background:var(--amber)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Retry
+        <span data-i18n="retryBtn">Retry</span>
       </button>
     </div>
 
@@ -435,10 +463,10 @@
 </section>
 
 <footer class="footer">
-  <div class="footer-left">ghostlink · server-enforced · end-to-end encrypted</div>
+  <div class="footer-left" data-i18n="footerLeft">ghostlink · server-enforced · end-to-end encrypted</div>
   <div class="footer-right">
-    <a href="#" onclick="goHome();return false">New message</a>
-    <a href="#" onclick="showAbout();return false">About</a>
+    <a href="#" onclick="goHome();return false" data-i18n="footerNew">New message</a>
+    <a href="#" onclick="showAbout();return false" data-i18n="footerAbout">About</a>
   </div>
 </footer>
 
@@ -574,7 +602,7 @@ msgInput.addEventListener('input', () => {
 async function createLink() {
   const text = msgInput.value.trim();
   if (!text) {
-    composeError.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> Enter a message first.`;
+    composeError.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> ${t('enterMsg')}`;
     msgInput.focus(); return;
   }
   const expiryMode = document.querySelector('input[name="expiry"]:checked').value;
@@ -582,14 +610,14 @@ async function createLink() {
   if (pwEnabled) {
     const pwVal = getPwValue();
     if (!pwVal) {
-      composeError.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> ${pwType === 'pin' ? 'Please enter a 4-digit PIN.' : 'Please enter a password.'}`;
+      composeError.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> ${pwType === 'pin' ? t('enterPin') : t('enterPw')}`;
       if (pwType === 'pin') document.getElementById('pin-0').focus();
       else document.getElementById('pw-password-input').focus();
       return;
     }
   }
   createBtn.disabled = true;
-  createBtn.innerHTML = `<div class="spinner"></div> Creating link…`;
+  createBtn.innerHTML = `<div class="spinner"></div> ${t('creatingLink')}`;
   try {
     const key = await generateKey();
     const keyB64 = await exportKey(key);
@@ -612,7 +640,7 @@ async function createLink() {
       expiryMode === '24h' ? 'expires after reading · 24h max' : 'expires after reading';
     resultCard.style.display = 'block';
     resultCard.scrollIntoView({behavior:'smooth',block:'nearest'});
-    createBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Create secure link`;
+    createBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> <span data-i18n="createBtn">${t('createBtn')}</span>`;
     createBtn.disabled = false;
   } catch(err) {
     composeError.textContent = 'Encryption failed.';
@@ -674,11 +702,7 @@ function goHome() {
 }
 
 function showAbout() {
-  alert('GhostLink — Private one-time messages\n\n' +
-    '• Messages are secured in your browser before sending\n' +
-    '• Each link works once — after that, it expires permanently\n' +
-    '• Expiry is enforced on our servers, not just in the browser\n' +
-    '• Your message content never passes through our servers');
+  alert(t('aboutText'));
 }
 
 async function retryInit() {
@@ -714,9 +738,7 @@ function setPwType(type) {
   document.getElementById('btn-type-pin').classList.toggle('active', type === 'pin');
   document.getElementById('pw-password-wrap').style.display = type === 'password' ? 'block' : 'none';
   document.getElementById('pw-pin-wrap').style.display = type === 'pin' ? 'block' : 'none';
-  document.getElementById('pw-hint').textContent = type === 'pin'
-    ? 'Share this PIN with the recipient separately — do not include it in the message.'
-    : 'Share this password with the recipient separately — do not include it in the message.';
+  document.getElementById('pw-hint').textContent = type === 'pin' ? t('pwHintPin') : t('pwHintPw');
   if (type === 'pin') document.getElementById('pin-0').focus();
   else document.getElementById('pw-password-input').focus();
 }
@@ -758,14 +780,9 @@ async function hashPassword(raw) {
 // ═══════════════════════════════════════════════
 let gateType = 'password'; // set when link is parsed
 let correctHash = '';      // expected hash from fragment
-const MAX_ATTEMPTS = 3;
+let pwAttempts = 0;
+const MAX_ATTEMPTS = 5;
 let pendingParsed = null;  // parsed fragment held until password verified
-
-// Persist attempts across refreshes using sessionStorage keyed to this link
-function getAttemptKey() { return 'glattempts_' + currentFragRaw.substring(0, 32); }
-function getPwAttempts() { return parseInt(sessionStorage.getItem(getAttemptKey()) || '0', 10); }
-function setPwAttempts(n) { sessionStorage.setItem(getAttemptKey(), n); }
-let pwAttempts = 0; // kept in sync with sessionStorage
 
 function toggleGateEye() {
   const inp = document.getElementById('pw-gate-input');
@@ -795,33 +812,32 @@ async function submitPassword() {
   if (pwAttempts >= MAX_ATTEMPTS) return;
   const raw = getGatePwValue();
   if (!raw || raw === 'PW:' || raw === 'PIN:') {
-    showGateError(gateType === 'pin' ? 'Please enter all 4 digits.' : 'Please enter the password.');
+    showGateError(gateType === 'pin' ? t('enterAllDigits') : t('enterPassword'));
     return;
   }
   const btn = document.getElementById('pw-submit-btn');
   btn.disabled = true;
-  btn.innerHTML = `<div class="spinner"></div> Checking…`;
+  btn.innerHTML = `<div class="spinner"></div> ${t('checking')}`;
   const hash = await hashPassword(raw);
   if (hash === correctHash) {
     // Password correct — now proceed to open
     proceedReveal();
   } else {
     pwAttempts++;
-    setPwAttempts(pwAttempts);
     btn.disabled = false;
-    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Unlock message`;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> <span data-i18n="unlockBtn">${t('unlockBtn')}</span>`;
     const left = MAX_ATTEMPTS - pwAttempts;
     if (left <= 0) {
       // Burn the link immediately — too many wrong attempts
       btn.disabled = true;
-      btn.innerHTML = `<div class="spinner"></div> Destroying link…`;
+      btn.innerHTML = `<div class="spinner"></div> ${t('destroyingLink')}`;
       try { await sbSet(getBurnId(currentFragRaw)); } catch(e) {}
       pendingParsed = null;
       window.history.replaceState(null, '', window.location.pathname);
       showState('burned');
     } else {
-      showGateError('Incorrect ' + (gateType === 'pin' ? 'PIN' : 'password') + '. Please try again.');
-      document.getElementById('pw-attempts').textContent = left + ' attempt' + (left === 1 ? '' : 's') + ' remaining';
+      showGateError(gateType === 'pin' ? t('incorrectPin') : t('incorrectPw'));
+      document.getElementById('pw-attempts').textContent = t('attemptsLeft')(left);
       if (gateType === 'pin') { [0,1,2,3].forEach(i => { document.getElementById('gpin-'+i).value=''; }); document.getElementById('gpin-0').focus(); }
       else { document.getElementById('pw-gate-input').value=''; document.getElementById('pw-gate-input').focus(); }
     }
@@ -833,27 +849,19 @@ function showGateError(msg) {
   el.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg> ${msg}`;
 }
 
-async function showPasswordGate(parsed, type, hash) {
+function showPasswordGate(parsed, type, hash) {
   pendingParsed = parsed;
   gateType = type;
   correctHash = hash;
-  pwAttempts = getPwAttempts();
+  pwAttempts = 0;
   document.getElementById('pw-gate-error').innerHTML = '';
   document.getElementById('pw-attempts').textContent = '';
-  // Already exhausted attempts before refresh — burn immediately
-  if (pwAttempts >= MAX_ATTEMPTS) {
-    try { await sbSet(getBurnId(currentFragRaw)); } catch(e) {}
-    pendingParsed = null;
-    window.history.replaceState(null, '', window.location.pathname);
-    showState('burned');
-    return;
-  }
   // Show correct input type
   document.getElementById('pw-gate-password-wrap').style.display = type === 'password' ? 'block' : 'none';
   document.getElementById('pw-gate-pin-wrap').style.display = type === 'pin' ? 'block' : 'none';
   document.getElementById('pw-gate-body').textContent = type === 'pin'
-    ? 'This message is protected. Enter the 4-digit PIN the sender gave you to continue.'
-    : 'This message is protected. Enter the password the sender gave you to continue.';
+    ? t('pwGateBodyPin')
+    : t('pwGateBodyPw');
   showState('pwgate');
   setTimeout(() => {
     if (type === 'pin') document.getElementById('gpin-0').focus();
@@ -901,7 +909,7 @@ async function proceedReveal() {
     ? document.getElementById('pw-submit-btn')
     : document.getElementById('reveal-btn');
   btn.disabled = true;
-  btn.innerHTML = `<div class="spinner"></div> Opening message…`;
+  btn.innerHTML = `<div class="spinner"></div> ${t('openingMsg')}`;
 
   try {
     await sbSet(getBurnId(fragRaw));
@@ -921,6 +929,340 @@ async function proceedReveal() {
   }
 }
 
+// ═══════════════════════════════════════════════
+//  LANGUAGE / i18n
+// ═══════════════════════════════════════════════
+const LANGS = {
+  en: {
+    flag:'🇬🇧', label:'EN', dir:'ltr',
+    badge:'end-to-end encrypted',
+    newMsg:'New message',
+    heading:'Send a private message. Once.',
+    sub:'Write your message and we\'ll create a secure, one-time link. The recipient opens it once — after that, the link stops working forever. No account needed.',
+    sectionLabel:'New message',
+    expiryLabel:'Link expires',
+    expiryAfterRead:'After reading',
+    expiry24h:'After reading or 24 hours',
+    expiry1h:'After reading or 1 hour',
+    pwSectionLabel:'Password protection',
+    pwToggle:'Require a password to open this message',
+    pwTypePw:'🔑 Password',
+    pwTypePin:'🔢 4-digit PIN',
+    pwPlaceholder:'Enter a password…',
+    pwHintPw:'Share this password with the recipient separately — do not include it in the message.',
+    pwHintPin:'Share this PIN with the recipient separately — do not include it in the message.',
+    createBtn:'Create secure link',
+    pwGateTitle:'Password required',
+    pwGateBodyPw:'This message is protected. Enter the password the sender gave you to continue.',
+    pwGateBodyPin:'This message is protected. Enter the 4-digit PIN the sender gave you to continue.',
+    unlockBtn:'Unlock message',
+    readyTitle:'You have a private message',
+    readyBody:'Someone sent you a secure message. You can only open it <strong>once</strong> — after that, this link will stop working permanently.',
+    openBtn:'Open message',
+    openWarning:'This action cannot be undone. The link will expire immediately.',
+    burnedTitle:'This link has already been used',
+    burnedBody:'This message was already opened and is no longer available. For security, each link can only be used once.',
+    invalidTitle:'Link not recognised',
+    invalidBody:'This link doesn\'t appear to be valid. It may have been copied incorrectly or modified. Please ask the sender to share it again.',
+    expiredTitle:'This link has expired',
+    expiredBody:'The time limit set by the sender has passed. This message is no longer available.',
+    dberrorTitle:'Something went wrong',
+    dberrorBody:'We were unable to verify this link right now. For your security, messages cannot be opened until our service is reachable. Please try again in a moment.',
+    decryptedNotice:'This link has now been permanently disabled. Anyone who tries to open it again — on any device or network — will see it as expired.',
+    decryptedBurned:'This link has expired and can no longer be accessed',
+    decryptedMsgHeader:'secure message — opened once',
+    goHome:'Send your own message',
+    sendNew:'Send a new message',
+    goHomeBtn:'Go home',
+    retryBtn:'Retry',
+    footerLeft:'ghostlink · server-enforced · end-to-end encrypted',
+    footerNew:'New message',
+    footerAbout:'About',
+    howTitle:'How it works',
+    step1n:'01', step1l:'Write your message', step1d:'Type what you want to send. Everything stays in your browser until you\'re ready.',
+    step2n:'02', step2l:'Secured automatically', step2d:'Your message is locked with strong encryption before it leaves your device. No one else can read it.',
+    step3n:'03', step3l:'Share the link', step3d:'You get a private link to send. The contents of your message never travel through our servers.',
+    step4n:'04', step4l:'Opens once, then gone', step4d:'The moment the recipient opens it, the link is permanently disabled — on every device, everywhere.',
+    noLoophole:'<strong style="color:var(--text-dim)">No loopholes:</strong> Expiry is enforced on our servers, not just in the browser. Clearing cache, switching devices, or using a different network cannot reopen a message that has already been read.',
+    aboutText:'GhostLink — Private one-time messages\n\n• Messages are secured in your browser before sending\n• Each link works once — after that, it expires permanently\n• Expiry is enforced on our servers, not just in the browser\n• Your message content never passes through our servers',
+    creatingLink:'Creating link…',
+    openingMsg:'Opening message…',
+    destroyingLink:'Destroying link…',
+    checking:'Checking…',
+    enterMsg:'Enter a message first.',
+    enterPw:'Please enter a password.',
+    enterPin:'Please enter a 4-digit PIN.',
+    incorrectPw:'Incorrect password. Please try again.',
+    incorrectPin:'Incorrect PIN. Please try again.',
+    attemptsLeft:n => n + ' attempt' + (n===1?'':'s') + ' remaining',
+    enterAllDigits:'Please enter all 4 digits.',
+    enterPassword:'Please enter the password.',
+  },
+  fr: {
+    flag:'🇫🇷', label:'FR', dir:'ltr',
+    badge:'chiffrement de bout en bout',
+    newMsg:'Nouveau message',
+    heading:'Envoyez un message privé. Une seule fois.',
+    sub:'Rédigez votre message et nous créerons un lien sécurisé à usage unique. Le destinataire l\'ouvre une fois — ensuite, le lien cesse de fonctionner pour toujours. Aucun compte requis.',
+    sectionLabel:'Nouveau message',
+    expiryLabel:'Expiration du lien',
+    expiryAfterRead:'Après lecture',
+    expiry24h:'Après lecture ou 24 heures',
+    expiry1h:'Après lecture ou 1 heure',
+    pwSectionLabel:'Protection par mot de passe',
+    pwToggle:'Exiger un mot de passe pour ouvrir ce message',
+    pwTypePw:'🔑 Mot de passe',
+    pwTypePin:'🔢 Code PIN à 4 chiffres',
+    pwPlaceholder:'Entrez un mot de passe…',
+    pwHintPw:'Partagez ce mot de passe séparément — ne l\'incluez pas dans le message.',
+    pwHintPin:'Partagez ce PIN séparément — ne l\'incluez pas dans le message.',
+    createBtn:'Créer un lien sécurisé',
+    pwGateTitle:'Mot de passe requis',
+    pwGateBodyPw:'Ce message est protégé. Entrez le mot de passe fourni par l\'expéditeur.',
+    pwGateBodyPin:'Ce message est protégé. Entrez le code PIN à 4 chiffres fourni par l\'expéditeur.',
+    unlockBtn:'Déverrouiller le message',
+    readyTitle:'Vous avez un message privé',
+    readyBody:'Quelqu\'un vous a envoyé un message sécurisé. Vous ne pouvez l\'ouvrir qu\'<strong>une seule fois</strong> — après cela, ce lien cessera de fonctionner définitivement.',
+    openBtn:'Ouvrir le message',
+    openWarning:'Cette action est irréversible. Le lien expirera immédiatement.',
+    burnedTitle:'Ce lien a déjà été utilisé',
+    burnedBody:'Ce message a déjà été ouvert et n\'est plus disponible. Pour des raisons de sécurité, chaque lien ne peut être utilisé qu\'une seule fois.',
+    invalidTitle:'Lien non reconnu',
+    invalidBody:'Ce lien ne semble pas valide. Il a peut-être été copié incorrectement ou modifié. Demandez à l\'expéditeur de le partager à nouveau.',
+    expiredTitle:'Ce lien a expiré',
+    expiredBody:'Le délai fixé par l\'expéditeur est écoulé. Ce message n\'est plus disponible.',
+    dberrorTitle:'Une erreur s\'est produite',
+    dberrorBody:'Nous n\'avons pas pu vérifier ce lien pour le moment. Pour votre sécurité, les messages ne peuvent pas être ouverts tant que notre service n\'est pas accessible. Veuillez réessayer.',
+    decryptedNotice:'Ce lien est maintenant définitivement désactivé. Toute personne qui tente de l\'ouvrir à nouveau — sur n\'importe quel appareil ou réseau — le verra comme expiré.',
+    decryptedBurned:'Ce lien a expiré et ne peut plus être consulté',
+    decryptedMsgHeader:'message sécurisé — ouvert une fois',
+    goHome:'Envoyer votre propre message',
+    sendNew:'Envoyer un nouveau message',
+    goHomeBtn:'Accueil',
+    retryBtn:'Réessayer',
+    footerLeft:'ghostlink · application côté serveur · chiffrement de bout en bout',
+    footerNew:'Nouveau message',
+    footerAbout:'À propos',
+    howTitle:'Comment ça fonctionne',
+    step1n:'01', step1l:'Rédigez votre message', step1d:'Tapez ce que vous souhaitez envoyer. Tout reste dans votre navigateur jusqu\'à ce que vous soyez prêt.',
+    step2n:'02', step2l:'Sécurisé automatiquement', step2d:'Votre message est chiffré avec un algorithme robuste avant de quitter votre appareil. Personne d\'autre ne peut le lire.',
+    step3n:'03', step3l:'Partagez le lien', step3d:'Vous obtenez un lien privé à envoyer. Le contenu de votre message ne transite jamais par nos serveurs.',
+    step4n:'04', step4l:'Ouvert une fois, puis disparu', step4d:'Dès que le destinataire l\'ouvre, le lien est désactivé définitivement — sur chaque appareil, partout.',
+    noLoophole:'<strong style="color:var(--text-dim)">Aucune faille :</strong> L\'expiration est appliquée côté serveur. Vider le cache, changer d\'appareil ou de réseau ne permet pas de rouvrir un message déjà lu.',
+    aboutText:'GhostLink — Messages privés à usage unique\n\n• Les messages sont sécurisés dans votre navigateur avant l\'envoi\n• Chaque lien fonctionne une fois — après cela, il expire définitivement\n• L\'expiration est appliquée côté serveur\n• Le contenu de votre message ne passe jamais par nos serveurs',
+    creatingLink:'Création du lien…',
+    openingMsg:'Ouverture du message…',
+    destroyingLink:'Destruction du lien…',
+    checking:'Vérification…',
+    enterMsg:'Veuillez d\'abord saisir un message.',
+    enterPw:'Veuillez entrer un mot de passe.',
+    enterPin:'Veuillez entrer un code PIN à 4 chiffres.',
+    incorrectPw:'Mot de passe incorrect. Veuillez réessayer.',
+    incorrectPin:'Code PIN incorrect. Veuillez réessayer.',
+    attemptsLeft:n => n + ' tentative' + (n===1?'':'s') + ' restante' + (n===1?'':'s'),
+    enterAllDigits:'Veuillez entrer les 4 chiffres.',
+    enterPassword:'Veuillez entrer le mot de passe.',
+  },
+  es: {
+    flag:'🇪🇸', label:'ES', dir:'ltr',
+    badge:'cifrado de extremo a extremo',
+    newMsg:'Nuevo mensaje',
+    heading:'Envía un mensaje privado. Una sola vez.',
+    sub:'Escribe tu mensaje y crearemos un enlace seguro de un solo uso. El destinatario lo abre una vez — después, el enlace deja de funcionar para siempre. Sin cuenta necesaria.',
+    sectionLabel:'Nuevo mensaje',
+    expiryLabel:'Vence el enlace',
+    expiryAfterRead:'Tras la lectura',
+    expiry24h:'Tras la lectura o en 24 horas',
+    expiry1h:'Tras la lectura o en 1 hora',
+    pwSectionLabel:'Protección por contraseña',
+    pwToggle:'Requerir una contraseña para abrir este mensaje',
+    pwTypePw:'🔑 Contraseña',
+    pwTypePin:'🔢 PIN de 4 dígitos',
+    pwPlaceholder:'Introduce una contraseña…',
+    pwHintPw:'Comparte esta contraseña por separado — no la incluyas en el mensaje.',
+    pwHintPin:'Comparte este PIN por separado — no lo incluyas en el mensaje.',
+    createBtn:'Crear enlace seguro',
+    pwGateTitle:'Contraseña requerida',
+    pwGateBodyPw:'Este mensaje está protegido. Introduce la contraseña que te proporcionó el remitente.',
+    pwGateBodyPin:'Este mensaje está protegido. Introduce el PIN de 4 dígitos que te proporcionó el remitente.',
+    unlockBtn:'Desbloquear mensaje',
+    readyTitle:'Tienes un mensaje privado',
+    readyBody:'Alguien te envió un mensaje seguro. Solo puedes abrirlo <strong>una vez</strong> — después, este enlace dejará de funcionar permanentemente.',
+    openBtn:'Abrir mensaje',
+    openWarning:'Esta acción no se puede deshacer. El enlace expirará inmediatamente.',
+    burnedTitle:'Este enlace ya fue usado',
+    burnedBody:'Este mensaje ya fue abierto y ya no está disponible. Por seguridad, cada enlace solo puede usarse una vez.',
+    invalidTitle:'Enlace no reconocido',
+    invalidBody:'Este enlace no parece válido. Puede haberse copiado incorrectamente o modificado. Pide al remitente que lo comparta de nuevo.',
+    expiredTitle:'Este enlace ha expirado',
+    expiredBody:'El tiempo límite fijado por el remitente ha pasado. Este mensaje ya no está disponible.',
+    dberrorTitle:'Algo salió mal',
+    dberrorBody:'No pudimos verificar este enlace ahora mismo. Por tu seguridad, los mensajes no se pueden abrir hasta que nuestro servicio esté disponible. Inténtalo de nuevo en un momento.',
+    decryptedNotice:'Este enlace ha sido desactivado permanentemente. Cualquiera que intente abrirlo de nuevo — en cualquier dispositivo o red — lo verá como expirado.',
+    decryptedBurned:'Este enlace ha expirado y ya no puede ser accedido',
+    decryptedMsgHeader:'mensaje seguro — abierto una vez',
+    goHome:'Envía tu propio mensaje',
+    sendNew:'Enviar un nuevo mensaje',
+    goHomeBtn:'Inicio',
+    retryBtn:'Reintentar',
+    footerLeft:'ghostlink · aplicado en servidor · cifrado de extremo a extremo',
+    footerNew:'Nuevo mensaje',
+    footerAbout:'Acerca de',
+    howTitle:'Cómo funciona',
+    step1n:'01', step1l:'Escribe tu mensaje', step1d:'Escribe lo que quieres enviar. Todo permanece en tu navegador hasta que estés listo.',
+    step2n:'02', step2l:'Asegurado automáticamente', step2d:'Tu mensaje se cifra con encriptación fuerte antes de salir de tu dispositivo. Nadie más puede leerlo.',
+    step3n:'03', step3l:'Comparte el enlace', step3d:'Obtienes un enlace privado para enviar. El contenido de tu mensaje nunca viaja por nuestros servidores.',
+    step4n:'04', step4l:'Se abre una vez, luego desaparece', step4d:'En el momento en que el destinatario lo abre, el enlace se desactiva permanentemente — en todos los dispositivos, en todas partes.',
+    noLoophole:'<strong style="color:var(--text-dim)">Sin lagunas:</strong> La expiración se aplica en nuestros servidores. Vaciar la caché, cambiar de dispositivo o de red no puede reabrir un mensaje que ya fue leído.',
+    aboutText:'GhostLink — Mensajes privados de un solo uso\n\n• Los mensajes se aseguran en tu navegador antes de enviarse\n• Cada enlace funciona una vez — después expira permanentemente\n• La expiración se aplica en nuestros servidores\n• El contenido de tu mensaje nunca pasa por nuestros servidores',
+    creatingLink:'Creando enlace…',
+    openingMsg:'Abriendo mensaje…',
+    destroyingLink:'Destruyendo enlace…',
+    checking:'Verificando…',
+    enterMsg:'Escribe un mensaje primero.',
+    enterPw:'Por favor introduce una contraseña.',
+    enterPin:'Por favor introduce un PIN de 4 dígitos.',
+    incorrectPw:'Contraseña incorrecta. Inténtalo de nuevo.',
+    incorrectPin:'PIN incorrecto. Inténtalo de nuevo.',
+    attemptsLeft:n => n + ' intento' + (n===1?'':'s') + ' restante' + (n===1?'':'s'),
+    enterAllDigits:'Por favor introduce los 4 dígitos.',
+    enterPassword:'Por favor introduce la contraseña.',
+  },
+  ar: {
+    flag:'🇸🇦', label:'AR', dir:'rtl',
+    badge:'تشفير من طرف إلى طرف',
+    newMsg:'رسالة جديدة',
+    heading:'أرسل رسالة خاصة. مرة واحدة فقط.',
+    sub:'اكتب رسالتك وسنُنشئ رابطاً آمناً يُستخدم مرة واحدة. يفتحه المستلم مرة واحدة — وبعدها يتوقف الرابط عن العمل إلى الأبد. لا حساب مطلوب.',
+    sectionLabel:'رسالة جديدة',
+    expiryLabel:'انتهاء صلاحية الرابط',
+    expiryAfterRead:'بعد القراءة',
+    expiry24h:'بعد القراءة أو خلال 24 ساعة',
+    expiry1h:'بعد القراءة أو خلال ساعة',
+    pwSectionLabel:'الحماية بكلمة مرور',
+    pwToggle:'طلب كلمة مرور لفتح هذه الرسالة',
+    pwTypePw:'🔑 كلمة مرور',
+    pwTypePin:'🔢 رمز PIN من 4 أرقام',
+    pwPlaceholder:'أدخل كلمة مرور…',
+    pwHintPw:'شارك كلمة المرور بشكل منفصل — لا تضمّنها في الرسالة.',
+    pwHintPin:'شارك رمز PIN بشكل منفصل — لا تضمّنه في الرسالة.',
+    createBtn:'إنشاء رابط آمن',
+    pwGateTitle:'كلمة المرور مطلوبة',
+    pwGateBodyPw:'هذه الرسالة محمية. أدخل كلمة المرور التي زوّدك بها المُرسِل للمتابعة.',
+    pwGateBodyPin:'هذه الرسالة محمية. أدخل رمز PIN المكوّن من 4 أرقام الذي زوّدك به المُرسِل للمتابعة.',
+    unlockBtn:'فتح الرسالة',
+    readyTitle:'لديك رسالة خاصة',
+    readyBody:'أرسل إليك شخص ما رسالة آمنة. يمكنك فتحها <strong>مرة واحدة فقط</strong> — بعد ذلك سيتوقف هذا الرابط عن العمل نهائياً.',
+    openBtn:'فتح الرسالة',
+    openWarning:'لا يمكن التراجع عن هذا الإجراء. سينتهي الرابط على الفور.',
+    burnedTitle:'تم استخدام هذا الرابط مسبقاً',
+    burnedBody:'تم فتح هذه الرسالة مسبقاً ولم تعد متاحة. لأسباب أمنية، يمكن استخدام كل رابط مرة واحدة فقط.',
+    invalidTitle:'الرابط غير معروف',
+    invalidBody:'لا يبدو هذا الرابط صالحاً. ربما نُسخ بشكل غير صحيح أو تم تعديله. اطلب من المُرسِل مشاركته مجدداً.',
+    expiredTitle:'انتهت صلاحية هذا الرابط',
+    expiredBody:'انتهى الوقت المحدد من قِبَل المُرسِل. لم تعد هذه الرسالة متاحة.',
+    dberrorTitle:'حدث خطأ ما',
+    dberrorBody:'تعذّر علينا التحقق من هذا الرابط الآن. لأمانك، لا يمكن فتح الرسائل حتى تكون خدمتنا متاحة. يرجى المحاولة مرة أخرى.',
+    decryptedNotice:'تم تعطيل هذا الرابط الآن بشكل دائم. أي شخص يحاول فتحه مجدداً — على أي جهاز أو شبكة — سيجده منتهي الصلاحية.',
+    decryptedBurned:'انتهت صلاحية هذا الرابط ولم يعد يمكن الوصول إليه',
+    decryptedMsgHeader:'رسالة آمنة — فُتحت مرة واحدة',
+    goHome:'أرسل رسالتك الخاصة',
+    sendNew:'إرسال رسالة جديدة',
+    goHomeBtn:'الصفحة الرئيسية',
+    retryBtn:'إعادة المحاولة',
+    footerLeft:'ghostlink · مطبّق على الخادم · تشفير من طرف إلى طرف',
+    footerNew:'رسالة جديدة',
+    footerAbout:'حول',
+    howTitle:'كيف يعمل',
+    step1n:'01', step1l:'اكتب رسالتك', step1d:'اكتب ما تريد إرساله. يبقى كل شيء في متصفحك حتى تكون مستعداً.',
+    step2n:'02', step2l:'مُؤمَّن تلقائياً', step2d:'تُشفَّر رسالتك بتشفير قوي قبل مغادرتها جهازك. لا أحد آخر يمكنه قراءتها.',
+    step3n:'03', step3l:'شارك الرابط', step3d:'تحصل على رابط خاص لإرساله. محتوى رسالتك لا يمر أبداً عبر خوادمنا.',
+    step4n:'04', step4l:'يُفتح مرة واحدة ثم يختفي', step4d:'في اللحظة التي يفتحه فيها المستلم، يُعطَّل الرابط نهائياً — على كل جهاز، في كل مكان.',
+    noLoophole:'<strong style="color:var(--text-dim)">لا ثغرات:</strong> يتم تطبيق انتهاء الصلاحية على خوادمنا. مسح ذاكرة التخزين المؤقت أو تغيير الأجهزة أو الشبكات لا يمكنه إعادة فتح رسالة تمت قراءتها.',
+    aboutText:'GhostLink — رسائل خاصة تُستخدم مرة واحدة\n\n• تُؤمَّن الرسائل في متصفحك قبل الإرسال\n• كل رابط يعمل مرة واحدة — وبعدها ينتهي صلاحيته نهائياً\n• يتم تطبيق الانتهاء على خوادمنا\n• محتوى رسالتك لا يمر أبداً عبر خوادمنا',
+    creatingLink:'جارٍ إنشاء الرابط…',
+    openingMsg:'جارٍ فتح الرسالة…',
+    destroyingLink:'جارٍ حذف الرابط…',
+    checking:'جارٍ التحقق…',
+    enterMsg:'أدخل رسالة أولاً.',
+    enterPw:'يرجى إدخال كلمة المرور.',
+    enterPin:'يرجى إدخال رمز PIN من 4 أرقام.',
+    incorrectPw:'كلمة المرور غير صحيحة. يرجى المحاولة مجدداً.',
+    incorrectPin:'رمز PIN غير صحيح. يرجى المحاولة مجدداً.',
+    attemptsLeft:n => n + (n===1?' محاولة متبقية':' محاولات متبقية'),
+    enterAllDigits:'يرجى إدخال الأرقام الأربعة كاملة.',
+    enterPassword:'يرجى إدخال كلمة المرور.',
+  }
+};
+
+let currentLang = 'en';
+
+function t(key) {
+  return (LANGS[currentLang] || LANGS.en)[key] || LANGS.en[key] || key;
+}
+
+function toggleLangMenu() {
+  const sw = document.getElementById('lang-switcher');
+  const btn = document.getElementById('lang-btn');
+  const isOpen = sw.classList.toggle('open');
+  btn.setAttribute('aria-expanded', isOpen);
+  if (isOpen) {
+    const close = e => { if (!sw.contains(e.target)) { sw.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.removeEventListener('click', close); } };
+    setTimeout(() => document.addEventListener('click', close), 0);
+  }
+}
+
+function setLang(lang) {
+  if (!LANGS[lang]) return;
+  currentLang = lang;
+  const L = LANGS[lang];
+  // Update switcher UI
+  document.getElementById('lang-current-flag').textContent = L.flag;
+  document.getElementById('lang-current-label').textContent = L.label;
+  document.querySelectorAll('.lang-option').forEach(el => el.classList.toggle('active', el.dataset.lang === lang));
+  document.getElementById('lang-switcher').classList.remove('open');
+  document.getElementById('lang-btn').setAttribute('aria-expanded','false');
+  // Apply RTL/LTR
+  document.documentElement.lang = lang;
+  document.documentElement.dir = L.dir;
+  // Update all UI strings
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const L = LANGS[currentLang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = L[key];
+    if (val === undefined) return;
+    if (el.tagName === 'INPUT' && el.type !== 'radio' && el.type !== 'checkbox') {
+      el.placeholder = val;
+    } else {
+      el.innerHTML = val;
+    }
+  });
+  // pw-hint changes with active pw type
+  document.getElementById('pw-hint').textContent = pwType === 'pin' ? t('pwHintPin') : t('pwHintPw');
+  // how-section steps
+  [1,2,3,4].forEach(n => {
+    const num = document.querySelector(`.step-cell:nth-child(${n}) .step-num`);
+    const lbl = document.querySelector(`.step-cell:nth-child(${n}) .step-label`);
+    const det = document.querySelector(`.step-cell:nth-child(${n}) .step-detail`);
+    const s = String(n);
+    if (num) num.textContent = L['step'+s+'n'];
+    if (lbl) lbl.textContent = L['step'+s+'l'];
+    if (det) det.textContent = L['step'+s+'d'];
+  });
+  // how-section title and notice
+  const howTitle = document.querySelector('.how-section-title');
+  if (howTitle) howTitle.textContent = L.howTitle;
+  const noLoophole = document.querySelector('.how-section .notice span');
+  if (noLoophole) noLoophole.innerHTML = L.noLoophole;
+}
+
+// ═══════════════════════════════════════════════
+//  INIT  — check server FIRST, then show state
+// ═══════════════════════════════════════════════
 (function init() {
   const frag = window.location.hash;
   if (!frag || frag === '#') {
