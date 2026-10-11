@@ -465,22 +465,16 @@ const TABLE = 'burns';  // table name in your Supabase database
 // ═══════════════════════════════════════════════
 //  SUPABASE HELPERS  (direct REST API — no SDK needed)
 // ═══════════════════════════════════════════════
-
-// Returns true only if the message has been fully consumed (burned=true).
-// A row that only has failed attempts (burned=false) is NOT considered burned.
 async function sbGet(burnId) {
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=burned`,
+    `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=burn_id`,
     { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
   );
   if (!res.ok) throw new Error('db_read_failed');
   const rows = await res.json();
-  if (rows.length === 0) return false;
-  return rows[0].burned === true;
+  return rows.length > 0; // true = already burned
 }
 
-// Marks the message as fully consumed. Uses upsert so it works whether
-// a row already exists (from failed attempts) or not.
 async function sbSet(burnId) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/${TABLE}`,
@@ -490,11 +484,12 @@ async function sbSet(burnId) {
         apikey: SUPABASE_KEY,
         Authorization: `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json',
-        Prefer: 'resolution=merge-duplicates,return=minimal'
+        Prefer: 'return=minimal'
       },
-      body: JSON.stringify({ burn_id: burnId, burned: true, burned_at: new Date().toISOString() })
+      body: JSON.stringify({ burn_id: burnId, burned_at: new Date().toISOString() })
     }
   );
+  // 201 = inserted, 409 = already exists (duplicate — still burned)
   if (!res.ok && res.status !== 409) throw new Error('db_write_failed');
   return true;
 }
@@ -775,12 +770,12 @@ async function hashPassword(raw) {
 // ═══════════════════════════════════════════════
 let gateType = 'password'; // set when link is parsed
 let correctHash = '';      // expected hash from fragment
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 3;
 let pendingParsed = null;  // parsed fragment held until password verified
 let pwAttempts = 0;
 
 // ── Supabase attempt tracking ──────────────────
-// Reads current failed-attempt count. Returns 0 if no row yet.
+// Reads current attempt count for this link from Supabase
 async function sbGetAttempts(burnId) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=attempts`,
@@ -792,20 +787,12 @@ async function sbGetAttempts(burnId) {
   return parseInt(rows[0].attempts || 0, 10);
 }
 
-// Upserts a row incrementing only the attempts counter.
-// burned stays false (or whatever it already is) — this must NOT mark the link as consumed.
+// Upserts a row with incremented attempt count
 async function sbIncrementAttempts(burnId) {
-  // Try to read current value first
-  const getRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=attempts`,
-    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-  );
-  const rows = getRes.ok ? await getRes.json() : [];
-  const next = parseInt((rows[0] || {}).attempts || 0, 10) + 1;
-
-  if (rows.length === 0) {
-    // No row yet — insert with burned=false so sbGet() won't treat it as consumed
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+  // First try to insert a new row with attempts=1
+  const insertRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/${TABLE}`,
+    {
       method: 'POST',
       headers: {
         apikey: SUPABASE_KEY,
@@ -813,11 +800,21 @@ async function sbIncrementAttempts(burnId) {
         'Content-Type': 'application/json',
         Prefer: 'return=minimal'
       },
-      body: JSON.stringify({ burn_id: burnId, burned: false, attempts: next })
-    });
-  } else {
-    // Row exists — patch only the attempts column, leave burned untouched
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}`, {
+      body: JSON.stringify({ burn_id: burnId, attempts: 1 })
+    }
+  );
+  if (insertRes.ok || insertRes.status === 201) return 1;
+  // Row already exists — increment attempts using PATCH
+  const getRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=attempts`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  const rows = await getRes.json();
+  const current = parseInt((rows[0] || {}).attempts || 0, 10);
+  const next = current + 1;
+  await fetch(
+    `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}`,
+    {
       method: 'PATCH',
       headers: {
         apikey: SUPABASE_KEY,
@@ -826,8 +823,8 @@ async function sbIncrementAttempts(burnId) {
         Prefer: 'return=minimal'
       },
       body: JSON.stringify({ attempts: next })
-    });
-  }
+    }
+  );
   return next;
 }
 
