@@ -456,9 +456,18 @@ const TABLE = 'burns';  // table name in your Supabase database
 async function sbGet(burnId) {
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/${TABLE}?burn_id=eq.${encodeURIComponent(burnId)}&select=burn_id`,
-    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    { headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        Accept: 'application/json',
+        'Accept-Profile': 'public'
+    } }
   );
-  if (!res.ok) throw new Error('db_read_failed');
+  if (!res.ok) {
+    const body = await res.text();
+    console.error('sbGet failed', res.status, body);
+    throw new Error('db_read_failed:' + res.status);
+  }
   const rows = await res.json();
   return rows.length > 0; // true = already burned
 }
@@ -472,13 +481,18 @@ async function sbSet(burnId) {
         apikey: SUPABASE_KEY,
         Authorization: `Bearer ${SUPABASE_KEY}`,
         'Content-Type': 'application/json',
+        'Content-Profile': 'public',
         Prefer: 'return=minimal'
       },
       body: JSON.stringify({ burn_id: burnId, burned_at: new Date().toISOString() })
     }
   );
   // 201 = inserted, 409 = already exists (duplicate — still burned)
-  if (!res.ok && res.status !== 409) throw new Error('db_write_failed');
+  if (!res.ok && res.status !== 409) {
+    const body = await res.text();
+    console.error('sbSet failed', res.status, body);
+    throw new Error('db_write_failed:' + res.status);
+  }
   return true;
 }
 
@@ -891,6 +905,14 @@ async function proceedReveal() {
 
   try {
     await sbSet(getBurnId(fragRaw));
+  } catch(err) {
+    console.error('sbSet error:', err.message);
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Reveal message`;
+    showState('dberror');
+    return;
+  }
+  try {
     const key = await importKey(parsed.keyB64);
     const plaintext = await decryptMessage(parsed.ivB64, parsed.ctB64, key);
     document.getElementById('decrypted-text').textContent = plaintext;
@@ -901,6 +923,7 @@ async function proceedReveal() {
     window.history.replaceState(null, '', window.location.pathname);
     pendingParsed = null;
   } catch(err) {
+    console.error('decrypt error:', err.message);
     document.getElementById('invalid-reason').textContent =
       'We were unable to open this message. The link may be incomplete or corrupted. It has been disabled for your security.';
     showState('invalid');
